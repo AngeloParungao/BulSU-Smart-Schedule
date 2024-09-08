@@ -2,16 +2,19 @@ const express = require('express');
 const db = require('../database');
 const router = express.Router();
 
-router.get('/fetch', (req, res) => {
-    const sql = "SELECT * FROM users";
+router.put('/update/:id', (req, res) => {
+    const userId = req.params.id;
+    const { password } = req.body;
 
-    db.query(sql, (err, results) => {
+    const sql = "UPDATE users SET password = ? WHERE user_id = ?";
+
+    db.query(sql, [password, userId], (err, result) => {
         if (err) {
-            console.error('Error fetching users:', err);
-            return res.status(500).json({ error: 'Failed to fetch users' });
+            console.error('Error updating user:', err);
+            return res.status(500).json({ error: 'Failed to update user' });
         }
-        res.status(200).json(results);
-    });
+        res.status(200).json({ message: 'User updated successfully' });
+    }); 
 });
 
 module.exports = router;
