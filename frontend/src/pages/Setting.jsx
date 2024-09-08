@@ -25,8 +25,8 @@ function Settings() {
           .then((response) => {
             const user = response.data.find((u) => u.user_id === userId);
             if (user) {
-              const { email, password } = user;
-              setCredentials({ email, password });
+              const { email } = user;
+              setCredentials((prevState) => ({ ...prevState, email }));
             } else {
               toast.error("User not found.");
             }
@@ -65,29 +65,29 @@ function Settings() {
     }
   };
 
+  //TODO: add password reset
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (credentials.old_password !== credentials.password) {
-        toast.error("Old password do not match.");
-        return;
-      }
       if (credentials.new_password !== credentials.confirm_password) {
         toast.error("Passwords do not match.");
         return;
       }
+
       const userToken = localStorage.getItem("userToken");
       if (userToken) {
         const userId = JSON.parse(atob(userToken));
         await axios.put(`${url}api/auth/update`, {
           user_id: userId,
-          password: credentials.password,
+          old_password: credentials.old_password,
+          new_password: credentials.new_password,
         });
         toast.success("Password updated successfully!");
       } else {
         toast.error("User not logged in.");
       }
     } catch (error) {
+      console.error("Error updating password:", error);
       toast.error("Error updating password. Please try again.");
     }
   };

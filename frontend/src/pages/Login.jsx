@@ -10,7 +10,6 @@ import { RotatingLines } from "react-loader-spinner";
 function Login() {
   const url = process.env.REACT_APP_URL;
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState([]);
   const navigate = useNavigate();
 
   const [credentials, setCredentials] = useState({
@@ -25,44 +24,43 @@ function Login() {
       navigate("/home");
       return;
     }
+  }, []);
 
-    // Fetch all users
-    axios
-      .get(`${url}api/auth/fetch`)
-      .then((res) => setUsers(res.data))
-      .catch((err) => {
-        console.error("Failed to fetch users:", err);
-      });
-  }, [navigate, url]);
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
+    try {
+      // Post credentials to the login endpoint
+      const response = await axios.post(`${url}api/auth/login`, {
+        email: credentials.email,
+        password: credentials.password,
+      });
 
-    // Check if credentials are valid
-    const user = users.find(
-      (user) =>
-        user.email === credentials.email &&
-        user.password === credentials.password
-    );
+      // Check if login was successful
+      if (response.data) {
+        const { user_id, department_code } = response.data;
 
-    // If credentials are valid, login
-    if (user) {
-      setTimeout(() => {
-        setLoading(false);
-        toast.success("Login Successful!");
-      }, 2000);
-      setTimeout(() => {
-        localStorage.setItem("userToken", btoa(user.user_id));
-        localStorage.setItem("userDept", btoa(user.department_code));
-        navigate("/home");
-      }, 3000);
-    } else {
-      setTimeout(() => {
-        setLoading(false);
+        localStorage.setItem("userToken", btoa(user_id));
+        localStorage.setItem("userDept", btoa(department_code));
+
         setCredentials({ email: "", password: "" });
+
+        // Delay showing success message and navigating
+        setTimeout(() => {
+          setLoading(false);
+          toast.success("Login Successful!");
+
+          setTimeout(() => {
+            navigate("/home");
+          }, 2000); // Delay before navigation
+        }, 2000); // Delay before showing success message
+      }
+    } catch (error) {
+      setTimeout(() => {
+        setLoading(false);
         toast.error("Invalid email or password");
-      }, 2000);
+        setCredentials({ email: "", password: "" });
+      }, 2000); // Delay before showing error message
     }
   };
 
