@@ -24,7 +24,7 @@ function Sidebar() {
 
   useEffect(() => {
     axios
-      .get(`${url}api/auth/fetch`)
+      .get(`${url}api/users/fetch`)
       .then((res) => {
         setUsers(res.data);
       })

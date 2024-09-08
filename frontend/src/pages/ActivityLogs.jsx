@@ -27,7 +27,7 @@ function ActivityLog() {
     try {
       const [activityRes, userRes] = await Promise.all([
         axios.get(`${url}api/activity/fetch?dept_code=${currentDepartment}`),
-        axios.get(`${url}api/auth/fetch`),
+        axios.get(`${url}api/users/fetch`),
       ]);
       setActivity(activityRes.data);
       setUser(userRes.data);

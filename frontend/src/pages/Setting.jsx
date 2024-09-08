@@ -9,6 +9,9 @@ function Settings() {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
+    old_password: "",
+    new_password: "",
+    confirm_password: "",
   });
 
   useEffect(() => {
@@ -18,7 +21,7 @@ function Settings() {
       try {
         const userId = JSON.parse(atob(userToken));
         axios
-          .get(`${url}api/auth/fetch`)
+          .get(`${url}api/users/fetch`)
           .then((response) => {
             const user = response.data.find((u) => u.user_id === userId);
             if (user) {
@@ -39,7 +42,7 @@ function Settings() {
     } else {
       toast.error("User not logged in.");
     }
-  }, [url]);
+  }, []);
 
   const handleBackgroundColorChange = (color) => {
     document.body.classList.remove("default", "gray", "red", "green");
@@ -62,6 +65,33 @@ function Settings() {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (credentials.old_password !== credentials.password) {
+        toast.error("Old password do not match.");
+        return;
+      }
+      if (credentials.new_password !== credentials.confirm_password) {
+        toast.error("Passwords do not match.");
+        return;
+      }
+      const userToken = localStorage.getItem("userToken");
+      if (userToken) {
+        const userId = JSON.parse(atob(userToken));
+        await axios.put(`${url}api/auth/update`, {
+          user_id: userId,
+          password: credentials.password,
+        });
+        toast.success("Password updated successfully!");
+      } else {
+        toast.error("User not logged in.");
+      }
+    } catch (error) {
+      toast.error("Error updating password. Please try again.");
+    }
+  };
+
   return (
     <div className="h-[100dvh] flex bg-[var(--background-color)] text-[var(--text-color)]">
       <div className="z-10 fixed lg:relative top-0 left-0">
@@ -76,7 +106,10 @@ function Settings() {
             <h3 className="self-start text-xl font-bold text-black">
               Settings
             </h3>
-            <div className="flex flex-col w-full gap-2">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col w-full gap-2"
+            >
               <label htmlFor="email" className="text-sm text-gray-500">
                 Email:
               </label>
@@ -85,6 +118,7 @@ function Settings() {
                 id="email"
                 className="w-full p-2 pl-5 text-sm text-gray-500 bg-gray-100 rounded-md placeholder:text-gray-400 focus:outline-green-800 focus:text-green-800"
                 value={credentials.email}
+                readOnly
                 disabled
                 placeholder="Email"
               />
@@ -97,6 +131,13 @@ function Settings() {
               <input
                 type="password"
                 id="current-password"
+                value={credentials.old_password || ""}
+                onChange={(e) => {
+                  setCredentials({
+                    ...credentials,
+                    old_password: e.target.value,
+                  });
+                }}
                 className="w-full p-2 pl-5 text-sm text-black bg-gray-100 rounded-md placeholder:text-gray-400 focus:outline-green-800 focus:text-green-800"
                 placeholder="Current Password"
               />
@@ -106,6 +147,13 @@ function Settings() {
               <input
                 type="password"
                 id="new-password"
+                value={credentials.new_password || ""}
+                onChange={(e) => {
+                  setCredentials({
+                    ...credentials,
+                    new_password: e.target.value,
+                  });
+                }}
                 className="w-full p-2 pl-5 text-sm text-black bg-gray-100 rounded-md placeholder:text-gray-400 focus:outline-green-800 focus:text-green-800"
                 placeholder="New Password"
               />
@@ -118,18 +166,23 @@ function Settings() {
               <input
                 type="password"
                 id="confirm-password"
+                value={credentials.confirm_password || ""}
+                onChange={(e) => {
+                  setCredentials({
+                    ...credentials,
+                    confirm_password: e.target.value,
+                  });
+                }}
                 className="w-full p-2 pl-5 text-sm text-black bg-gray-100 rounded-md placeholder:text-gray-400 focus:outline-green-800 focus:text-green-800"
                 placeholder="Confirm Password"
               />
-            </div>
-            <div className="flex flex-col w-full gap-2 pt-5">
-              <button className="w-full bg-red-600 text-sm text-white font-medium p-2 rounded-md hover:bg-red-700 hover:cursor-pointer">
+              <button className="w-full bg-red-600 text-sm text-white font-medium p-2 rounded-md hover:bg-red-700 hover:cursor-pointer mt-3">
                 Change Password
               </button>
-              <button className="w-full bg-red-600 text-sm text-white font-medium p-2 rounded-md hover:bg-red-700 hover:cursor-pointer">
-                Reset All Schedule
-              </button>
-            </div>
+            </form>
+            <button className="w-full bg-red-600 text-sm text-white font-medium p-2 rounded-md hover:bg-red-700 hover:cursor-pointer">
+              Reset All Schedule
+            </button>
           </div>
           <div className="flex flex-col justify-between items-center p-5 bg-white rounded-xl shadow-md w-[25rem] h-[30rem] gap-2">
             <h3 className="self-start text-xl font-bold mt-3 text-black">

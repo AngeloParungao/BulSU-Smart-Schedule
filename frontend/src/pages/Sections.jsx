@@ -128,7 +128,7 @@ const Sections = () => {
   const handlePasswordSubmit = async (password) => {
     try {
       // Fetch user data to validate password
-      const response = await axios.get(`${url}api/auth/fetch`);
+      const response = await axios.get(`${url}api/user/fetch`);
       const user = response.data.find((user) => user.user_id === currentUser);
 
       if (user) {
