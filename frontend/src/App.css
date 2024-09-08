@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    font-family: "Poppins", sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+/* Themes */
+.default {
+    --background-color: #f9f9f9;
+    --modal-color: #f9f9f9;
+    --text-color: #4d4d4d;
+    --active: white;
+}
+  
+.gray {
+    --background-color: #4d4d4d;
+    --modal-color: rgb(223, 223, 223);
+    --text-color: white;
+    --active: blue;
+}
+  
+.red {
+    --background-color: rgb(202, 102, 102);
+    --modal-color: rgb(202, 102, 102);
+    --text-color: white;
+    --active: white;
+}
+  
+.green {
+    --background-color: rgb(85, 129, 85);
+    --modal-color: rgb(85, 129, 85);
+    --text-color: white;
+    --active: white;
+}
+
+.scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(2, 112, 30);
+    border-radius: 20px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+}
+
+.timetable{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .timetable table {
+    border-collapse: collapse;
+    width: 90%;
+    height: 100%;
+    table-layout: fixed;
+  }
+    
+  .timetable th,
+  .timetable td   {
+    border: 1px solid #a5a5a5;
+    text-align: center;
+  }
+  
+  .timetable th {
+    font-size: 1.2vw;
+    font-weight: 500;
+    padding: 0.2rem;
+    color: var(--text-color);
+    background-color: var(--background-color);
+  }
+
+  .timetable td{
+    padding: 0.1rem 0.3rem;
+  }
+
+  .time{
+    font-size: 1vw; 
+    /*font-size: 0.85rem;*/
+    color: var(--text-color);
+  }
+
+  .instructor-name{
+    font-size: 0.7vw;
+    font-weight: 600;
+  }
+
+  .section-name{
+    font-size: 0.7vw;
+    font-weight: 500;
+  }
+
+  .subject-name{
+    font-size: 1vw;
+    font-weight: 600;
+  }
+
+  .room-name{
+    font-size: 0.65vw;
+  }
