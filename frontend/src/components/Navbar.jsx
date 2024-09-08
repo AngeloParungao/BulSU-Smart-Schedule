@@ -28,8 +28,22 @@ function Navbar() {
         >
           Instructors
         </NavLink>
-        <NavLink to="/sections">Sections</NavLink>
-        <NavLink to="/subjects">Subjects</NavLink>
+        <NavLink
+          to="/sections"
+          className={({ isActive }) =>
+            isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
+          }
+        >
+          Sections
+        </NavLink>
+        <NavLink
+          to="/subjects"
+          className={({ isActive }) =>
+            isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
+          }
+        >
+          Subjects
+        </NavLink>
         <NavLink
           to="/rooms"
           className={({ isActive }) =>
