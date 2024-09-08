@@ -17,7 +17,7 @@ const Sections = () => {
   const [sections, setSections] = useState([]);
   const [sectionIdToUpdate, setSectionIdToUpdate] = useState("");
   const [selectedSections, setSelectedSections] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState("Ascending");
+  const [selectedYear, setSelectedYear] = useState("All");
   const [data, setData] = useState({
     section_name: "",
     section_group: "Group 1",
@@ -55,13 +55,18 @@ const Sections = () => {
   };
 
   const filterSections = sections
-    .filter(
-      (section) =>
+    .filter((section) => {
+      const matchesSearch =
         section.section_name.toLowerCase().includes(search.toLowerCase()) ||
         section.section_group.toLowerCase().includes(search.toLowerCase()) ||
         section.year_level.toLowerCase().includes(search.toLowerCase()) ||
-        section.section_tags.toLowerCase().includes(search.toLowerCase())
-    )
+        section.section_tags.toLowerCase().includes(search.toLowerCase());
+
+      const matchesYear =
+        selectedYear === "All" || section.year_level === selectedYear;
+
+      return matchesSearch && matchesYear;
+    })
     .sort((a, b) => {
       // Priority sorting for groups
       const groupOrder = {
@@ -72,15 +77,13 @@ const Sections = () => {
       const groupA = groupOrder[a.section_group] || 3;
       const groupB = groupOrder[b.section_group] || 3;
 
+      // First, compare based on group priority
       if (groupA !== groupB) {
         return groupA - groupB;
       }
 
-      if (selectedOrder === "Ascending") {
-        return a.year_level.localeCompare(b.year_level);
-      } else {
-        return b.year_level.localeCompare(a.year_level);
-      }
+      // If the groups are the same, sort by section name or other criteria
+      return a.section_name.localeCompare(b.section_name);
     });
 
   const selectAll = () => {
@@ -373,11 +376,14 @@ const Sections = () => {
                   <select
                     className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     id="order"
-                    value={selectedOrder}
-                    onChange={(e) => setSelectedOrder(e.target.value)}
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
                   >
-                    <option value="Ascending">Ascending</option>
-                    <option value="Descending">Descending</option>
+                    <option value="All">All</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
                   </select>
                 </div>
               </div>

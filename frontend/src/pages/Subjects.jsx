@@ -17,6 +17,7 @@ const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
   const [subjectIdToUpdate, setSubjectIdToUpdate] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [selectedYear, setSelectedYear] = useState("All");
   const [data, setData] = useState({
     subject_name: "",
     subject_code: "",
@@ -55,15 +56,20 @@ const Subjects = () => {
     setIsUpdating(false);
   };
 
-  const filterSubjects = subjects.filter(
-    (subject) =>
+  const filterSubjects = subjects.filter((subject) => {
+    const matchesSearch =
       subject.subject_name.toLowerCase().includes(search.toLowerCase()) ||
       subject.subject_code.toLowerCase().includes(search.toLowerCase()) ||
       subject.year_level.toLowerCase().includes(search.toLowerCase()) ||
       subject.subject_type.toLowerCase().includes(search.toLowerCase()) ||
-      subject.subject_units.toLowerCase().includes(search.toLowerCase()) ||
-      subject.subject_tags.toLowerCase().includes(search.toLowerCase())
-  );
+      subject.subject_units.toString().includes(search) ||
+      subject.subject_tags.toLowerCase().includes(search.toLowerCase());
+
+    const matchesYear =
+      selectedYear === "All" || subject.year_level === selectedYear;
+
+    return matchesSearch && matchesYear;
+  });
 
   const selectAll = () => {
     if (selectedSubjects.length === filterSubjects.length) {
@@ -168,7 +174,7 @@ const Subjects = () => {
         await axios.put(`${url}api/subjects/update/${subjectIdToUpdate}`, data);
         toast.success("Subject updated successfully!");
       } else {
-        await axios.post(`${url}api/instructors/adding`, data);
+        await axios.post(`${url}api/subjects/adding`, data);
         toast.success("Subject added successfully!");
       }
 
@@ -339,17 +345,36 @@ const Subjects = () => {
           </form>
           <div className="h-full md:flex-1 w-full flex flex-col items-center lg:px-4 px-0 gap-2">
             <div className="relative flex justify-between items-center w-full">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="absolute left-3 text-sm text-gray-300"
-              />
-              <input
-                className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
-                type="text"
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)} // Update search term on input change
-              />
+              <div className="flex items-center gap-4">
+                <FontAwesomeIcon
+                  icon={faSearch}
+                  className="absolute left-3 text-sm text-gray-300"
+                />
+                <input
+                  className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
+                  type="text"
+                  placeholder="Search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)} // Update search term on input change
+                />
+                <div className="flex items-center gap-2">
+                  <label htmlFor="order" className="text-sm text-black">
+                    Year:
+                  </label>
+                  <select
+                    className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    id="order"
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                  >
+                    <option value="All">All</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
+                </div>
+              </div>
               <div className="flex gap-4">
                 <button
                   className="text-orange-500 md:text-sm text-[0.8rem] hover:text-orange-600"
