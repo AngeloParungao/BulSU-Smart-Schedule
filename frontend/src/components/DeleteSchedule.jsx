@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import PasswordPrompt from "./PasswordPrompt";
 import { toast } from "react-hot-toast";
@@ -94,7 +94,7 @@ function DeleteItem({ onClose, schedule }) {
 
           toast.success("Deleted successfully!");
           setSelectedSchedules([]);
-          onClose();
+          setTimeout(onClose, 1000);
         } catch (error) {
           console.error("Error deleting data:", error);
           toast.error("Error deleting schedule.");
