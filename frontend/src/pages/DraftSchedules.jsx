@@ -328,8 +328,7 @@ function DraftSchedules() {
                     )}
                   </select>
                 </div>
-                {currentDepartment !== "CICT" ||
-                currentDepartment !== "CICT" ? null : (
+                {currentDepartment !== "CICT" || currentDepartment !== "CIT" ? (
                   <div className="flex items-center gap-4">
                     <label
                       htmlFor="group"
@@ -360,7 +359,7 @@ function DraftSchedules() {
                       )}
                     </select>
                   </div>
-                )}
+                ) : null}
               </div>
             )}
 
@@ -381,102 +380,75 @@ function DraftSchedules() {
             </div>
           </div>
         </div>
-        <div
-          className="timetable md:h-[calc(100vh-12rem)] h-[calc(100vh-25rem)]"
-          id="scheduleTable"
-        >
-          <table>
-            <thead>
-              <tr>
-                <th></th>
-                {daysOfWeek.map((day) => (
-                  <th key={day}>{day}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {timesOfDay.map((time) => (
-                <tr key={time.startTime}>
-                  <td>
-                    <span className="time">
-                      {time.startTime.slice(0, 2) % 12 || 12}:
-                      {time.startTime.slice(3, 5)}{" "}
-                      {time.startTime.slice(0, 2) >= 12 ? "PM" : "AM"} -{" "}
-                      {time.endTime.slice(0, 2) % 12 || 12}:
-                      {time.endTime.slice(3, 5)}{" "}
-                      {time.endTime.slice(0, 2) >= 12 ? "PM" : "AM"}
-                    </span>
-                  </td>
-                  {daysOfWeek.map((day, dayIndex) => {
-                    if (rowSpans[dayIndex] > 0) {
-                      rowSpans[dayIndex]--;
-                      return null;
-                    }
-
-                    const scheduleItem = schedules.find((item) => {
-                      if (category === "instructor") {
-                        return (
-                          item.start_time === time.startTime &&
-                          item.day === day &&
-                          item.instructor === selectedInstructor
-                        );
-                      } else {
-                        return (
-                          item.start_time === time.startTime &&
-                          item.day === day &&
-                          item.section_name === selectedSection &&
-                          item.section_group === selectedGroup
-                        );
+        <div className="timetable md:h-[calc(100vh-12rem)]" id="scheduleTable">
+          <div className="h-full w-[95%] bg-white p-4 border rounded-lg border-gray-300">
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  {daysOfWeek.map((day) => (
+                    <th key={day}>{day}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {timesOfDay.map((time) => (
+                  <tr key={time.startTime}>
+                    <td>
+                      <span className="time">
+                        {time.startTime.slice(0, 2) % 12 || 12}:
+                        {time.startTime.slice(3, 5)}{" "}
+                        {time.startTime.slice(0, 2) >= 12 ? "PM" : "AM"} -{" "}
+                        {time.endTime.slice(0, 2) % 12 || 12}:
+                        {time.endTime.slice(3, 5)}{" "}
+                        {time.endTime.slice(0, 2) >= 12 ? "PM" : "AM"}
+                      </span>
+                    </td>
+                    {daysOfWeek.map((day, dayIndex) => {
+                      if (rowSpans[dayIndex] > 0) {
+                        rowSpans[dayIndex]--;
+                        return null;
                       }
-                    });
 
-                    let rowSpan = 1;
-                    if (scheduleItem) {
-                      rowSpan = calculateRowSpan(
-                        scheduleItem.start_time,
-                        scheduleItem.end_time
-                      );
-                      rowSpans[dayIndex] = rowSpan - 1;
-                    }
+                      const scheduleItem = schedules.find((item) => {
+                        if (category === "instructor") {
+                          return (
+                            item.start_time === time.startTime &&
+                            item.day === day &&
+                            item.instructor === selectedInstructor
+                          );
+                        } else {
+                          return (
+                            item.start_time === time.startTime &&
+                            item.day === day &&
+                            item.section_name === selectedSection &&
+                            item.section_group === selectedGroup
+                          );
+                        }
+                      });
 
-                    return (
-                      <td
-                        key={`${time.startTime}-${day}`}
-                        rowSpan={rowSpan}
-                        style={{
-                          backgroundColor: scheduleItem?.background_color,
-                        }}
-                        className="sched"
-                      >
-                        {scheduleItem && (
-                          <>
-                            <div
-                              className="subject-name"
-                              style={{
-                                color: isDarkBackground(
-                                  scheduleItem.background_color
-                                )
-                                  ? "white"
-                                  : "black",
-                              }}
-                            >
-                              {scheduleItem.subject}
-                            </div>
-                            <div
-                              className="instructor-name"
-                              style={{
-                                color: isDarkBackground(
-                                  scheduleItem.background_color
-                                )
-                                  ? "white"
-                                  : "black",
-                              }}
-                            >
-                              {scheduleItem.instructor}
-                            </div>
-                            {category === "instructor" && (
+                      let rowSpan = 1;
+                      if (scheduleItem) {
+                        rowSpan = calculateRowSpan(
+                          scheduleItem.start_time,
+                          scheduleItem.end_time
+                        );
+                        rowSpans[dayIndex] = rowSpan - 1;
+                      }
+
+                      return (
+                        <td
+                          key={`${time.startTime}-${day}`}
+                          rowSpan={rowSpan}
+                          style={{
+                            backgroundColor: scheduleItem?.background_color,
+                          }}
+                          className="sched"
+                        >
+                          {scheduleItem && (
+                            <>
                               <div
-                                className="section-name"
+                                className="subject-name"
                                 style={{
                                   color: isDarkBackground(
                                     scheduleItem.background_color
@@ -484,37 +456,63 @@ function DraftSchedules() {
                                     ? "white"
                                     : "black",
                                 }}
-                              >{`${
-                                scheduleItem.section_name
-                              } - ${scheduleItem.section_group.slice(
-                                0,
-                                1
-                              )}${scheduleItem.section_group.slice(
-                                6,
-                                7
-                              )}`}</div>
-                            )}
-                            <div
-                              className="room-name"
-                              style={{
-                                color: isDarkBackground(
-                                  scheduleItem.background_color
-                                )
-                                  ? "white"
-                                  : "black",
-                              }}
-                            >
-                              ({scheduleItem.room})
-                            </div>
-                          </>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                              >
+                                {scheduleItem.subject}
+                              </div>
+                              <div
+                                className="instructor-name"
+                                style={{
+                                  color: isDarkBackground(
+                                    scheduleItem.background_color
+                                  )
+                                    ? "white"
+                                    : "black",
+                                }}
+                              >
+                                {scheduleItem.instructor}
+                              </div>
+                              {category === "instructor" && (
+                                <div
+                                  className="section-name"
+                                  style={{
+                                    color: isDarkBackground(
+                                      scheduleItem.background_color
+                                    )
+                                      ? "white"
+                                      : "black",
+                                  }}
+                                >{`${
+                                  scheduleItem.section_name
+                                } - ${scheduleItem.section_group.slice(
+                                  0,
+                                  1
+                                )}${scheduleItem.section_group.slice(
+                                  6,
+                                  7
+                                )}`}</div>
+                              )}
+                              <div
+                                className="room-name"
+                                style={{
+                                  color: isDarkBackground(
+                                    scheduleItem.background_color
+                                  )
+                                    ? "white"
+                                    : "black",
+                                }}
+                              >
+                                ({scheduleItem.room})
+                              </div>
+                            </>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
