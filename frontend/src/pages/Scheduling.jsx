@@ -4,6 +4,9 @@ import { Toaster, toast } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import DeleteItem from "../components/DeleteSchedule";
+import UpdateItem from "../components/UpdateSchedule";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 const Scheduling = () => {
   const url = process.env.REACT_APP_URL;
@@ -14,6 +17,9 @@ const Scheduling = () => {
   const [selectedGroup, setSelectedGroup] = useState("");
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showListModal, setShowListModal] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   useEffect(() => {
     toast.dismiss();
@@ -36,6 +42,12 @@ const Scheduling = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
+  };
+
+  const handleEditItemClick = (item) => {
+    setItemToEdit(item);
+    setShowListModal(false);
+    setShowUpdateModal(true);
   };
 
   const daysOfWeek = [
@@ -161,7 +173,10 @@ const Scheduling = () => {
             <button className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg">
               Add Item
             </button>
-            <button className="bg-yellow-400 hover:bg-yellow-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg">
+            <button
+              className="bg-yellow-400 hover:bg-yellow-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
+              onClick={() => setShowListModal(true)}
+            >
               Edit Item
             </button>
             <button
@@ -289,8 +304,143 @@ const Scheduling = () => {
           )}
         />
       )}
+      {showListModal && (
+        <ListOfItem
+          onClose={() => setShowListModal(false)}
+          schedules={schedules.filter(
+            (schedule) =>
+              schedule.section_name === selectedSection &&
+              schedule.section_group === selectedGroup
+          )}
+          onUpdateSchedule={handleEditItemClick}
+        />
+      )}
+      {showUpdateModal && (
+        <UpdateItem
+          onClose={() => setShowUpdateModal(false)}
+          item={itemToEdit}
+        />
+      )}
     </div>
   );
 };
+
+function ListOfItem({ onClose, schedules, onUpdateSchedule }) {
+  // Define the order of days
+  const daysOrder = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+
+  // Function to get the index of the day
+  const getDayIndex = (day) => {
+    return daysOrder.indexOf(day);
+  };
+
+  // Sort schedules by day and then by start time
+  const sortedSchedules = [...schedules].sort((a, b) => {
+    const dayComparison = getDayIndex(a.day) - getDayIndex(b.day);
+    if (dayComparison !== 0) {
+      return dayComparison;
+    }
+    // Compare by start time if days are the same
+    return a.start_time.localeCompare(b.start_time);
+  });
+
+  const isDarkBackground = (backgroundColor) => {
+    // Convert hex to RGB
+    let r = parseInt(backgroundColor.slice(1, 3), 16);
+    let g = parseInt(backgroundColor.slice(3, 5), 16);
+    let b = parseInt(backgroundColor.slice(5, 7), 16);
+
+    // Using luminance formula to determine if color is dark
+    let luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+    return luminance < 0.5;
+  };
+
+  return (
+    <div className="bg-gray-800 bg-opacity-50 h-screen w-screen fixed top-0 left-0 z-50 flex justify-center items-center">
+      <div className="bg-white rounded-lg p-4 w-1/3">
+        <div className="flex justify-between items-center border-b-2 pb-2">
+          <span>Select Item to Update</span>
+          <button onClick={onClose} className="text-xl font-bold">
+            <FontAwesomeIcon icon={faXmark} />
+          </button>
+        </div>
+        <div className="update-body">
+          {sortedSchedules.map((schedule) => (
+            <div
+              key={schedule.schedule_id}
+              className="flex justify-between items-center border-b-2 py-2"
+              style={{ background: schedule.background_color }}
+              onClick={() => onUpdateSchedule(schedule)}
+            >
+              <div>
+                <span
+                  className={`text-sm ${
+                    isDarkBackground(schedule.background_color)
+                      ? "text-white"
+                      : "text-black"
+                  }`}
+                >
+                  {schedule.instructor}
+                </span>
+                <span
+                  className={`text-sm ${
+                    isDarkBackground(schedule.background_color)
+                      ? "text-white"
+                      : "text-black"
+                  }`}
+                >
+                  {schedule.subject}
+                </span>
+              </div>
+              <div className="update-details-right">
+                <span
+                  className={`text-sm ${
+                    isDarkBackground(schedule.background_color)
+                      ? "text-white"
+                      : "text-black"
+                  }`}
+                >
+                  {schedule.room}
+                </span>
+                <span
+                  className={`text-sm ${
+                    isDarkBackground(schedule.background_color)
+                      ? "text-white"
+                      : "text-black"
+                  }`}
+                >
+                  {schedule.day}
+                </span>
+                <span
+                  className={`text-sm ${
+                    isDarkBackground(schedule.background_color)
+                      ? "text-white"
+                      : "text-black"
+                  }`}
+                >
+                  ({schedule.start_time.slice(0, 2) % 12 || 12}:
+                  {schedule.start_time.slice(3, 5)}{" "}
+                  {schedule.start_time.slice(0, 2) > 12 ? " PM" : " AM"}-
+                  {schedule.end_time.slice(0, 2) % 12 || 12}:
+                  {schedule.end_time.slice(3, 5)}{" "}
+                  {schedule.end_time.slice(0, 2) < 12 ? " AM" : " PM"})
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default Scheduling;
