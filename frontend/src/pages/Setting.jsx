@@ -69,26 +69,48 @@ function Settings() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Ensure new password matches the confirm password field
       if (credentials.new_password !== credentials.confirm_password) {
         toast.error("Passwords do not match.");
         return;
       }
 
+      // Retrieve userToken from localStorage
       const userToken = localStorage.getItem("userToken");
       if (userToken) {
-        const userId = JSON.parse(atob(userToken));
+        // Parse userToken to extract userId
+        const userId = JSON.parse(atob(userToken)); // Ensure userId is properly accessed
+
+        // Send PUT request to update password
         await axios.put(`${url}api/auth/update`, {
           user_id: userId,
           old_password: credentials.old_password,
           new_password: credentials.new_password,
         });
+
+        // Show success toast if password update succeeds
         toast.success("Password updated successfully!");
+        setCredentials((prevState) => ({
+          ...prevState,
+          old_password: "",
+          new_password: "",
+          confirm_password: "",
+        }));
       } else {
+        // Handle case where user is not logged in
         toast.error("User not logged in.");
       }
     } catch (error) {
-      console.error("Error updating password:", error);
-      toast.error("Error updating password. Please try again.");
+      // Check for 401 error (old password does not match)
+      if (error.response?.status === 401) {
+        toast.error(error.response.data.error); // "Old password does not match"
+      } else {
+        // Handle other errors
+        const errorMessage =
+          error.response?.data?.error ||
+          "An error occurred while updating the password.";
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -132,6 +154,7 @@ function Settings() {
                 type="password"
                 id="current-password"
                 value={credentials.old_password || ""}
+                required
                 onChange={(e) => {
                   setCredentials({
                     ...credentials,
@@ -148,6 +171,7 @@ function Settings() {
                 type="password"
                 id="new-password"
                 value={credentials.new_password || ""}
+                required
                 onChange={(e) => {
                   setCredentials({
                     ...credentials,
@@ -156,6 +180,7 @@ function Settings() {
                 }}
                 className="w-full p-2 pl-5 text-sm text-black bg-gray-100 rounded-md placeholder:text-gray-400 focus:outline-green-800 focus:text-green-800"
                 placeholder="New Password"
+                minLength={8}
               />
               <label
                 htmlFor="confirm-password"
@@ -167,6 +192,7 @@ function Settings() {
                 type="password"
                 id="confirm-password"
                 value={credentials.confirm_password || ""}
+                required
                 onChange={(e) => {
                   setCredentials({
                     ...credentials,
@@ -175,6 +201,7 @@ function Settings() {
                 }}
                 className="w-full p-2 pl-5 text-sm text-black bg-gray-100 rounded-md placeholder:text-gray-400 focus:outline-green-800 focus:text-green-800"
                 placeholder="Confirm Password"
+                minLength={8}
               />
               <button className="w-full bg-red-600 text-sm text-white font-medium p-2 rounded-md hover:bg-red-700 hover:cursor-pointer mt-3">
                 Change Password
