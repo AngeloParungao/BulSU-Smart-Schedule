@@ -49,8 +49,6 @@ router.post('/login', (req, res) => {
 });
 
 
-
-//TODO: add password reset
 router.put('/update', async (req, res) => {
     const { user_id, old_password, new_password } = req.body;
 
@@ -95,6 +93,43 @@ router.put('/update', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+router.post('/verify-password', async (req, res) => {
+    const { user_id, password } = req.body;
+
+    if (!user_id || !password) {
+        return res.status(400).json({ error: 'User ID and password are required' });
+    }
+
+    try {
+        // Fetch the user's current password from the database
+        const sql = "SELECT password FROM users WHERE user_id = ?";
+        db.query(sql, [user_id], async (err, result) => {
+            if (err) {
+                console.error('Error fetching user:', err);
+                return res.status(500).json({ error: 'Failed to fetch user' });
+            }
+
+            if (result.length === 0) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            const user = result[0];
+
+            // Compare the provided password with the stored hashed password
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(401).json({ isMatch: false, error: 'Incorrect password' });
+            }
+
+            return res.status(200).json({ isMatch: true, message: 'Password verified successfully' });
+        });
+    } catch (error) {
+        console.error('Error verifying password:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 
 
 

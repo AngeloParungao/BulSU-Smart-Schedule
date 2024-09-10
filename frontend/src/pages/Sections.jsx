@@ -128,44 +128,46 @@ const Sections = () => {
   const handlePasswordSubmit = async (password) => {
     try {
       // Fetch user data to validate password
-      const response = await axios.get(`${url}api/user/fetch`);
-      const user = response.data.find((user) => user.user_id === currentUser);
+      const response = await axios.post(`${url}api/auth/verify-password`, {
+        user_id: currentUser,
+        password: password,
+      });
 
-      if (user) {
-        if (password === user.password) {
-          try {
-            await axios.delete(`${url}api/sections/delete/`, {
-              data: { section_ids: selectedSections },
-            });
+      // Check if the password is correct (isMatch: true)
+      if (response.data.isMatch) {
+        try {
+          // Proceed with deletion
+          await axios.delete(`${url}api/sections/delete/`, {
+            data: { section_ids: selectedSections },
+          });
 
-            // Log the deletion activity
-            await axios.post(`${url}api/activity/adding`, {
-              user_id: currentUser,
-              department_code: currentDepartment,
-              action: "Delete",
-              details: `${selectedSections.length}`,
-              type: "section",
-            });
+          // Log the deletion activity
+          await axios.post(`${url}api/activity/adding`, {
+            user_id: currentUser,
+            department_code: currentDepartment,
+            action: "Delete",
+            details: `${selectedSections.length}`,
+            type: "section",
+          });
 
-            toast.success("Deleted Successfully!");
-            setSelectedSections([]);
-            fetchSections();
-          } catch (error) {
-            console.error("Error deleting data:", error);
-            toast.error("Error deleting sections.");
-          }
-        } else {
-          toast.error("Incorrect password");
+          toast.success("Deleted successfully!");
+          setSelectedSections([]);
+          fetchSections();
+        } catch (error) {
+          console.error("Error deleting data:", error);
+          toast.error("Error deleting sections.");
         }
-      } else {
-        toast.error("User mismatch. Unable to verify credentials.");
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
-      toast.error("Error verifying user.");
+      if (error.response.status === 401) {
+        toast.error("Incorrect Password!");
+      } else {
+        console.error("Error verifying password:", error);
+        toast.error("Error verifying password.");
+      }
+    } finally {
+      setShowPasswordPrompt(false);
     }
-
-    setShowPasswordPrompt(false);
   };
 
   const handleSubmit = async (e) => {
