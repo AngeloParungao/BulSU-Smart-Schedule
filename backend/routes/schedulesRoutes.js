@@ -31,6 +31,25 @@ router.get('/fetch', (req, res) => {
     });
 });
 
+
+router.delete('/delete', (req, res) => {
+    const { schedule_ids } = req.body;
+
+    if (!schedule_ids || !Array.isArray(schedule_ids) || schedule_ids.length === 0) {
+        return res.status(400).json({ error: 'Invalid schedule IDs provided' });
+    }
+
+    const sql = "DELETE FROM schedules WHERE schedule_id IN (?)";
+
+    db.query(sql, [schedule_ids], (err, result) => {
+        if (err) {
+            console.error('Error deleting schedules:', err);
+            return res.status(500).json({ error: 'Failed to delete schedules' });
+        }
+        res.status(200).json({ message: 'Schedules deleted successfully' });
+    });
+});
+
 router.put('/update/:id', (req, res) => {
     const { id } = req.params;
     const { instructorName, subjectName, courseType, roomName, selectedColor, meetingDay, startTime, endTime } = req.body;
@@ -47,19 +66,6 @@ router.put('/update/:id', (req, res) => {
             return res.status(500).json({ error: 'Failed to update schedule' });
         }
         res.status(200).json({ message: 'Schedule updated successfully' });
-    });
-});
-
-router.delete('/delete/:id', (req, res) => {
-    const { id } = req.params;
-    const sql = "DELETE FROM schedules WHERE schedule_id = ?";
-
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error('Error deleting data:', err);
-            return res.status(500).json({ error: 'Failed to delete schedule' });
-        }
-        res.status(200).json({ message: 'Schedule deleted successfully' });
     });
 });
 

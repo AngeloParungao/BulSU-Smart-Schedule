@@ -21,22 +21,6 @@ function DraftSchedules() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const sectionGroups = [
-      ...new Set(
-        sections
-          .filter((section) => section.section_name === selectedSection)
-          .map((section) => section.section_group)
-      ),
-    ];
-
-    if (sectionGroups.length > 0) {
-      setSelectedGroup(
-        sectionGroups.includes("Group 1") ? "Group 1" : sectionGroups[0]
-      );
-    }
-  }, [selectedSection, sections]);
-
   const fetchData = async () => {
     try {
       const [scheduleRes, sectionRes, instructorRes] = await Promise.all([
