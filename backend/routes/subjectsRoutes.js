@@ -4,11 +4,11 @@ const router = express.Router();
 
 
 router.post('/adding', (req, res) => {
-    const { subject_name , subject_code, year_level , subject_type , subject_units , subject_tags, department_code } = req.body;
+    const { subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags, department_code } = req.body;
 
-    const sql = "INSERT INTO subjects (subject_name, subject_code, year_level, subject_type, subject_units, subject_tags, department_code) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const sql = "INSERT INTO subjects (subject_name, subject_code, year_level, subject_semester, subject_type, subject_units, subject_tags, department_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-    db.query(sql, [subject_name , subject_code, year_level , subject_type , subject_units , subject_tags, department_code], (err, result) => {
+    db.query(sql, [subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags, department_code], (err, result) => {
         if (err) {
             console.error('Error inserting data:', err);
             return res.status(500).json({ error: 'Failed to add subjectId' });
@@ -55,11 +55,11 @@ router.delete('/delete', (req, res) => {
 
 router.put('/update/:id', (req, res) => {
     const subjectId = req.params.id;
-    const { subject_name , subject_code, year_level , subject_type , subject_units , subject_tags } = req.body;
+    const { subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags } = req.body;
 
-    const sql = "UPDATE subjects SET subject_name = ?, subject_code = ?, year_level = ?, subject_type = ?, subject_units = ?, subject_tags = ? WHERE subject_id = ?";
+    const sql = "UPDATE subjects SET subject_name = ?, subject_code = ?, year_level = ?, subject_semester = ?, subject_type = ?, subject_units = ?, subject_tags = ? WHERE subject_id = ?";
 
-    db.query(sql, [subject_name , subject_code, year_level , subject_type , subject_units , subject_tags, subjectId], (err, result) => {
+    db.query(sql, [subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags, subjectId], (err, result) => {
         if (err) {
             console.error('Error updating subjectId:', err);
             return res.status(500).json({ error: 'Failed to update subjectId' });
