@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import toast from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import DeleteItem from "../components/DeleteSchedule";
 
 const Scheduling = () => {
   const url = process.env.REACT_APP_URL;
@@ -12,26 +13,12 @@ const Scheduling = () => {
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   useEffect(() => {
     toast.dismiss();
     fetchData();
-  }, []);
-
-  useEffect(() => {
-    const sectionGroups = [
-      ...new Set(
-        sections
-          .filter((section) => section.section_name === selectedSection)
-          .map((section) => section.section_group)
-      ),
-    ];
-
-    if (sectionGroups.length > 0) {
-      setSelectedGroup(
-        sectionGroups.includes("Group 1") ? "Group 1" : sectionGroups[0]
-      );
-    }
-  }, [selectedSection, sections]);
+  }, [showDeleteModal]);
 
   const fetchData = async () => {
     try {
@@ -96,6 +83,11 @@ const Scheduling = () => {
 
   return (
     <div className="h-[100dvh] flex bg-[var(--background-color)] text-[var(--text-color)]">
+      <Toaster
+        position="bottom-right"
+        containerStyle={{ zIndex: 99999 }}
+        reverseOrder={false}
+      />
       <div className="z-10 fixed lg:relative top-0 left-0">
         <Sidebar />
       </div>
@@ -104,7 +96,7 @@ const Scheduling = () => {
           <span className="md:text-4xl text-3xl font-medium">Scheduling</span>
           <Navbar />
         </div>
-        <div className="flex justify-between items-center w-full p-6 md:px-8">
+        <div className="flex justify-between items-center w-full p-5 md:px-8">
           <div className="flex md:flex-row flex-col gap-4">
             <div className="flex items-center gap-4 ">
               <label
@@ -166,18 +158,21 @@ const Scheduling = () => {
             ) : null}
           </div>
           <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
-            <button className="bg-blue-400 hover:bg-blue-700 text-white md:text-sm text-xs font-bold py-2 w-24 rounded-lg">
+            <button className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg">
               Add Item
             </button>
-            <button className="bg-yellow-400 hover:bg-yellow-700 text-white md:text-sm text-xs font-bold py-2 w-24 rounded-lg">
+            <button className="bg-yellow-400 hover:bg-yellow-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg">
               Edit Item
             </button>
-            <button className="bg-red-400 hover:bg-red-700 text-white md:text-sm text-xs font-bold py-2 w-24 rounded-lg">
+            <button
+              className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
+              onClick={() => setShowDeleteModal(true)}
+            >
               Delete Item
             </button>
           </div>
         </div>
-        <div className="timetable md:h-[calc(100vh-12rem)]" id="scheduleTable">
+        <div className="timetable md:h-[calc(100vh-10rem)]" id="scheduleTable">
           <div className="h-full w-[95%] bg-white p-4 border rounded-lg border-gray-300">
             <table>
               <thead>
@@ -284,6 +279,16 @@ const Scheduling = () => {
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+        <DeleteItem
+          onClose={() => setShowDeleteModal(false)}
+          schedule={schedules.filter(
+            (schedule) =>
+              schedule.section_name === selectedSection &&
+              schedule.section_group === selectedGroup
+          )}
+        />
+      )}
     </div>
   );
 };
