@@ -12,12 +12,15 @@ import {
   faCalendar,
   faBell,
   faGear,
+  faUsers,
+  faTable,
   faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 
 function Sidebar() {
   const url = process.env.REACT_APP_URL;
   const currentUser = JSON.parse(atob(localStorage.getItem("userToken")));
+  const role = atob(localStorage.getItem("userRole"));
   const [user, setUsers] = useState([]);
   const [showSidebar, setShowSidebar] = useState(false);
   const navigate = useNavigate();
@@ -84,26 +87,53 @@ function Sidebar() {
         >
           <FontAwesomeIcon icon={faHome} />
         </NavLink>
-        <NavLink
-          to="/draft-schedules"
-          className={({ isActive }) =>
-            `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
-              isActive ? "bg-white text-[#343B46]" : ""
-            }`
-          }
-        >
-          <FontAwesomeIcon icon={faNoteSticky} />
-        </NavLink>
-        <NavLink
-          to="/scheduling"
-          className={({ isActive }) =>
-            `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
-              isActive ? "bg-white text-[#343B46]" : ""
-            }`
-          }
-        >
-          <FontAwesomeIcon icon={faCalendar} />
-        </NavLink>
+        {role === "Administrator" ? (
+          <>
+            <NavLink
+              to="/users"
+              className={({ isActive }) =>
+                `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+                  isActive ? "bg-white text-[#343B46]" : ""
+                }`
+              }
+            >
+              <FontAwesomeIcon icon={faUsers} />
+            </NavLink>
+            <NavLink
+              to="/admin-tables"
+              className={({ isActive }) =>
+                `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+                  isActive ? "bg-white text-[#343B46]" : ""
+                }`
+              }
+            >
+              <FontAwesomeIcon icon={faTable} />
+            </NavLink>
+          </>
+        ) : (
+          <>
+            <NavLink
+              to="/draft-schedules"
+              className={({ isActive }) =>
+                `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+                  isActive ? "bg-white text-[#343B46]" : ""
+                }`
+              }
+            >
+              <FontAwesomeIcon icon={faNoteSticky} />
+            </NavLink>
+            <NavLink
+              to="/scheduling"
+              className={({ isActive }) =>
+                `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+                  isActive ? "bg-white text-[#343B46]" : ""
+                }`
+              }
+            >
+              <FontAwesomeIcon icon={faCalendar} />
+            </NavLink>
+          </>
+        )}
         <NavLink
           to="/activity-logs"
           className={({ isActive }) =>

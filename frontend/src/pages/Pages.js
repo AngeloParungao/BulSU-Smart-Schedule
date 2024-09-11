@@ -8,5 +8,6 @@ import Subjects from "./Subjects";
 import Rooms from "./Rooms";
 import Setting from "./Setting";
 import ActivityLog from "./ActivityLogs";
+import Users from "./Users";
 
-export { Login, Home, DraftSchedules, Scheduling, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting };
+export { Login, Home, DraftSchedules, Scheduling, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting, Users };

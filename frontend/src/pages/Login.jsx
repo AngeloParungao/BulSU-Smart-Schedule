@@ -38,10 +38,11 @@ function Login() {
 
       // Check if login was successful
       if (response.data) {
-        const { user_id, department_code } = response.data;
+        const { user_id, department_code, role } = response.data;
 
         localStorage.setItem("userToken", btoa(user_id));
         localStorage.setItem("userDept", btoa(department_code));
+        localStorage.setItem("userRole", btoa(role));
 
         setCredentials({ email: "", password: "" });
 
