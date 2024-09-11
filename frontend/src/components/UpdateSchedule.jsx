@@ -109,8 +109,8 @@ const UpdateSchedule = ({ onClose, item }) => {
     const duration =
       data.course_type === "Laboratory" ||
       (subject && subject.subject_type === "Minor")
-        ? 2 // Set the duration to 2 hours for minor subjects
-        : 3; // Set the duration to 3 hours for other subjects
+        ? 3 // Set the duration to 2 hours for minor subjects
+        : 2; // Set the duration to 3 hours for other subjects
 
     const days = [
       "Monday",
@@ -419,6 +419,7 @@ const UpdateSchedule = ({ onClose, item }) => {
                 }
               );
               await axios.post(`${url}api/activity/adding`, {
+                user_id: currentUser,
                 department_code: currentDepartment,
                 action: "Update",
                 details: `${item.section_name} - ${alternateGroup}`,

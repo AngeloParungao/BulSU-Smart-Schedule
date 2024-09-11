@@ -5,6 +5,7 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import DeleteItem from "../components/DeleteSchedule";
 import UpdateItem from "../components/UpdateSchedule";
+import AddItem from "../components/AddSchedule";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
@@ -16,15 +17,16 @@ const Scheduling = () => {
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showListModal, setShowListModal] = useState(false);
   const [itemToEdit, setItemToEdit] = useState(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     toast.dismiss();
     fetchData();
-  }, [showDeleteModal, showUpdateModal]);
+  }, [showDeleteModal, showUpdateModal, showAddModal]);
 
   const fetchData = async () => {
     try {
@@ -170,7 +172,10 @@ const Scheduling = () => {
             ) : null}
           </div>
           <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
-            <button className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg">
+            <button
+              className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
+              onClick={() => setShowAddModal(true)}
+            >
               Add Item
             </button>
             <button
@@ -294,14 +299,11 @@ const Scheduling = () => {
           </div>
         </div>
       </div>
-      {showDeleteModal && (
-        <DeleteItem
-          onClose={() => setShowDeleteModal(false)}
-          schedule={schedules.filter(
-            (schedule) =>
-              schedule.section_name === selectedSection &&
-              schedule.section_group === selectedGroup
-          )}
+      {showAddModal && (
+        <AddItem
+          onClose={() => setShowAddModal(false)}
+          section={selectedSection}
+          group={selectedGroup}
         />
       )}
       {showListModal && (
@@ -319,6 +321,16 @@ const Scheduling = () => {
         <UpdateItem
           onClose={() => setShowUpdateModal(false)}
           item={itemToEdit}
+        />
+      )}
+      {showDeleteModal && (
+        <DeleteItem
+          onClose={() => setShowDeleteModal(false)}
+          schedule={schedules.filter(
+            (schedule) =>
+              schedule.section_name === selectedSection &&
+              schedule.section_group === selectedGroup
+          )}
         />
       )}
     </div>
