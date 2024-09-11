@@ -114,30 +114,32 @@ function DeleteItem({ onClose, schedule }) {
 
   return (
     <div className="bg-gray-800 bg-opacity-50 h-screen w-screen fixed top-0 left-0 z-50 flex justify-center items-center">
-      <div className="bg-white rounded-lg p-4 w-1/3">
+      <div className="bg-white rounded-lg p-4 lg:w-1/2 w-[95%]">
         <div className="flex justify-between items-center border-b-2 pb-2">
           <input type="checkbox" onChange={selectAll} />
-          <div className="text-xl font-bold">Delete Schedules</div>
+          <div className="text-xl text-red-500 font-semibold">
+            Delete Schedules
+          </div>
           <button onClick={onClose}>
             <FontAwesomeIcon icon={faXmark} />
           </button>
         </div>
-        <div className="mt-4">
-          <div className="delete-list">
+        <div>
+          <div className="flex flex-col md:py-5 gap-2 md:p-6 py-2 max-h-[20rem] overflow-y-auto overflow-x-hidden scrollbar">
             {sortedSchedules.map((schedule) => (
               <div
                 key={schedule.schedule_id}
-                className="delete-item flex justify-between items-center border-b-2 py-2"
+                className="flex justify-between items-center border-b-2 p-2 py-4 rounded-lg hover:scale-[1.05] cursor-pointer transition-all duration-300"
                 style={{ background: schedule.background_color }}
               >
-                <input
-                  type="checkbox"
-                  checked={selectedSchedules.includes(schedule.schedule_id)}
-                  onChange={() => handleCheckboxChange(schedule.schedule_id)}
-                />
-                <div>
+                <div className="flex md:gap-4 gap-2 items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedSchedules.includes(schedule.schedule_id)}
+                    onChange={() => handleCheckboxChange(schedule.schedule_id)}
+                  />
                   <span
-                    className={`text-sm ${
+                    className={`md:text-sm text-xs ${
                       isDarkBackground(schedule.background_color)
                         ? "text-white"
                         : "text-black"
@@ -146,7 +148,7 @@ function DeleteItem({ onClose, schedule }) {
                     {schedule.instructor}
                   </span>
                   <span
-                    className={`text-sm ${
+                    className={`md:text-xs text-[0.6rem] opacity-60 ${
                       isDarkBackground(schedule.background_color)
                         ? "text-white"
                         : "text-black"
@@ -155,9 +157,9 @@ function DeleteItem({ onClose, schedule }) {
                     {schedule.subject}
                   </span>
                 </div>
-                <div>
+                <div className="flex items-center md:gap-4 gap-2">
                   <span
-                    className={`text-sm ${
+                    className={`md:text-xs text-[0.6rem] opacity-60 ${
                       isDarkBackground(schedule.background_color)
                         ? "text-white"
                         : "text-black"
@@ -166,7 +168,7 @@ function DeleteItem({ onClose, schedule }) {
                     {schedule.room}
                   </span>
                   <span
-                    className={`text-sm ${
+                    className={`md:text-sm text-[0.6rem] ${
                       isDarkBackground(schedule.background_color)
                         ? "text-white"
                         : "text-black"
@@ -175,7 +177,7 @@ function DeleteItem({ onClose, schedule }) {
                     {schedule.day}
                   </span>
                   <span
-                    className={`text-sm ${
+                    className={`md:text-xs text-[0.5rem] opacity-80 ${
                       isDarkBackground(schedule.background_color)
                         ? "text-white"
                         : "text-black"
@@ -192,9 +194,9 @@ function DeleteItem({ onClose, schedule }) {
               </div>
             ))}
           </div>
-          <div className="delete-footer flex justify-end mt-4">
+          <div className="flex justify-end">
             <button
-              className="delete-btn bg-red-500 text-white px-4 py-2 rounded"
+              className="bg-red-500 text-white text-sm px-4 py-2 rounded hover:bg-red-600"
               onClick={handleDelete}
             >
               Delete
