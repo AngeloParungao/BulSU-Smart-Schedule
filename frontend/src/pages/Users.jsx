@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
 
 const Users = () => {
   const url = process.env.REACT_APP_URL;
@@ -74,6 +74,7 @@ const Users = () => {
                   <th className="text-sm md:text-[1rem] py-2">Email</th>
                   <th className="text-sm md:text-[1rem] py-2">Department</th>
                   <th className="text-sm md:text-[1rem] py-2">Last Activity</th>
+                  <th className="w-10"></th>
                 </tr>
               </thead>
               <tbody>
@@ -93,6 +94,17 @@ const Users = () => {
                     </td>
                     <td className="p-2 border-r border-gray-300">
                       {user.department_code}
+                    </td>
+                    <td className="p-2 border-r border-gray-300">
+                      {user.last_activity}
+                    </td>
+                    <td className="p-2">
+                      <button id="update-btn">
+                        <FontAwesomeIcon
+                          icon={faPenToSquare}
+                          className="text-orange-500 hover:text-orange-600 cursor-pointer"
+                        />
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -4,6 +4,7 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const role = atob(localStorage.getItem("userRole"));
 
   const handleSelectChange = (event) => {
     navigate(event.target.value);
@@ -12,14 +13,16 @@ function Navbar() {
   return (
     <div className="flex justify-between items-center text-[var(--text-color)]">
       <div className="lg:flex items-center gap-8 p-6 text-md font-semibold hidden">
-        <NavLink
-          to="/scheduling"
-          className={({ isActive }) =>
-            isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
-          }
-        >
-          Schedule
-        </NavLink>
+        {role === "Administrator" ? null : (
+          <NavLink
+            to="/scheduling"
+            className={({ isActive }) =>
+              isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
+            }
+          >
+            Schedule
+          </NavLink>
+        )}
         <NavLink
           to="/instructors"
           className={({ isActive }) =>

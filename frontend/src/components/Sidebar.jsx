@@ -100,7 +100,7 @@ function Sidebar() {
               <FontAwesomeIcon icon={faUsers} />
             </NavLink>
             <NavLink
-              to="/admin-tables"
+              to="/instructors"
               className={({ isActive }) =>
                 `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
                   isActive ? "bg-white text-[#343B46]" : ""
