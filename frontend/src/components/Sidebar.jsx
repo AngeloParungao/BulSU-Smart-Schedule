@@ -41,6 +41,7 @@ function Sidebar() {
     setTimeout(() => {
       localStorage.removeItem("userToken");
       localStorage.removeItem("userDept");
+      localStorage.removeItem("userRole");
       navigate("/");
     }, 2000);
   };
