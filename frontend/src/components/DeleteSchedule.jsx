@@ -120,7 +120,7 @@ function DeleteItem({ onClose, schedule }) {
           <div className="text-xl text-red-500 font-semibold">
             Delete Schedules
           </div>
-          <button onClick={onClose}>
+          <button onClick={onClose} className="text-red-500">
             <FontAwesomeIcon icon={faXmark} />
           </button>
         </div>

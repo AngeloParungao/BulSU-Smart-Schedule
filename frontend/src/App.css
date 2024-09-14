@@ -91,7 +91,7 @@ body{
   .time{
     font-size: 1vw; 
     /*font-size: 0.85rem;*/
-    color: var(--text-color);
+    color: black;
   }
 
   .instructor-name{

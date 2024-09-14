@@ -383,7 +383,7 @@ function ListOfItem({ onClose, schedules, onUpdateSchedule }) {
           <div className="text-xl text-orange-500 font-semibold">
             Update Schedule
           </div>
-          <button onClick={onClose}>
+          <button onClick={onClose} className="text-orange-500">
             <FontAwesomeIcon icon={faXmark} />
           </button>
         </div>
