@@ -5,22 +5,29 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import PasswordPrompt from "../components/PasswordPrompt";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
+import {
+  faAdd,
+  faPenToSquare,
+  faSearch,
+} from "@fortawesome/free-solid-svg-icons";
 
 const Sections = () => {
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const currentUser = JSON.parse(atob(localStorage.getItem("userToken")));
+  const currentRole = atob(localStorage.getItem("userRole"));
   const url = process.env.REACT_APP_URL;
   const [search, setSearch] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [addGroup, setAddGroup] = useState(false);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [departments, setDepartments] = useState([]);
   const [sections, setSections] = useState([]);
   const [sectionIdToUpdate, setSectionIdToUpdate] = useState("");
   const [selectedSections, setSelectedSections] = useState([]);
   const [selectedYear, setSelectedYear] = useState("All");
   const [data, setData] = useState({
     section_name: "",
-    section_group: "Group 1",
+    section_group: "",
     year_level: "1st Year",
     section_capacity: "",
     section_tags: "",
@@ -29,6 +36,7 @@ const Sections = () => {
 
   useEffect(() => {
     fetchSections();
+    fetchDepartments();
   }, []);
 
   const fetchSections = async () => {
@@ -42,15 +50,25 @@ const Sections = () => {
     }
   };
 
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get(`${url}api/departments/fetch`);
+      setDepartments(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   const resetForm = () => {
     setData({
       section_name: "",
-      section_group: "Group 1",
+      section_group: "",
       year_level: "1st Year",
       section_capacity: "",
-      section_tags: "",
       department_code: currentDepartment, // Ensure this is reset
+      section_tags: "",
     });
+    setAddGroup(false);
     setIsUpdating(false);
   };
 
@@ -60,7 +78,8 @@ const Sections = () => {
         section.section_name.toLowerCase().includes(search.toLowerCase()) ||
         section.section_group.toLowerCase().includes(search.toLowerCase()) ||
         section.year_level.toLowerCase().includes(search.toLowerCase()) ||
-        section.section_tags.toLowerCase().includes(search.toLowerCase());
+        section.section_tags.toLowerCase().includes(search.toLowerCase()) ||
+        section.department_code.toLowerCase().includes(search.toLowerCase());
 
       const matchesYear =
         selectedYear === "All" || section.year_level === selectedYear;
@@ -111,8 +130,8 @@ const Sections = () => {
       section_group: section.section_group,
       year_level: section.year_level,
       section_capacity: section.section_capacity,
+      department_code: section.department_code,
       section_tags: section.section_tags,
-      department_code: currentDepartment,
     });
   };
 
@@ -173,40 +192,24 @@ const Sections = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let updatedData = { ...data };
-
-    // Clear the section group if the department is not CICT or CIT
-    if (currentDepartment !== "CICT" && currentDepartment !== "CIT") {
-      updatedData.section_group = "";
-    }
-
     const sectionExists = sections.some(
       (section) =>
-        section.section_name === updatedData.section_name &&
-        (currentDepartment === "CICT" || currentDepartment === "CIT"
-          ? section.section_group === updatedData.section_group
-          : true) &&
+        section.section_name === data.section_name &&
+        section.section_group === data.section_group &&
         (!isUpdating || section.section_id !== sectionIdToUpdate)
     );
 
     if (sectionExists) {
-      const message =
-        currentDepartment === "CICT" || currentDepartment === "CIT"
-          ? "Section and Group already exists!"
-          : "Section already exists!";
-      toast.error(message);
+      toast.error("Section or Group already exists!");
       return;
     }
 
     try {
       if (isUpdating) {
-        await axios.put(
-          `${url}api/sections/update/${sectionIdToUpdate}`,
-          updatedData
-        );
+        await axios.put(`${url}api/sections/update/${sectionIdToUpdate}`, data);
         toast.success("Updated Successfully!");
       } else {
-        await axios.post(`${url}api/sections/adding`, updatedData);
+        await axios.post(`${url}api/sections/adding`, data);
         toast.success("Added Successfully!");
       }
 
@@ -214,7 +217,7 @@ const Sections = () => {
         user_id: currentUser,
         department_code: currentDepartment,
         action: isUpdating ? "Update" : "Add",
-        details: `${updatedData.section_name} - ${updatedData.section_group}`,
+        details: `${data.section_name} - ${data.section_group}`,
         type: "section",
       });
 
@@ -264,26 +267,42 @@ const Sections = () => {
                 className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
-            {(currentDepartment === "CICT" || currentDepartment === "CIT") && (
-              <div className="flex flex-col gap-[0.2rem]">
-                <label htmlFor="section_group" className="text-sm text-black">
-                  Section Group:
-                </label>
-                <select
-                  name="section_group"
-                  id="section_group"
-                  value={data.section_group}
-                  onChange={(e) =>
-                    setData({ ...data, section_group: e.target.value })
-                  }
-                  required
-                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+            <div className="flex gap-4">
+              <div className="flex items-center">
+                <button
+                  className="flex justify-center items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
+                  onClick={() => setAddGroup(!addGroup)}
+                  type="button"
                 >
-                  <option value="Group 1">Group 1</option>
-                  <option value="Group 2">Group 2</option>
-                </select>
+                  <FontAwesomeIcon icon={faAdd} />
+                  Group
+                </button>
               </div>
-            )}
+              {addGroup && (
+                <div className="flex flex-col gap-[0.2rem] w-[100%]">
+                  <label
+                    htmlFor="section_group"
+                    className="flex gap-2 text-sm text-black"
+                  >
+                    Group:
+                  </label>
+                  <select
+                    name="section_group"
+                    id="section_group"
+                    value={data.section_group}
+                    onChange={(e) =>
+                      setData({ ...data, section_group: e.target.value })
+                    }
+                    required
+                    className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Select Group</option>
+                    <option value="Group 1">Group 1</option>
+                    <option value="Group 2">Group 2</option>
+                  </select>
+                </div>
+              )}
+            </div>
             <div className="flex flex-col gap-[0.2rem]">
               <label htmlFor="year_level" className="text-sm text-black">
                 Year Level:
@@ -321,6 +340,30 @@ const Sections = () => {
                 className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
+            {currentRole === "Administrator" && (
+              <div className="flex flex-col gap-[0.2rem] w-[100%]">
+                <label htmlFor="department" className="text-sm text-black">
+                  Department:
+                </label>
+                <select
+                  name="department"
+                  id="department"
+                  value={data.department_code}
+                  onChange={(e) =>
+                    setData({ ...data, department_code: e.target.value })
+                  }
+                  required
+                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">Department</option>
+                  {departments.map((department, index) => (
+                    <option key={index} value={department.code}>
+                      {department.department_code}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="flex flex-col gap-[0.2rem]">
               <label htmlFor="section_tags" className="text-sm text-black">
                 Labels/Tags:
@@ -414,11 +457,12 @@ const Sections = () => {
                 <thead>
                   <tr className="border-b border-gray-300 bg-gray-100">
                     <th className="w-10"></th>
+                    {currentRole === "Administrator" && (
+                      <th className="text-sm md:text-[1rem] py-2">
+                        Department
+                      </th>
+                    )}
                     <th className="text-sm md:text-[1rem] py-2">Section</th>
-                    {currentDepartment === "CICT" ||
-                    currentDepartment === "CIT" ? (
-                      <th className="text-sm md:text-[1rem] py-2">Group</th>
-                    ) : null}
                     <th className="text-sm md:text-[1rem] py-2">Capacity</th>
                     <th className="text-sm md:text-[1rem] py-2">Year</th>
                     <th className="text-sm md:text-[1rem] py-2">Labels</th>
@@ -439,15 +483,17 @@ const Sections = () => {
                           }
                         />
                       </td>
-                      <td className="md:p-2 p-1 border border-gray-300 text-xs md:text-[0.9rem]">
-                        {section.section_name}
-                      </td>
-                      {currentDepartment === "CICT" ||
-                      currentDepartment === "CIT" ? (
+                      {currentRole === "Administrator" && (
                         <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
-                          {section.section_group}
+                          {section.department_code}
                         </td>
-                      ) : null}
+                      )}
+                      <td className="md:p-2 p-1 border border-gray-300 text-xs md:text-[0.8rem]">
+                        {section.section_name}
+                        {section.section_group === ""
+                          ? ""
+                          : ` - ${section.section_group}`}
+                      </td>
                       <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
                         {section.section_capacity}
                       </td>

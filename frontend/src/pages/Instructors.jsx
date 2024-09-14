@@ -9,11 +9,13 @@ import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
 
 const Instructors = () => {
   const currentDepartment = atob(localStorage.getItem("userDept"));
+  const currentRole = atob(localStorage.getItem("userRole"));
   const currentUser = JSON.parse(atob(localStorage.getItem("userToken")));
   const url = process.env.REACT_APP_URL;
   const [search, setSearch] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [departments, setDepartments] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [instructorIdToUpdate, setInstructorIdToUpdate] = useState("");
   const [selectedInstructors, setSelectedInstructors] = useState([]);
@@ -29,6 +31,7 @@ const Instructors = () => {
 
   useEffect(() => {
     fetchInstructors();
+    fetchDepartments();
   }, []);
 
   const fetchInstructors = async () => {
@@ -42,15 +45,24 @@ const Instructors = () => {
     }
   };
 
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get(`${url}api/departments/fetch`);
+      setDepartments(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   const resetForm = () => {
     setData({
       email: "",
       first_name: "",
       middle_name: "",
       last_name: "",
+      department_code: currentDepartment, // Ensure this is reset
       work_type: "Regular",
       tags: "",
-      department_code: currentDepartment, // Ensure this is reset
     });
     setIsUpdating(false);
   };
@@ -61,7 +73,8 @@ const Instructors = () => {
       instructor.first_name.toLowerCase().includes(search.toLowerCase()) ||
       instructor.middle_name.toLowerCase().includes(search.toLowerCase()) ||
       instructor.last_name.toLowerCase().includes(search.toLowerCase()) ||
-      instructor.tags.toLowerCase().includes(search.toLowerCase())
+      instructor.tags.toLowerCase().includes(search.toLowerCase()) ||
+      instructor.department_code.toLowerCase().includes(search.toLowerCase())
   );
 
   const selectAll = () => {
@@ -96,6 +109,7 @@ const Instructors = () => {
       first_name: instructor.first_name,
       middle_name: instructor.middle_name,
       last_name: instructor.last_name,
+      department_code: instructor.department_code,
       work_type: instructor.work_type,
       tags: instructor.tags,
     });
@@ -287,23 +301,49 @@ const Instructors = () => {
                 className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
-            <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="work_type" className="text-sm text-black">
-                Work Type:
-              </label>
-              <select
-                name="work_type"
-                id="work_type"
-                value={data.work_type}
-                onChange={(e) =>
-                  setData({ ...data, work_type: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="Regular">Regular</option>
-                <option value="Part-timer">Part Time</option>
-              </select>
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-[0.2rem] w-[100%]">
+                <label htmlFor="work_type" className="text-sm text-black">
+                  Work Type:
+                </label>
+                <select
+                  name="work_type"
+                  id="work_type"
+                  value={data.work_type}
+                  onChange={(e) =>
+                    setData({ ...data, work_type: e.target.value })
+                  }
+                  required
+                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="Regular">Regular</option>
+                  <option value="Part-timer">Part Time</option>
+                </select>
+              </div>
+              {currentRole === "Administrator" && (
+                <div className="flex flex-col gap-[0.2rem] w-[100%]">
+                  <label htmlFor="department" className="text-sm text-black">
+                    Department:
+                  </label>
+                  <select
+                    name="department"
+                    id="department"
+                    value={data.department_code}
+                    onChange={(e) =>
+                      setData({ ...data, department_code: e.target.value })
+                    }
+                    required
+                    className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Department</option>
+                    {departments.map((department, index) => (
+                      <option key={index} value={department.code}>
+                        {department.department_code}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-[0.2rem]">
               <label htmlFor="tags" className="text-sm text-black">
@@ -377,10 +417,13 @@ const Instructors = () => {
                 <thead>
                   <tr className="border-b border-gray-300 bg-gray-100">
                     <th className="w-10"></th>
-                    <th className="text-sm md:text-[1rem] py-2">
-                      Instructor Email
-                    </th>
+                    {currentRole === "Administrator" && (
+                      <th className="text-sm md:text-[1rem] py-2">
+                        Department
+                      </th>
+                    )}
                     <th className="text-sm md:text-[1rem] py-2">Instructor</th>
+                    <th className="text-sm md:text-[1rem] py-2">Email</th>
                     <th className="text-sm md:text-[1rem] py-2">Labels</th>
                     <th className="w-10"></th>
                   </tr>
@@ -399,6 +442,12 @@ const Instructors = () => {
                           }
                         />
                       </td>
+                      {currentRole === "Administrator" && (
+                        <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
+                          {instructor.department_code}
+                        </td>
+                      )}
+                      <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">{`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}</td>
                       <td
                         className="md:p-2 p-1 border border-gray-300 text-xs md:text-[0.9rem] break-words overflow-hidden"
                         style={{
@@ -408,8 +457,6 @@ const Instructors = () => {
                       >
                         {instructor.email}
                       </td>
-
-                      <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">{`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}</td>
                       <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
                         {instructor.tags}
                       </td>

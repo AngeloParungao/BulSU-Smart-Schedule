@@ -10,10 +10,12 @@ import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
 const Subjects = () => {
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const currentUser = JSON.parse(atob(localStorage.getItem("userToken")));
+  const currentRole = atob(localStorage.getItem("userRole"));
   const url = process.env.REACT_APP_URL;
   const [search, setSearch] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [departments, setDepartments] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [subjectIdToUpdate, setSubjectIdToUpdate] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState([]);
@@ -32,6 +34,7 @@ const Subjects = () => {
 
   useEffect(() => {
     fetchSubjects();
+    fetchDepartments();
   }, []);
 
   const fetchSubjects = async () => {
@@ -40,6 +43,15 @@ const Subjects = () => {
         `${url}api/subjects/fetch?dept_code=${currentDepartment}`
       );
       setSubjects(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get(`${url}api/departments/fetch`);
+      setDepartments(response.data);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -54,7 +66,7 @@ const Subjects = () => {
       subject_type: "Minor",
       subject_units: "1",
       subject_tags: "",
-      department_code: currentDepartment, // Ensure this is reset
+      department_code: currentDepartment,
     });
     setIsUpdating(false);
   };
@@ -67,7 +79,8 @@ const Subjects = () => {
       subject.subject_semester.toString().includes(search) ||
       subject.subject_type.toLowerCase().includes(search.toLowerCase()) ||
       subject.subject_units.toString().includes(search) ||
-      subject.subject_tags.toLowerCase().includes(search.toLowerCase());
+      subject.subject_tags.toLowerCase().includes(search.toLowerCase()) ||
+      subject.department_code.toLowerCase().includes(search.toLowerCase());
 
     const matchesYear =
       selectedYear === "All" || subject.year_level === selectedYear;
@@ -107,7 +120,7 @@ const Subjects = () => {
       subject_type: subject.subject_type,
       subject_units: subject.subject_units,
       subject_tags: subject.subject_tags,
-      department_code: currentDepartment,
+      department_code: subject.department_code,
     });
   };
 
@@ -282,24 +295,6 @@ const Subjects = () => {
                 <option value="4th Year">4th Year</option>
               </select>
             </div>
-            <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="subject_semester" className="text-sm text-black">
-                Semester:
-              </label>
-              <select
-                name="subject_semester"
-                id="subject_semester"
-                value={data.subject_semester}
-                onChange={(e) =>
-                  setData({ ...data, subject_semester: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="1">1st Semester</option>
-                <option value="2">2nd Semester</option>
-              </select>
-            </div>
             <div className="flex gap-2">
               <div className="flex flex-col gap-[0.2rem] w-full">
                 <label htmlFor="subject_type" className="text-sm text-black">
@@ -338,6 +333,53 @@ const Subjects = () => {
                   <option value="3">3</option>
                 </select>
               </div>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex flex-col gap-[0.2rem] w-full">
+                <label
+                  htmlFor="subject_semester"
+                  className="text-sm text-black"
+                >
+                  Semester:
+                </label>
+                <select
+                  name="subject_semester"
+                  id="subject_semester"
+                  value={data.subject_semester}
+                  onChange={(e) =>
+                    setData({ ...data, subject_semester: e.target.value })
+                  }
+                  required
+                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="1">1st Semester</option>
+                  <option value="2">2nd Semester</option>
+                </select>
+              </div>
+              {currentRole === "Administrator" && (
+                <div className="flex flex-col gap-[0.2rem] w-full">
+                  <label htmlFor="department" className="text-sm text-black">
+                    Department:
+                  </label>
+                  <select
+                    name="department"
+                    id="department"
+                    value={data.department_code}
+                    onChange={(e) =>
+                      setData({ ...data, department_code: e.target.value })
+                    }
+                    required
+                    className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Department</option>
+                    {departments.map((department, index) => (
+                      <option key={index} value={department.department_code}>
+                        {department.department_code}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-[0.2rem]">
               <label htmlFor="subject_tags" className="text-sm text-black">
@@ -455,9 +497,11 @@ const Subjects = () => {
                 <thead>
                   <tr className="border-b border-gray-300 bg-gray-100">
                     <th className="w-10"></th>
-                    <th className="text-sm md:text-[1rem] py-2 w-12 md:w-20">
-                      Code
-                    </th>
+                    {currentRole === "Administrator" && (
+                      <th className="text-sm md:text-[1rem] py-2">
+                        Department
+                      </th>
+                    )}
                     <th className="text-sm md:text-[1rem] py-2">Subject</th>
                     <th className="text-sm md:text-[1rem] py-2">Level</th>
                     <th className="text-sm md:text-[1rem] py-2">Type</th>
@@ -481,11 +525,13 @@ const Subjects = () => {
                           }
                         />
                       </td>
-                      <td className="md:p-2 p-1 border border-gray-300 text-xs md:text-[0.9rem]">
-                        {subject.subject_code}
-                      </td>
+                      {currentRole === "Administrator" && (
+                        <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
+                          {subject.department_code}
+                        </td>
+                      )}
                       <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
-                        {subject.subject_name}
+                        {subject.subject_name} ({subject.subject_code})
                       </td>
                       <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
                         {subject.year_level}
