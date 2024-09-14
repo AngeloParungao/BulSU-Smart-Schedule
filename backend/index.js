@@ -9,6 +9,7 @@ const sectionsRoutes = require('./routes/sectionsRoutes');
 const subjectsRoutes = require('./routes/subjectsRoutes');
 const roomsRoutes = require('./routes/roomsRoutes');
 const activityRoutes = require("./routes/activityRoutes");
+const departmentsRoutes = require('./routes/departmentsRoutes');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/api/sections', sectionsRoutes);
 app.use('/api/subjects', subjectsRoutes);
 app.use('/api/rooms', roomsRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/departments', departmentsRoutes);
 
 
 const PORT = process.env.PORT;
