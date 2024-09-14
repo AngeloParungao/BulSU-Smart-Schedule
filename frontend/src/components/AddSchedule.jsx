@@ -17,7 +17,7 @@ import {
 
 const AddSchedule = ({ onClose, section, group }) => {
   const url = process.env.REACT_APP_URL;
-  const currentUser = JSON.parse(atob(localStorage.getItem("userToken")));
+  const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const currentDepartment = atob(localStorage.getItem("userDept"));
   // State variables to manage schedules, instructors, subjects, sections, and rooms data
   const [schedules, setSchedules] = useState([]);

@@ -7,7 +7,7 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 function DeleteItem({ onClose, schedule }) {
   const currentDepartment = atob(localStorage.getItem("userDept"));
-  const currentUser = JSON.parse(atob(localStorage.getItem("userToken")));
+  const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const url = process.env.REACT_APP_URL;
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [selectedSchedules, setSelectedSchedules] = useState([]);

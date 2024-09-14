@@ -6,6 +6,7 @@ import Sidebar from "../components/Sidebar";
 function Settings() {
   const url = process.env.REACT_APP_URL;
   const [backgroundColor, setBackgroundColor] = useState("");
+  const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
@@ -15,15 +16,12 @@ function Settings() {
   });
 
   useEffect(() => {
-    const userToken = localStorage.getItem("userToken");
-
-    if (userToken) {
+    if (currentUser) {
       try {
-        const userId = JSON.parse(atob(userToken));
         axios
           .get(`${url}api/users/fetch`)
           .then((response) => {
-            const user = response.data.find((u) => u.user_id === userId);
+            const user = response.data.find((u) => u.user_id === currentUser);
             if (user) {
               const { email } = user;
               setCredentials((prevState) => ({ ...prevState, email }));
@@ -52,10 +50,8 @@ function Settings() {
 
   const handleThemeChange = () => {
     try {
-      const userToken = localStorage.getItem("userToken");
-      if (userToken) {
-        const userId = JSON.parse(atob(userToken));
-        localStorage.setItem(`theme-${userId}`, btoa(backgroundColor));
+      if (currentUser) {
+        localStorage.setItem(`theme-${currentUser}`, btoa(backgroundColor));
         toast.success("Theme changed successfully!");
       } else {
         toast.error("User not logged in.");
@@ -65,7 +61,6 @@ function Settings() {
     }
   };
 
-  //TODO: add password reset
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -74,16 +69,10 @@ function Settings() {
         toast.error("Passwords do not match.");
         return;
       }
-
-      // Retrieve userToken from localStorage
-      const userToken = localStorage.getItem("userToken");
-      if (userToken) {
-        // Parse userToken to extract userId
-        const userId = JSON.parse(atob(userToken)); // Ensure userId is properly accessed
-
+      if (currentUser) {
         // Send PUT request to update password
         await axios.put(`${url}api/auth/update`, {
-          user_id: userId,
+          user_id: currentUser,
           old_password: credentials.old_password,
           new_password: credentials.new_password,
         });

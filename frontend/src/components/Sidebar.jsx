@@ -19,7 +19,7 @@ import {
 
 function Sidebar() {
   const url = process.env.REACT_APP_URL;
-  const currentUser = JSON.parse(atob(localStorage.getItem("userToken")));
+  const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const role = atob(localStorage.getItem("userRole"));
   const [user, setUsers] = useState([]);
   const [showSidebar, setShowSidebar] = useState(false);
@@ -39,10 +39,11 @@ function Sidebar() {
   const logout = () => {
     toast.success("Logging Out");
     setTimeout(() => {
-      localStorage.removeItem("userToken");
+      localStorage.removeItem("userID");
       localStorage.removeItem("userDept");
       localStorage.removeItem("userRole");
       navigate("/");
+      window.location.reload();
     }, 2000);
   };
 

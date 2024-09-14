@@ -9,7 +9,7 @@ import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
 
 const Subjects = () => {
   const currentDepartment = atob(localStorage.getItem("userDept"));
-  const currentUser = JSON.parse(atob(localStorage.getItem("userToken")));
+  const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const currentRole = atob(localStorage.getItem("userRole"));
   const url = process.env.REACT_APP_URL;
   const [search, setSearch] = useState("");

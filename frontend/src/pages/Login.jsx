@@ -19,8 +19,8 @@ function Login() {
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem("userToken");
-    if (token) {
+    const currentUser = localStorage.getItem("userID");
+    if (currentUser) {
       navigate("/home");
       return;
     }
@@ -40,19 +40,19 @@ function Login() {
       if (response.data) {
         const { user_id, department_code, role } = response.data;
 
-        localStorage.setItem("userToken", btoa(user_id));
+        localStorage.setItem("userID", btoa(user_id));
         localStorage.setItem("userDept", btoa(department_code));
         localStorage.setItem("userRole", btoa(role));
-
-        setCredentials({ email: "", password: "" });
 
         // Delay showing success message and navigating
         setTimeout(() => {
           setLoading(false);
           toast.success("Login Successful!");
 
+          setCredentials({ email: "", password: "" });
           setTimeout(() => {
             navigate("/home");
+            window.location.reload();
           }, 2000); // Delay before navigation
         }, 2000); // Delay before showing success message
       }
@@ -60,7 +60,6 @@ function Login() {
       setTimeout(() => {
         setLoading(false);
         toast.error("Invalid email or password");
-        setCredentials({ email: "", password: "" });
       }, 2000); // Delay before showing error message
     }
   };

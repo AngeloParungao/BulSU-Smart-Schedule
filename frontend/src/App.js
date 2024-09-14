@@ -4,13 +4,12 @@ import { Login, Home, DraftSchedules, Scheduling, Instructors, Sections, Subject
 import './App.css';
 
 function App() {
-
+  const currentUser = atob(localStorage.getItem("userID"));
+  
   useEffect(() => {
-    const userToken = localStorage.getItem("userToken");
-    if (userToken) {
-      const userId = JSON.parse(atob(userToken)); // Decode token safely
-      const getTheme = localStorage.getItem(`theme-${userId}`);
-      const theme = getTheme ? atob(getTheme) : 'default';
+    if (currentUser) {
+      const getTheme = atob(localStorage.getItem(`theme-${currentUser}`));
+      const theme = getTheme ? getTheme : 'default';
       document.body.classList.remove("default", "gray", "red", "green");
       document.body.classList.add(theme);
     }
@@ -18,7 +17,7 @@ function App() {
 
   // Private route component for authentication check
   const PrivateRoute = ({ element: Component }) => {
-    return localStorage.getItem('userToken') ? <Component /> : <Navigate to="/" />;
+    return localStorage.getItem('userID') ? <Component /> : <Navigate to="/" />;
   };
 
   return (
