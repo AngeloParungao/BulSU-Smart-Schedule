@@ -139,7 +139,7 @@ const Scheduling = () => {
                 )}
               </select>
             </div>
-            {currentDepartment !== "CICT" || currentDepartment !== "CIT" ? (
+            {currentDepartment === "CICT" || currentDepartment === "CIT" ? (
               <div className="flex items-center gap-4">
                 <label
                   htmlFor="group"
