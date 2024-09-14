@@ -19,10 +19,14 @@ router.post('/adding', (req, res) => {
 
 
 router.get('/fetch', (req, res) => {
-    const {dept_code} = req.query;
-    const sql = "SELECT * FROM subjects WHERE department_code= ?";
-
-    db.query(sql, [dept_code], (err, results) => {
+    const { dept_code } = req.query;
+    let sql;
+    if (dept_code === 'ADMIN') {
+        sql = "SELECT * FROM subjects";
+    } else {
+        sql = "SELECT * FROM subjects WHERE department_code = ?";
+    }
+    db.query(sql, dept_code !== 'ADMIN' ? [dept_code] : [], (err, results) => {
         if (err) {
             console.error('Error fetching subjects:', err);
             return res.status(500).json({ error: 'Failed to fetch subjects' });
@@ -55,11 +59,11 @@ router.delete('/delete', (req, res) => {
 
 router.put('/update/:id', (req, res) => {
     const subjectId = req.params.id;
-    const { subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags } = req.body;
+    const { subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags , department_code } = req.body;
 
-    const sql = "UPDATE subjects SET subject_name = ?, subject_code = ?, year_level = ?, subject_semester = ?, subject_type = ?, subject_units = ?, subject_tags = ? WHERE subject_id = ?";
+    const sql = "UPDATE subjects SET subject_name = ?, subject_code = ?, year_level = ?, subject_semester = ?, subject_type = ?, subject_units = ?, subject_tags = ?, department_code = ? WHERE subject_id = ?";
 
-    db.query(sql, [subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags, subjectId], (err, result) => {
+    db.query(sql, [subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags, department_code, subjectId], (err, result) => {
         if (err) {
             console.error('Error updating subjectId:', err);
             return res.status(500).json({ error: 'Failed to update subjectId' });

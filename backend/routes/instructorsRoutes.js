@@ -20,9 +20,14 @@ router.post('/adding', (req, res) => {
 
 router.get('/fetch', (req, res) => {
     const { dept_code } = req.query;
-    const sql = "SELECT * FROM instructors WHERE department_code = ?";
+    let sql;
+    if (dept_code === 'ADMIN') {
+        sql = "SELECT * FROM instructors";
+    } else {
+        sql = "SELECT * FROM instructors WHERE department_code = ?";
+    }
 
-    db.query(sql, [dept_code], (err, results) => {
+    db.query(sql, dept_code !== 'ADMIN' ? [dept_code] : [], (err, results) => {
         if (err) {
             console.error('Error fetching instructors:', err);
             return res.status(500).json({ error: 'Failed to fetch instructors' });
@@ -30,6 +35,7 @@ router.get('/fetch', (req, res) => {
         res.status(200).json(results);
     });
 });
+
 
 
 router.delete('/delete', (req, res) => {
@@ -56,11 +62,11 @@ router.delete('/delete', (req, res) => {
 // Update Instructor
 router.put('/update/:id', (req, res) => {
     const instructorId = req.params.id;
-    const { email, first_name, middle_name, last_name, work_type, tags } = req.body;
+    const { email, first_name, middle_name, last_name, work_type, tags,department_code } = req.body;
 
-    const sql = "UPDATE instructors SET email = ?, first_name = ?, middle_name = ?, last_name = ?, work_type = ?, tags = ? WHERE instructor_id = ?";
+    const sql = "UPDATE instructors SET email = ?, first_name = ?, middle_name = ?, last_name = ?, work_type = ?, tags = ?, department_code = ? WHERE instructor_id = ?";
 
-    db.query(sql, [email, first_name, middle_name, last_name, work_type, tags, instructorId], (err, result) => {
+    db.query(sql, [email, first_name, middle_name, last_name, work_type, tags, department_code, instructorId], (err, result) => {
         if (err) {
             console.error('Error updating instructor:', err);
             return res.status(500).json({ error: 'Failed to update instructor' });

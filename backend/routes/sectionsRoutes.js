@@ -20,9 +20,14 @@ router.post('/adding', (req, res) => {
 
 router.get('/fetch', (req, res) => {
     const { dept_code } = req.query;
-    const sql = "SELECT * FROM sections WHERE department_code = ?";
+    let sql;
+    if (dept_code === 'ADMIN') {
+        sql = "SELECT * FROM sections";
+    } else {
+        sql = "SELECT * FROM sections WHERE department_code = ?";
+    }
 
-    db.query(sql, [dept_code], (err, results) => {
+    db.query(sql, dept_code !== 'ADMIN' ? [dept_code] : [], (err, results) => {
         if (err) {
             console.error('Error fetching sections:', err);
             return res.status(500).json({ error: 'Failed to fetch sections' });
@@ -55,11 +60,11 @@ router.delete('/delete', (req, res) => {
 
 router.put('/update/:id', (req, res) => {
     const sectionId = req.params.id;
-    const { section_name, section_group, year_level, section_capacity, section_tags } = req.body;
+    const { section_name, section_group, year_level, section_capacity, section_tags, department_code } = req.body;
 
-    const sql = "UPDATE sections SET section_name = ?, section_group = ?, year_level = ?, section_capacity = ?, section_tags = ? WHERE section_id = ?";
+    const sql = "UPDATE sections SET section_name = ?, section_group = ?, year_level = ?, section_capacity = ?, section_tags = ?, department_code = ? WHERE section_id = ?";
 
-    db.query(sql, [section_name, section_group, year_level, section_capacity, section_tags, sectionId], (err, result) => {
+    db.query(sql, [section_name, section_group, year_level, section_capacity, section_tags, department_code, sectionId], (err, result) => {
         if (err) {
             console.error('Error updating sectionId:', err);
             return res.status(500).json({ error: 'Failed to update sectionId' });
