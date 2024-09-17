@@ -17,11 +17,16 @@ const Rooms = () => {
   const [rooms, setRooms] = useState([]);
   const [roomsIdToUpdate, setRoomsIdToUpdate] = useState("");
   const [selectedRooms, setSelectedRooms] = useState([]);
+  const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     room_name: "",
-    room_type: "Lecture",
+    room_type: "",
     room_tags: "",
   });
+
+  useEffect(() => {
+    setErrors({});
+  }, [isUpdating]);
 
   useEffect(() => {
     fetchRooms();
@@ -39,7 +44,7 @@ const Rooms = () => {
   const resetForm = () => {
     setData({
       room_name: "",
-      room_type: "Lecture",
+      room_type: "",
       room_tags: "",
     });
     setIsUpdating(false);
@@ -136,48 +141,63 @@ const Rooms = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const validateErrors = {};
     const roomExists = rooms.some(
       (room) =>
         room.room_name.toLowerCase() === data.room_name.toLowerCase() &&
         (!isUpdating || room.room_id !== roomsIdToUpdate)
     );
+
     if (roomExists) {
-      toast.error("Room Already Exists!");
-      return;
+      validateErrors.room_name = "Room Already Exists!";
+    }
+    if (!data.room_name) {
+      validateErrors.room_name = "Room Name is required";
+    }
+    if (!data.room_type) {
+      validateErrors.room_type = "Room Type is required";
     }
 
-    try {
-      if (isUpdating) {
-        await axios.put(`${url}api/rooms/update/${roomsIdToUpdate}`, data);
+    if (Object.keys(validateErrors).length > 0) {
+      setErrors(validateErrors);
+    } else {
+      setErrors({});
+      try {
+        if (isUpdating) {
+          await axios.put(`${url}api/rooms/update/${roomsIdToUpdate}`, data);
 
-        await axios.post(`${url}api/activity/adding`, {
-          user_id: currentUser,
-          department_code: currentDepartment,
-          action: "Update",
-          details: `${data.room_name}`,
-          type: "room",
-        });
+          await axios.post(`${url}api/activity/adding`, {
+            user_id: currentUser,
+            department_code: currentDepartment,
+            action: "Update",
+            details: `${data.room_name}`,
+            type: "room",
+          });
 
-        toast.success("Updated Successfully!");
-      } else {
-        await axios.post(`${url}api/rooms/adding`, data);
+          toast.success("Updated Successfully!");
+        } else {
+          await axios.post(`${url}api/rooms/adding`, data);
 
-        await axios.post(`${url}api/activity/adding`, {
-          user_id: currentUser,
-          department_code: currentDepartment,
-          action: "Add",
-          details: `${data.room_name}`,
-          type: "room",
-        });
+          await axios.post(`${url}api/activity/adding`, {
+            user_id: currentUser,
+            department_code: currentDepartment,
+            action: "Add",
+            details: `${data.room_name}`,
+            type: "room",
+          });
 
-        toast.success("Added Successfully!");
+          toast.success("Added Successfully!");
+        }
+
+        fetchRooms();
+        resetForm();
+      } catch (error) {
+        console.error(
+          `Error ${isUpdating ? "updating" : "adding"} room:`,
+          error
+        );
+        toast.error(`Error in ${isUpdating ? "updating" : "adding"}`);
       }
-
-      fetchRooms();
-      resetForm();
-    } catch (error) {
-      console.error(`Error ${isUpdating ? "updating" : "adding"} room:`, error);
-      toast.error(`Error in ${isUpdating ? "updating" : "adding"}`);
     }
   };
 
@@ -200,36 +220,51 @@ const Rooms = () => {
               {isUpdating ? "Update Room" : "Add Room"}
             </h2>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="room_name" className="text-sm text-black">
-                Room Name:
-              </label>
+              <div className="flex items-center gap-2">
+                <label htmlFor="room_name" className="text-sm text-black">
+                  Room Name:
+                </label>
+                {errors.room_name && (
+                  <p className="text-red-500 text-xs">{errors.room_name}</p>
+                )}
+              </div>
               <input
                 type="text"
                 name="room_name"
                 id="room_name"
                 placeholder="Room Name"
                 value={data.room_name}
-                onChange={(e) =>
-                  setData({ ...data, room_name: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, room_name: e.target.value });
+                  setErrors({ ...errors, room_name: "" });
+                }}
+                className={`${
+                  errors.room_name ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="room_type" className="text-sm text-black">
-                Room Type:
-              </label>
+              <div className="flex items-center gap-2 w-full">
+                <label htmlFor="room_type" className="text-sm text-black">
+                  Room Type:
+                </label>
+                {errors.room_type && (
+                  <p className="text-red-500 text-xs">{errors.room_type}</p>
+                )}
+              </div>
               <select
                 name="room_type"
                 id="room_type"
                 value={data.room_type}
-                onChange={(e) =>
-                  setData({ ...data, room_type: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, room_type: e.target.value });
+                  setErrors({ ...errors, room_type: "" });
+                }}
+                className={`${
+                  errors.room_type ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               >
+                <option value="">Room Type</option>
                 <option value="Lecture">Lecture</option>
                 <option value="Laboratory">Laboratory</option>
               </select>

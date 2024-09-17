@@ -10,6 +10,7 @@ import { RotatingLines } from "react-loader-spinner";
 function Login() {
   const url = process.env.REACT_APP_URL;
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const [credentials, setCredentials] = useState({
@@ -29,38 +30,53 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    try {
-      // Post credentials to the login endpoint
-      const response = await axios.post(`${url}api/auth/login`, {
-        email: credentials.email,
-        password: credentials.password,
-      });
 
-      // Check if login was successful
-      if (response.data) {
-        const { user_id, department_code, role } = response.data;
+    const validationErrors = {};
 
-        localStorage.setItem("userID", btoa(user_id));
-        localStorage.setItem("userDept", btoa(department_code));
-        localStorage.setItem("userRole", btoa(role));
+    if (!credentials.email) {
+      validationErrors.email = "Email is required";
+    }
+    if (!credentials.password) {
+      validationErrors.password = "Password is required";
+    }
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setLoading(false);
+    } else {
+      setErrors({});
+      try {
+        // Post credentials to the login endpoint
+        const response = await axios.post(`${url}api/auth/login`, {
+          email: credentials.email,
+          password: credentials.password,
+        });
 
-        // Delay showing success message and navigating
+        // Check if login was successful
+        if (response.data) {
+          const { user_id, department_code, role } = response.data;
+
+          localStorage.setItem("userID", btoa(user_id));
+          localStorage.setItem("userDept", btoa(department_code));
+          localStorage.setItem("userRole", btoa(role));
+
+          // Delay showing success message and navigating
+          setTimeout(() => {
+            setLoading(false);
+            toast.success("Login Successful!");
+
+            setCredentials({ email: "", password: "" });
+            setTimeout(() => {
+              navigate("/home");
+              window.location.reload();
+            }, 2000); // Delay before navigation
+          }, 2000); // Delay before showing success message
+        }
+      } catch (error) {
         setTimeout(() => {
           setLoading(false);
-          toast.success("Login Successful!");
-
-          setCredentials({ email: "", password: "" });
-          setTimeout(() => {
-            navigate("/home");
-            window.location.reload();
-          }, 2000); // Delay before navigation
-        }, 2000); // Delay before showing success message
+          toast.error("Invalid email or password");
+        }, 2000); // Delay before showing error message
       }
-    } catch (error) {
-      setTimeout(() => {
-        setLoading(false);
-        toast.error("Invalid email or password");
-      }, 2000); // Delay before showing error message
     }
   };
 
@@ -89,36 +105,57 @@ function Login() {
             />
             <span className="text-2xl font-bold text-black">LOGIN</span>
           </div>
-          <div className="flex items-center border border-gray-300 rounded-lg p-2 px-3 w-full focus-within:border-green-700">
-            <FontAwesomeIcon icon={faEnvelope} className="text-gray-300 mr-3" />
-            <input
-              type="email"
-              placeholder="Email"
-              value={credentials.email}
-              onChange={(e) =>
-                setCredentials({ ...credentials, email: e.target.value })
-              }
-              aria-label="Email"
-              name="email"
-              autoComplete="email"
-              required
-              className="w-full outline-none text-sm text-black focus:text-green-700 placeholder:text-gray-300 placeholder:text-sm"
-            />
+          <div className="flex flex-col gap-2 w-full">
+            {errors.email && (
+              <p className="text-red-500 text-xs">{errors.email}</p>
+            )}
+            <div
+              className={`${
+                errors.email ? "border-red-500" : ""
+              } flex items-center border border-gray-300 rounded-lg p-2 px-3 w-full focus-within:border-green-700`}
+            >
+              <FontAwesomeIcon
+                icon={faEnvelope}
+                className="text-gray-300 mr-3"
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={credentials.email}
+                onChange={(e) => {
+                  setCredentials({ ...credentials, email: e.target.value });
+                  setErrors({ ...errors, email: "" });
+                }}
+                aria-label="Email"
+                name="email"
+                autoComplete="email"
+                className="w-full outline-none text-sm text-black focus:text-green-700 placeholder:text-gray-300 placeholder:text-sm"
+              />
+            </div>
           </div>
-          <div className="flex items-center border border-gray-300 rounded-lg p-2 px-3 w-full focus-within:border-green-700">
-            <FontAwesomeIcon icon={faLock} className="text-gray-300 mr-3" />
-            <input
-              type="password"
-              placeholder="Password"
-              value={credentials.password}
-              onChange={(e) =>
-                setCredentials({ ...credentials, password: e.target.value })
-              }
-              aria-label="Password"
-              name="password"
-              required
-              className="w-full outline-none text-sm text-black focus:text-green-700 placeholder:text-gray-300 placeholder:text-sm"
-            />
+          <div className="flex flex-col gap-2 w-full">
+            {errors.password && (
+              <p className="text-red-500 text-xs">{errors.password}</p>
+            )}
+            <div
+              className={`${
+                errors.password ? "border-red-500" : ""
+              } flex items-center border border-gray-300 rounded-lg p-2 px-3 w-full focus-within:border-green-700`}
+            >
+              <FontAwesomeIcon icon={faLock} className="text-gray-300 mr-3" />
+              <input
+                type="password"
+                placeholder="Password"
+                value={credentials.password}
+                onChange={(e) => {
+                  setCredentials({ ...credentials, password: e.target.value });
+                  setErrors({ ...errors, password: "" });
+                }}
+                aria-label="Password"
+                name="password"
+                className="w-full outline-none text-sm text-black focus:text-green-700 placeholder:text-gray-300 placeholder:text-sm"
+              />
+            </div>
           </div>
           <button
             type="submit"

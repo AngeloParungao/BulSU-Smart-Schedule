@@ -25,14 +25,19 @@ const Sections = () => {
   const [sectionIdToUpdate, setSectionIdToUpdate] = useState("");
   const [selectedSections, setSelectedSections] = useState([]);
   const [selectedYear, setSelectedYear] = useState("All");
+  const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     section_name: "",
     section_group: "",
-    year_level: "1st Year",
+    year_level: "",
     section_capacity: "",
     section_tags: "",
-    department_code: currentDepartment,
+    department_code: currentRole === "Administrator" ? "" : currentDepartment,
   });
+
+  useEffect(() => {
+    setErrors({});
+  }, [isUpdating]);
 
   useEffect(() => {
     fetchSections();
@@ -63,9 +68,9 @@ const Sections = () => {
     setData({
       section_name: "",
       section_group: "",
-      year_level: "1st Year",
+      year_level: "",
       section_capacity: "",
-      department_code: currentDepartment, // Ensure this is reset
+      department_code: currentRole === "Administrator" ? "" : currentDepartment,
       section_tags: "",
     });
     setAddGroup(false);
@@ -192,43 +197,69 @@ const Sections = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const validateErrors = {};
     const sectionExists = sections.some(
       (section) =>
         section.section_name === data.section_name &&
         section.section_group === data.section_group &&
         (!isUpdating || section.section_id !== sectionIdToUpdate)
     );
-
     if (sectionExists) {
-      toast.error("Section or Group already exists!");
-      return;
+      validateErrors.section_name = `Section ${
+        addGroup ? "and Group" : ""
+      } already exists.`;
+    }
+    if (!data.section_name) {
+      validateErrors.section_name = "Section name is required.";
+    }
+    if (addGroup) {
+      if (!data.section_group) {
+        validateErrors.section_group = "Section group is required.";
+      }
+    }
+    if (!data.year_level) {
+      validateErrors.year_level = "Year level is required.";
+    }
+    if (!data.section_capacity) {
+      validateErrors.section_capacity = "Section capacity is required.";
+    }
+    if (!data.department_code) {
+      validateErrors.department_code = "Department code is required.";
     }
 
-    try {
-      if (isUpdating) {
-        await axios.put(`${url}api/sections/update/${sectionIdToUpdate}`, data);
-        toast.success("Updated Successfully!");
-      } else {
-        await axios.post(`${url}api/sections/adding`, data);
-        toast.success("Added Successfully!");
+    if (Object.keys(validateErrors).length > 0) {
+      setErrors(validateErrors);
+    } else {
+      setErrors({});
+      try {
+        if (isUpdating) {
+          await axios.put(
+            `${url}api/sections/update/${sectionIdToUpdate}`,
+            data
+          );
+          toast.success("Updated Successfully!");
+        } else {
+          await axios.post(`${url}api/sections/adding`, data);
+          toast.success("Added Successfully!");
+        }
+
+        await axios.post(`${url}api/activity/adding`, {
+          user_id: currentUser,
+          department_code: currentDepartment,
+          action: isUpdating ? "Update" : "Add",
+          details: `${data.section_name} - ${data.section_group}`,
+          type: "section",
+        });
+
+        fetchSections();
+        resetForm();
+      } catch (error) {
+        console.error(
+          `Error ${isUpdating ? "updating" : "adding"} section:`,
+          error
+        );
+        toast.error(`Error ${isUpdating ? "updating" : "adding"} section.`);
       }
-
-      await axios.post(`${url}api/activity/adding`, {
-        user_id: currentUser,
-        department_code: currentDepartment,
-        action: isUpdating ? "Update" : "Add",
-        details: `${data.section_name} - ${data.section_group}`,
-        type: "section",
-      });
-
-      fetchSections();
-      resetForm();
-    } catch (error) {
-      console.error(
-        `Error ${isUpdating ? "updating" : "adding"} section:`,
-        error
-      );
-      toast.error(`Error ${isUpdating ? "updating" : "adding"} section.`);
     }
   };
 
@@ -251,27 +282,41 @@ const Sections = () => {
               {isUpdating ? "Update Section" : "Add Section"}
             </h2>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="section_name" className="text-sm text-black">
-                Section Name:
-              </label>
+              <div className="flex items-center gap-2 w-full">
+                <label htmlFor="section_name" className="text-sm text-black">
+                  Section Name:
+                </label>
+                {errors.section_name && (
+                  <span className="text-red-500 text-xs">
+                    {errors.section_name}
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
                 name="section_name"
                 id="section_name"
                 placeholder="Section Name"
                 value={data.section_name}
-                onChange={(e) =>
-                  setData({ ...data, section_name: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, section_name: e.target.value });
+                  setErrors({ ...errors, section_name: "" });
+                }}
+                className={`${
+                  errors.section_name ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
             <div className="flex gap-4">
               <div className="flex items-center">
                 <button
                   className="flex justify-center items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
-                  onClick={() => setAddGroup(!addGroup)}
+                  onClick={() => {
+                    setAddGroup(!addGroup);
+                    if (!addGroup) {
+                      setData({ ...data, section_group: "" });
+                    }
+                  }}
                   type="button"
                 >
                   <FontAwesomeIcon icon={faAdd} />
@@ -280,21 +325,30 @@ const Sections = () => {
               </div>
               {addGroup && (
                 <div className="flex flex-col gap-[0.2rem] w-[100%]">
-                  <label
-                    htmlFor="section_group"
-                    className="flex gap-2 text-sm text-black"
-                  >
-                    Group:
-                  </label>
+                  <div className="flex items-center gap-2 w-full">
+                    <label
+                      htmlFor="section_group"
+                      className="flex gap-2 text-sm text-black"
+                    >
+                      Group:
+                    </label>
+                    {errors.section_group && (
+                      <span className="text-red-500 text-xs">
+                        {errors.section_group}
+                      </span>
+                    )}
+                  </div>
                   <select
                     name="section_group"
                     id="section_group"
                     value={data.section_group}
-                    onChange={(e) =>
-                      setData({ ...data, section_group: e.target.value })
-                    }
-                    required
-                    className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onChange={(e) => {
+                      setData({ ...data, section_group: e.target.value });
+                      setErrors({ ...errors, section_group: "" });
+                    }}
+                    className={`${
+                      errors.section_group ? "border-red-500" : ""
+                    } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
                   >
                     <option value="">Select Group</option>
                     <option value="Group 1">Group 1</option>
@@ -304,19 +358,29 @@ const Sections = () => {
               )}
             </div>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="year_level" className="text-sm text-black">
-                Year Level:
-              </label>
+              <div className="flex items-center gap-2 w-full">
+                <label htmlFor="year_level" className="text-sm text-black">
+                  Year Level:
+                </label>
+                {errors.year_level && (
+                  <span className="text-red-500 text-xs">
+                    {errors.year_level}
+                  </span>
+                )}
+              </div>
               <select
                 name="year_level"
                 id="year_level"
                 value={data.year_level}
-                onChange={(e) =>
-                  setData({ ...data, year_level: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, year_level: e.target.value });
+                  setErrors({ ...errors, year_level: "" });
+                }}
+                className={`${
+                  errors.year_level ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               >
+                <option value="">Year Level</option>
                 <option value="1st Year">1st Year</option>
                 <option value="2nd Year">2nd Year</option>
                 <option value="3rd Year">3rd Year</option>
@@ -324,36 +388,57 @@ const Sections = () => {
               </select>
             </div>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="section_capacity" className="text-sm text-black">
-                Section Capacity:
-              </label>
+              <div className="flex items-center gap-2 w-full">
+                <label
+                  htmlFor="section_capacity"
+                  className="text-sm text-black"
+                >
+                  Section Capacity:
+                </label>
+                {errors.section_capacity && (
+                  <span className="text-red-500 text-xs">
+                    {errors.section_capacity}
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
                 name="section_capacity"
                 id="section_capacity"
                 placeholder="Section Capacity"
                 value={data.section_capacity}
-                onChange={(e) =>
-                  setData({ ...data, section_capacity: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, section_capacity: e.target.value });
+                  setErrors({ ...errors, section_capacity: "" });
+                }}
+                className={`${
+                  errors.section_capacity ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
             {currentRole === "Administrator" && (
               <div className="flex flex-col gap-[0.2rem] w-[100%]">
-                <label htmlFor="department" className="text-sm text-black">
-                  Department:
-                </label>
+                <div className="flex items-center gap-2 w-full">
+                  <label htmlFor="department" className="text-sm text-black">
+                    Department:
+                  </label>
+                  {errors.department_code && (
+                    <span className="text-red-500 text-xs">
+                      {errors.department_code}
+                    </span>
+                  )}
+                </div>
                 <select
                   name="department"
                   id="department"
                   value={data.department_code}
-                  onChange={(e) =>
-                    setData({ ...data, department_code: e.target.value })
-                  }
-                  required
-                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setData({ ...data, department_code: e.target.value });
+                    setErrors({ ...errors, department_code: "" });
+                  }}
+                  className={`${
+                    errors.department_code ? "border-red-500" : ""
+                  } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
                 >
                   <option value="">Department</option>
                   {departments.map((department, index) => (

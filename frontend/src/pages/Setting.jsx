@@ -63,12 +63,12 @@ function Settings() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Ensure new password matches the confirm password field
+    if (credentials.new_password !== credentials.confirm_password) {
+      toast.error("Passwords do not match.");
+      return;
+    }
     try {
-      // Ensure new password matches the confirm password field
-      if (credentials.new_password !== credentials.confirm_password) {
-        toast.error("Passwords do not match.");
-        return;
-      }
       if (currentUser) {
         // Send PUT request to update password
         await axios.put(`${url}api/auth/update`, {

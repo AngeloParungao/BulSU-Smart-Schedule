@@ -19,15 +19,20 @@ const Instructors = () => {
   const [instructors, setInstructors] = useState([]);
   const [instructorIdToUpdate, setInstructorIdToUpdate] = useState("");
   const [selectedInstructors, setSelectedInstructors] = useState([]);
+  const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     email: "",
     first_name: "",
     middle_name: "",
     last_name: "",
-    work_type: "Regular",
+    work_type: "",
     tags: "",
-    department_code: currentDepartment,
+    department_code: currentRole === "Administrator" ? "" : currentDepartment,
   });
+
+  useEffect(() => {
+    setErrors({});
+  }, [isUpdating]);
 
   useEffect(() => {
     fetchInstructors();
@@ -60,8 +65,8 @@ const Instructors = () => {
       first_name: "",
       middle_name: "",
       last_name: "",
-      department_code: currentDepartment, // Ensure this is reset
-      work_type: "Regular",
+      department_code: currentRole === "Administrator" ? "" : currentDepartment,
+      work_type: "",
       tags: "",
     });
     setIsUpdating(false);
@@ -172,7 +177,7 @@ const Instructors = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if email already exists
+    const validationErrors = {};
     const emailExists = instructors.some(
       (instructor) =>
         instructor.email === data.email &&
@@ -180,41 +185,60 @@ const Instructors = () => {
     );
 
     if (emailExists) {
-      toast.error("Email already exists!");
-      return;
+      validationErrors.email = "Email already exists.";
+    }
+    if (!data.email) {
+      validationErrors.email = "Email is required.";
+    }
+    if (!data.first_name) {
+      validationErrors.first_name = "First name is required.";
+    }
+    if (!data.last_name) {
+      validationErrors.last_name = "Last name is required.";
+    }
+    if (!data.work_type) {
+      validationErrors.work_type = "Required.";
+    }
+    if (!data.department_code) {
+      validationErrors.department_code = "Required.";
     }
 
-    try {
-      // Update or add instructor based on `isUpdating`
-      if (isUpdating) {
-        await axios.put(
-          `${url}api/instructors/update/${instructorIdToUpdate}`,
-          data
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+    } else {
+      setErrors({});
+      try {
+        // Update or add instructor based on `isUpdating`
+        if (isUpdating) {
+          await axios.put(
+            `${url}api/instructors/update/${instructorIdToUpdate}`,
+            data
+          );
+          toast.success("Instructor updated successfully!");
+        } else {
+          await axios.post(`${url}api/instructors/adding`, data);
+          toast.success("Instructor added successfully!");
+        }
+
+        // Log activity
+        await axios.post(`${url}api/activity/adding`, {
+          user_id: currentUser,
+          department_code: currentDepartment,
+          action: isUpdating ? "Update" : "Add",
+          details: `${data.last_name}, ${data.first_name} ${data.middle_name}`,
+          type: "instructor",
+        });
+
+        // Refresh instructor list and reset form
+        fetchInstructors();
+        resetForm();
+      } catch (error) {
+        console.error(
+          `Error ${isUpdating ? "updating" : "adding"} instructor:`,
+          error
         );
-        toast.success("Instructor updated successfully!");
-      } else {
-        await axios.post(`${url}api/instructors/adding`, data);
-        toast.success("Instructor added successfully!");
+        toast.error(`Error ${isUpdating ? "updating" : "adding"} instructor.`);
       }
-
-      // Log activity
-      await axios.post(`${url}api/activity/adding`, {
-        user_id: currentUser,
-        department_code: currentDepartment,
-        action: isUpdating ? "Update" : "Add",
-        details: `${data.last_name}, ${data.first_name} ${data.middle_name}`,
-        type: "instructor",
-      });
-
-      // Refresh instructor list and reset form
-      fetchInstructors();
-      resetForm();
-    } catch (error) {
-      console.error(
-        `Error ${isUpdating ? "updating" : "adding"} instructor:`,
-        error
-      );
-      toast.error(`Error ${isUpdating ? "updating" : "adding"} instructor.`);
     }
   };
 
@@ -237,35 +261,51 @@ const Instructors = () => {
               {isUpdating ? "Update Instructor" : "Add Instructor"}
             </h2>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="email" className="text-sm text-black">
-                Email:
-              </label>
+              <div className="flex items-center gap-2">
+                <label htmlFor="email" className="text-sm text-black">
+                  Email:
+                </label>
+                {errors.email && (
+                  <p className="text-red-500 text-xs">{errors.email}</p>
+                )}
+              </div>
               <input
                 type="email"
                 name="email"
                 id="email"
                 placeholder="Email"
                 value={data.email}
-                onChange={(e) => setData({ ...data, email: e.target.value })}
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, email: e.target.value });
+                  setErrors({ ...errors, email: "" });
+                }}
+                className={`${
+                  errors.email ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="firstName" className="text-sm text-black">
-                First Name:
-              </label>
+              <div className="flex items-center gap-2">
+                <label htmlFor="firstName" className="text-sm text-black">
+                  First Name:
+                </label>
+                {errors.first_name && (
+                  <p className="text-red-500 text-xs">{errors.first_name}</p>
+                )}
+              </div>
               <input
                 type="text"
                 name="firstName"
                 id="firstName"
                 placeholder="First Name"
                 value={data.first_name}
-                onChange={(e) =>
-                  setData({ ...data, first_name: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, first_name: e.target.value });
+                  setErrors({ ...errors, first_name: "" });
+                }}
+                className={`${
+                  errors.first_name ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
             <div className="flex flex-col gap-[0.2rem]">
@@ -285,55 +325,79 @@ const Instructors = () => {
               />
             </div>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="lastName" className="text-sm text-black">
-                Last Name:
-              </label>
+              <div className="flex items-center gap-2">
+                <label htmlFor="lastName" className="text-sm text-black">
+                  Last Name:
+                </label>
+                {errors.last_name && (
+                  <p className="text-red-500 text-xs">{errors.last_name}</p>
+                )}
+              </div>
               <input
                 type="text"
                 name="lastName"
                 id="lastName"
                 placeholder="Last Name"
                 value={data.last_name}
-                onChange={(e) =>
-                  setData({ ...data, last_name: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, last_name: e.target.value });
+                  setErrors({ ...errors, last_name: "" });
+                }}
+                className={`${
+                  errors.last_name ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
             <div className="flex gap-4">
               <div className="flex flex-col gap-[0.2rem] w-[100%]">
-                <label htmlFor="work_type" className="text-sm text-black">
-                  Work Type:
-                </label>
+                <div className="flex items-center gap-2 w-full">
+                  <label htmlFor="work_type" className="text-sm text-black">
+                    Work Type:
+                  </label>
+                  {errors.work_type && (
+                    <p className="text-red-500 text-xs">{errors.work_type}</p>
+                  )}
+                </div>
                 <select
                   name="work_type"
                   id="work_type"
                   value={data.work_type}
-                  onChange={(e) =>
-                    setData({ ...data, work_type: e.target.value })
-                  }
-                  required
-                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setData({ ...data, work_type: e.target.value });
+                    setErrors({ ...errors, work_type: "" });
+                  }}
+                  className={`${
+                    errors.work_type ? "border-red-500" : ""
+                  } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
                 >
+                  <option value="">Work Type</option>
                   <option value="Regular">Regular</option>
                   <option value="Part-timer">Part Time</option>
                 </select>
               </div>
               {currentRole === "Administrator" && (
                 <div className="flex flex-col gap-[0.2rem] w-[100%]">
-                  <label htmlFor="department" className="text-sm text-black">
-                    Department:
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="department" className="text-sm text-black">
+                      Department:
+                    </label>
+                    {errors.department_code && (
+                      <p className="text-red-500 text-xs">
+                        {errors.department_code}
+                      </p>
+                    )}
+                  </div>
                   <select
                     name="department"
                     id="department"
                     value={data.department_code}
-                    onChange={(e) =>
-                      setData({ ...data, department_code: e.target.value })
-                    }
-                    required
-                    className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onChange={(e) => {
+                      setData({ ...data, department_code: e.target.value });
+                      setErrors({ ...errors, department_code: "" });
+                    }}
+                    className={`${
+                      errors.department_code ? "border-red-500" : ""
+                    } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
                   >
                     <option value="">Department</option>
                     {departments.map((department, index) => (

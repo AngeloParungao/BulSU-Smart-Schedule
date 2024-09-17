@@ -21,16 +21,21 @@ const Subjects = () => {
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedSemester, setSelectedSemester] = useState("All");
+  const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     subject_name: "",
     subject_code: "",
-    year_level: "1st Year",
-    subject_semester: "1",
-    subject_type: "Minor",
-    subject_units: "1",
+    year_level: "",
+    subject_semester: "",
+    subject_type: "",
+    subject_units: "",
     subject_tags: "",
-    department_code: currentDepartment,
+    department_code: currentRole === "Administrator" ? "" : currentDepartment,
   });
+
+  useEffect(() => {
+    setErrors({});
+  }, [isUpdating]);
 
   useEffect(() => {
     fetchSubjects();
@@ -61,12 +66,12 @@ const Subjects = () => {
     setData({
       subject_name: "",
       subject_code: "",
-      year_level: "1st Year",
-      subject_semester: "1",
-      subject_type: "Minor",
-      subject_units: "1",
+      year_level: "",
+      subject_semester: "",
+      subject_type: "",
+      subject_units: "",
       subject_tags: "",
-      department_code: currentDepartment,
+      department_code: currentRole === "Administrator" ? "" : currentDepartment,
     });
     setIsUpdating(false);
   };
@@ -181,7 +186,7 @@ const Subjects = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if email already exists
+    const validateErrors = {};
     const subjectExists = subjects.some(
       (subject) =>
         subject.subject_name === data.subject_name &&
@@ -190,36 +195,64 @@ const Subjects = () => {
     );
 
     if (subjectExists) {
-      toast.error("Subject already exists!");
-      return;
+      validateErrors.subject_name = "Subject already exists!";
+    }
+    if (!data.subject_name) {
+      validateErrors.subject_name = "Subject name is required";
+    }
+    if (!data.subject_code) {
+      validateErrors.subject_code = "Subject code is required";
+    }
+    if (!data.year_level) {
+      validateErrors.year_level = "Year level is required";
+    }
+    if (!data.subject_type) {
+      validateErrors.subject_type = "Required";
+    }
+    if (!data.subject_units) {
+      validateErrors.subject_units = "Required";
+    }
+    if (!data.subject_semester) {
+      validateErrors.subject_semester = "Required";
+    }
+    if (!data.department_code) {
+      validateErrors.department_code = "Required";
     }
 
-    try {
-      if (isUpdating) {
-        await axios.put(`${url}api/subjects/update/${subjectIdToUpdate}`, data);
-        toast.success("Subject updated successfully!");
-      } else {
-        await axios.post(`${url}api/subjects/adding`, data);
-        toast.success("Subject added successfully!");
+    if (Object.keys(validateErrors).length > 0) {
+      setErrors(validateErrors);
+    } else {
+      setErrors({});
+      try {
+        if (isUpdating) {
+          await axios.put(
+            `${url}api/subjects/update/${subjectIdToUpdate}`,
+            data
+          );
+          toast.success("Subject updated successfully!");
+        } else {
+          await axios.post(`${url}api/subjects/adding`, data);
+          toast.success("Subject added successfully!");
+        }
+
+        // Log activity
+        await axios.post(`${url}api/activity/adding`, {
+          user_id: currentUser,
+          department_code: currentDepartment,
+          action: isUpdating ? "Update" : "Add",
+          details: `${data.subject_name} (${data.subject_code})`,
+          type: "subject",
+        });
+
+        fetchSubjects();
+        resetForm();
+      } catch (error) {
+        console.error(
+          `Error ${isUpdating ? "updating" : "adding"} subject:`,
+          error
+        );
+        toast.error(`Error ${isUpdating ? "updating" : "adding"} subject.`);
       }
-
-      // Log activity
-      await axios.post(`${url}api/activity/adding`, {
-        user_id: currentUser,
-        department_code: currentDepartment,
-        action: isUpdating ? "Update" : "Add",
-        details: `${data.subject_name} (${data.subject_code})`,
-        type: "subject",
-      });
-
-      fetchSubjects();
-      resetForm();
-    } catch (error) {
-      console.error(
-        `Error ${isUpdating ? "updating" : "adding"} subject:`,
-        error
-      );
-      toast.error(`Error ${isUpdating ? "updating" : "adding"} subject.`);
     }
   };
 
@@ -242,53 +275,75 @@ const Subjects = () => {
               {isUpdating ? "Update Subject" : "Add Subject"}
             </h2>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="subject_name" className="text-sm text-black">
-                Subject Name:
-              </label>
+              <div className="flex items-center gap-2 w-full">
+                <label htmlFor="subject_name" className="text-sm text-black">
+                  Subject Name:
+                </label>
+                {errors.subject_name && (
+                  <p className="text-red-500 text-xs">{errors.subject_name}</p>
+                )}
+              </div>
               <input
                 type="text"
                 name="subject_name"
                 id="subject_name"
                 placeholder="Subject Name"
                 value={data.subject_name}
-                onChange={(e) =>
-                  setData({ ...data, subject_name: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, subject_name: e.target.value });
+                  setErrors({ ...errors, subject_name: "" });
+                }}
+                className={`${
+                  errors.subject_name ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="subject_code" className="text-sm text-black">
-                Subject Code:
-              </label>
+              <div className="flex items-center gap-2 w-full">
+                <label htmlFor="subject_code" className="text-sm text-black">
+                  Subject Code:
+                </label>
+                {errors.subject_code && (
+                  <p className="text-red-500 text-xs">{errors.subject_code}</p>
+                )}
+              </div>
               <input
                 type="text"
                 name="subject_code"
                 id="subject_code"
                 placeholder="Subject Code"
                 value={data.subject_code}
-                onChange={(e) =>
-                  setData({ ...data, subject_code: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, subject_code: e.target.value });
+                  setErrors({ ...errors, subject_code: "" });
+                }}
+                className={`${
+                  errors.subject_code ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="year_level" className="text-sm text-black">
-                Year Level:
-              </label>
+              <div className="flex items-center gap-2 w-full">
+                <label htmlFor="year_level" className="text-sm text-black">
+                  Year Level:
+                </label>
+                {errors.year_level && (
+                  <p className="text-red-500 text-xs">{errors.year_level}</p>
+                )}
+              </div>
               <select
                 name="year_level"
                 id="year_level"
                 value={data.year_level}
-                onChange={(e) =>
-                  setData({ ...data, year_level: e.target.value })
-                }
-                required
-                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, year_level: e.target.value });
+                  setErrors({ ...errors, year_level: "" });
+                }}
+                className={`${
+                  errors.year_level ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               >
+                <option value="">Year Level</option>
                 <option value="1st Year">1st Year</option>
                 <option value="2nd Year">2nd Year</option>
                 <option value="3rd Year">3rd Year</option>
@@ -297,37 +352,57 @@ const Subjects = () => {
             </div>
             <div className="flex gap-2">
               <div className="flex flex-col gap-[0.2rem] w-full">
-                <label htmlFor="subject_type" className="text-sm text-black">
-                  Subject Type:
-                </label>
+                <div className="flex items-center gap-2 w-full">
+                  <label htmlFor="subject_type" className="text-sm text-black">
+                    Subject Type:
+                  </label>
+                  {errors.subject_type && (
+                    <p className="text-red-500 text-xs">
+                      {errors.subject_type}
+                    </p>
+                  )}
+                </div>
                 <select
                   name="subject_type"
                   id="subject_type"
                   value={data.subject_type}
-                  onChange={(e) =>
-                    setData({ ...data, subject_type: e.target.value })
-                  }
-                  required
-                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setData({ ...data, subject_type: e.target.value });
+                    setErrors({ ...errors, subject_type: "" });
+                  }}
+                  className={`${
+                    errors.subject_type ? "border-red-500" : ""
+                  } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
                 >
+                  <option value="">Subject Type</option>
                   <option value="Minor">Minor</option>
                   <option value="Major">Major</option>
                 </select>
               </div>
               <div className="flex flex-col gap-[0.2rem] w-full">
-                <label htmlFor="subject_unit" className="text-sm text-black">
-                  Subject Unit:
-                </label>
+                <div className="flex items-center gap-2 w-full">
+                  <label htmlFor="subject_unit" className="text-sm text-black">
+                    Subject Unit:
+                  </label>
+                  {errors.subject_units && (
+                    <p className="text-red-500 text-xs">
+                      {errors.subject_units}
+                    </p>
+                  )}
+                </div>
                 <select
                   name="subject_unit"
                   id="subject_unit"
                   value={data.subject_units}
-                  onChange={(e) =>
-                    setData({ ...data, subject_units: e.target.value })
-                  }
-                  required
-                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setData({ ...data, subject_units: e.target.value });
+                    setErrors({ ...errors, subject_units: "" });
+                  }}
+                  className={`${
+                    errors.subject_units ? "border-red-500" : ""
+                  } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
                 >
+                  <option value="">Units</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
@@ -336,12 +411,19 @@ const Subjects = () => {
             </div>
             <div className="flex gap-2">
               <div className="flex flex-col gap-[0.2rem] w-full">
-                <label
-                  htmlFor="subject_semester"
-                  className="text-sm text-black"
-                >
-                  Semester:
-                </label>
+                <div className="flex items-center gap-2 w-full">
+                  <label
+                    htmlFor="subject_semester"
+                    className="text-sm text-black"
+                  >
+                    Semester:
+                  </label>
+                  {errors.subject_semester && (
+                    <p className="text-red-500 text-xs">
+                      {errors.subject_semester}
+                    </p>
+                  )}
+                </div>
                 <select
                   name="subject_semester"
                   id="subject_semester"
@@ -349,27 +431,38 @@ const Subjects = () => {
                   onChange={(e) =>
                     setData({ ...data, subject_semester: e.target.value })
                   }
-                  required
-                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className={`${
+                    errors.subject_semester ? "border-red-500" : ""
+                  } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
                 >
+                  <option value="">Semester</option>
                   <option value="1">1st Semester</option>
                   <option value="2">2nd Semester</option>
                 </select>
               </div>
               {currentRole === "Administrator" && (
                 <div className="flex flex-col gap-[0.2rem] w-full">
-                  <label htmlFor="department" className="text-sm text-black">
-                    Department:
-                  </label>
+                  <div className="flex items-center gap-2 w-full">
+                    <label htmlFor="department" className="text-sm text-black">
+                      Department:
+                    </label>
+                    {errors.department_code && (
+                      <p className="text-red-500 text-xs">
+                        {errors.department_code}
+                      </p>
+                    )}
+                  </div>
                   <select
                     name="department"
                     id="department"
                     value={data.department_code}
-                    onChange={(e) =>
-                      setData({ ...data, department_code: e.target.value })
-                    }
-                    required
-                    className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onChange={(e) => {
+                      setData({ ...data, department_code: e.target.value });
+                      setErrors({ ...errors, department_code: "" });
+                    }}
+                    className={`${
+                      errors.department_code ? "border-red-500" : ""
+                    } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
                   >
                     <option value="">Department</option>
                     {departments.map((department, index) => (
