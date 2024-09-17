@@ -171,7 +171,7 @@ function Sidebar() {
               <span className="uppercase text-3xl font-bold" key={user.user_id}>
                 {user
                   .find((user) => user.user_id === currentUser)
-                  .username.charAt(0)}
+                  .first_name.charAt(0)}
               </span>
             ) : (
               <span
