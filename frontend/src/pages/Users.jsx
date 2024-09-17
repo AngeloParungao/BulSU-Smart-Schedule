@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
+import UserForm from "../components/UserForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
 
@@ -8,10 +9,12 @@ const Users = () => {
   const url = process.env.REACT_APP_URL;
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [userToUpdate, setUserToUpdate] = useState(null);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [users]);
 
   const fetchUsers = async () => {
     try {
@@ -24,8 +27,10 @@ const Users = () => {
 
   const filterUsers = users.filter((user) => {
     return (
-      user.username.toLowerCase().includes(search.toLowerCase()) ||
       user.email.toLowerCase().includes(search.toLowerCase()) ||
+      user.first_name.toLowerCase().includes(search.toLowerCase()) ||
+      user.middle_name.toLowerCase().includes(search.toLowerCase()) ||
+      user.last_name.toLowerCase().includes(search.toLowerCase()) ||
       user.department_code.toLowerCase().includes(search.toLowerCase())
     );
   });
@@ -57,7 +62,10 @@ const Users = () => {
               />
             </div>
             <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
-              <button className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 px-4 rounded-lg">
+              <button
+                className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 px-4 rounded-lg"
+                onClick={() => setShowAddUser(true)}
+              >
                 Add Account
               </button>
               <button className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold py-2 px-4 rounded-lg">
@@ -87,7 +95,7 @@ const Users = () => {
                       <input type="checkbox" />
                     </td>
                     <td className="p-2 border-r border-gray-300">
-                      {user.username}
+                      {user.first_name} {user.middle_name} {user.last_name}
                     </td>
                     <td className="p-2 border-r border-gray-300">
                       {user.email}
@@ -99,7 +107,13 @@ const Users = () => {
                       {user.last_activity}
                     </td>
                     <td className="p-2">
-                      <button id="update-btn">
+                      <button
+                        id="update-btn"
+                        onClick={() => {
+                          setUserToUpdate(user);
+                          setShowAddUser(true);
+                        }}
+                      >
                         <FontAwesomeIcon
                           icon={faPenToSquare}
                           className="text-orange-500 hover:text-orange-600 cursor-pointer"
@@ -113,6 +127,14 @@ const Users = () => {
           </div>
         </div>
       </div>
+      <UserForm
+        isOpen={showAddUser}
+        onRequestClose={() => {
+          setShowAddUser(false);
+          setUserToUpdate(null);
+        }}
+        user={userToUpdate}
+      />
     </div>
   );
 };
