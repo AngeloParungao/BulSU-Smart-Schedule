@@ -83,6 +83,17 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
     },
   };
 
+  const generateRandomPassword = (length = 12) => {
+    const charset =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      password += charset[randomIndex];
+    }
+    return password;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -109,11 +120,15 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
       setErrors({});
 
       try {
+        let password = generateRandomPassword();
         if (isUpdating) {
           await axios.put(`${url}api/users/update/${user.user_id}`, data);
           toast.success("User updated successfully!");
         } else {
-          await axios.post(`${url}api/users/adding`, data);
+          await axios.post(`${url}api/users/adding`, {
+            ...data,
+            password: password,
+          });
           toast.success("User created successfully!");
         }
 
