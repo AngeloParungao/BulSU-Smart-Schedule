@@ -27,7 +27,7 @@ app.use('/api/activity', activityRoutes);
 app.use('/api/departments', departmentsRoutes);
 
 
-const PORT = process.env.PORT;
+const PORT = process.env.DB_PORT;
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
