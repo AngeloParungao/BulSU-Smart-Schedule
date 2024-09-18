@@ -1,10 +1,10 @@
 const mysql = require('mysql');
 require('dotenv').config();
 
-//const urlDB = `mysql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
+const urlDB = `mysql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
 
 const db = mysql.createConnection(
-    'mysql://root:DoPnPFdgRRNFRWUoKxXebISgAqgWMjLH@mysql.railway.internal:3306/railway'
+    urlDB
 );
 
 /*host: process.env.DB_HOST,
