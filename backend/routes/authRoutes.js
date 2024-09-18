@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const express = require('express');
 const db = require('../config/database');
 const router = express.Router();
@@ -21,7 +21,7 @@ router.post('/login', (req, res) => {
             const user = result[0];
 
             // Compare the provided password with the hashed password in the database
-            bcrypt.compare(password, user.password, (err, isMatch) => {
+            bcryptjs.compare(password, user.password, (err, isMatch) => {
                 if (err) {
                     console.error('Error comparing passwords:', err);
                     return res.status(500).json({ error: 'Failed to compare passwords' });
@@ -68,13 +68,13 @@ router.put('/update', async (req, res) => {
             const user = result[0];
 
             // Compare the old password with the stored hashed password
-            const isMatch = await bcrypt.compare(old_password, user.password);
+            const isMatch = await bcryptjs.compare(old_password, user.password);
             if (!isMatch) {
                 return res.status(401).json({ error: 'Old password does not match' });
             }
 
             // Hash the new password and update it in the database
-            const hashedPassword = await bcrypt.hash(new_password, 10);
+            const hashedPassword = await bcryptjs.hash(new_password, 10);
             db.query("UPDATE users SET password = ? WHERE user_id = ?", [hashedPassword, user_id], (err, result) => {
                 if (err) {
                     console.error('Error updating password:', err);
@@ -113,7 +113,7 @@ router.post('/verify-password', async (req, res) => {
             const user = result[0];
 
             // Compare the provided password with the stored hashed password
-            const isMatch = await bcrypt.compare(password, user.password);
+            const isMatch = await bcryptjs.compare(password, user.password);
             if (!isMatch) {
                 return res.status(401).json({ isMatch: false, error: 'Incorrect password' });
             }

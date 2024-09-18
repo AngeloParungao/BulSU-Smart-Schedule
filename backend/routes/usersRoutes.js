@@ -1,13 +1,13 @@
 const express = require('express');
 const db = require('../config/database');
 const router = express.Router();
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 require('dotenv').config();
 const { sendEmail } = require('../services/emailer');
 
 router.post('/adding', async (req, res) => {
     const { email, first_name, middle_name, last_name, department_code, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcryptjs.hash(password, 10);
     const sql = "INSERT INTO users (email, first_name, middle_name, last_name, department_code, password) VALUES (?, ?, ?, ?, ?, ?)";
 
     try {
