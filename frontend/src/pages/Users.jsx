@@ -14,7 +14,7 @@ const Users = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [users]);
+  }, [showAddUser, userToUpdate]);
 
   const fetchUsers = async () => {
     try {
