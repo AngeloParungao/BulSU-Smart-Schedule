@@ -67,7 +67,6 @@ function Login() {
             setCredentials({ email: "", password: "" });
             setTimeout(() => {
               navigate("/home");
-              window.location.reload();
             }, 2000); // Delay before navigation
           }, 2000); // Delay before showing success message
         }
