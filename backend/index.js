@@ -27,7 +27,7 @@ app.use('/api/activity', activityRoutes);
 app.use('/api/departments', departmentsRoutes);
 
 
-const PORT = process.env.DB_PORT;
+const PORT = process.env.MYSQLPORT;
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
