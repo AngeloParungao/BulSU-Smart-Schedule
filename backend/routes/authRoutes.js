@@ -157,7 +157,7 @@ router.post('/forgot-password', async (req, res) => {
         { expiresIn: '1h' } // token expires in 1 hour
       );
 
-      const message = `Please click on the following link to reset your password: http://${process.env.BASE_URL}/reset-password?token=${token}`;
+      const message = `Please click on the following link to reset your password: ${process.env.BASE_URL}/reset-password?token=${token}`;
       
       await sendEmail(email, subject, message);
 
