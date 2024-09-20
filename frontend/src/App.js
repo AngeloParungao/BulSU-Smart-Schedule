@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Login, Home, DraftSchedules, Scheduling, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting, Users } from './pages/Pages';
+import { Login, Home, DraftSchedules, Scheduling, Departments, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting, Users } from './pages/Pages';
 import './App.css';
 
 function App() {
@@ -30,6 +30,7 @@ function App() {
         <Route path="/home" element={<PrivateRoute element={Home} />} />
         <Route path="/draft-schedules" element={<PrivateRoute element={DraftSchedules} />} />
         <Route path="/scheduling" element={<PrivateRoute element={Scheduling} />} />
+        <Route path="/departments" element={<PrivateRoute element={Departments} />} /> 
         <Route path="/instructors" element={<PrivateRoute element={Instructors} />} />
         <Route path="/rooms" element={<PrivateRoute element={Rooms} />} />
         <Route path="/sections" element={<PrivateRoute element={Sections} />} />

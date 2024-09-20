@@ -13,7 +13,16 @@ function Navbar() {
   return (
     <div className="flex justify-between items-center text-[var(--text-color)]">
       <div className="lg:flex items-center gap-8 p-6 text-md font-semibold hidden">
-        {role === "Administrator" ? null : (
+        {role === "Administrator" ? (
+          <NavLink
+            to="/departments"
+            className={({ isActive }) =>
+              isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
+            }
+          >
+            Departments
+          </NavLink>
+        ) : (
           <NavLink
             to="/scheduling"
             className={({ isActive }) =>
@@ -58,7 +67,11 @@ function Navbar() {
       </div>
       <div className="lg:hidden">
         <select value={location.pathname} onChange={handleSelectChange}>
-          <option value="/scheduling">Scheduling</option>
+          {role === "Administrator" ? (
+            <option value="/departments">Departments</option>
+          ) : (
+            <option value="/scheduling">Schedule</option>
+          )}
           <option value="/instructors">Instructors</option>
           <option value="/sections">Sections</option>
           <option value="/subjects">Subjects</option>
