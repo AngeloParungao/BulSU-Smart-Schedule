@@ -10,6 +10,7 @@ import Rooms from "./Rooms";
 import Setting from "./Setting";
 import ActivityLog from "./ActivityLogs";
 import Users from "./Users";
+import ResetPassword from "./ResetPassword";
 
 
-export { Login, Home, DraftSchedules, Scheduling, Departments, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting, Users };
+export { Login, Home, DraftSchedules, Scheduling, Departments, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting, Users, ResetPassword };

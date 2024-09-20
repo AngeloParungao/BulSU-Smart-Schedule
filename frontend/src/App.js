@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Login, Home, DraftSchedules, Scheduling, Departments, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting, Users } from './pages/Pages';
+import { Login, Home, DraftSchedules, Scheduling, Departments, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting, Users, ResetPassword } from './pages/Pages';
 import './App.css';
 
 function App() {
@@ -25,6 +25,7 @@ function App() {
       <Routes>
         {/* Public route for Login */}
         <Route path="/" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Private route for Home and Settings */}
         <Route path="/home" element={<PrivateRoute element={Home} />} />

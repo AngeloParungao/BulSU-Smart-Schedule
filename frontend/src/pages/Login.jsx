@@ -27,6 +27,36 @@ function Login() {
     }
   }, []);
 
+  const handleForgotPassword = async () => {
+    if (credentials.email === "") {
+      toast.error("Email is required");
+      return;
+    }
+
+    try {
+      // Await the axios request
+      const response = await axios.post(`${url}api/auth/forgot-password`, {
+        email: credentials.email,
+      });
+
+      // Check if the response was successful
+      if (response.status === 200) {
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      // Handle errors based on the response status
+      if (error.response) {
+        if (error.response.status === 404) {
+          toast.error("User not found");
+        } else if (error.response.status === 500) {
+          toast.error("Server error. Please try again later.");
+        }
+      } else {
+        toast.error("Network error. Please try again.");
+      }
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -172,9 +202,13 @@ function Login() {
               "LOGIN"
             )}
           </button>
-          <a href="#view" className="text-sm text-gray-400 mt-2">
-            Viewing schedule
-          </a>
+          <button
+            type="button"
+            className="text-sm text-gray-400 mt-2 hover:text-gray-500"
+            onClick={handleForgotPassword}
+          >
+            forgot password?
+          </button>
         </form>
       </div>
     </div>

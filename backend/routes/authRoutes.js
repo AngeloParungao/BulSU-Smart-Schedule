@@ -2,6 +2,9 @@ const bcryptjs = require('bcryptjs');
 const express = require('express');
 const db = require('../config/database');
 const router = express.Router();
+const { sendEmail } = require('../services/emailer');
+const jwt = require('jsonwebtoken');
+
 
 router.post('/login', (req, res) => {
     const { email, password } = req.body;
@@ -43,7 +46,6 @@ router.post('/login', (req, res) => {
         }
     });
 });
-
 
 router.put('/update', async (req, res) => {
     const { user_id, old_password, new_password } = req.body;
@@ -125,6 +127,71 @@ router.post('/verify-password', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const sql = "SELECT * FROM users WHERE email = ?";
+    db.query(sql, [email], async (err, result) => {
+      if (err) {
+        console.error('Error fetching user:', err);
+        return res.status(500).json({ error: 'Failed to fetch user' });
+      }
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const user = result[0];
+      const subject = "Password Reset Request";
+
+      // Generate a JWT token with an expiration time (e.g., 1 hour)
+      const token = jwt.sign(
+        { userId: user.user_id }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '1h' } // token expires in 1 hour
+      );
+
+      const message = `Please click on the following link to reset your password: http://${process.env.BASE_URL}/reset-password?token=${token}`;
+      
+      await sendEmail(email, subject, message);
+
+      return res.status(200).json({ message: 'Password reset email sent successfully' });
+    });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+    const { token, newPassword } = req.body;
+  
+    try {
+      // Verify the token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.userId;
+  
+      // Update the user's password (hash it first)
+      const hashedPassword = await bcryptjs.hash(newPassword, 10);
+      const sql = "UPDATE users SET password = ? WHERE user_id = ?";
+  
+      db.query(sql, [hashedPassword, userId], (err, result) => {
+        if (err) {
+          return res.status(500).json({ error: 'Error updating password' });
+        }
+        return res.status(200).json({ message: 'Password reset successfully' });
+      });
+    } catch (error) {
+      return res.status(400).json({ error: 'Invalid or expired token' });
+    }
+  });
+  
 
 
 
