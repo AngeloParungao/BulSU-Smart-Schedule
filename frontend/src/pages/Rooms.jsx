@@ -329,7 +329,7 @@ const Rooms = () => {
                   className="text-white md:text-[0.8rem] text-[0.6rem] bg-red-500 py-2 px-4 rounded-full hover:bg-red-600 transition-all"
                   onClick={handleDelete}
                 >
-                  Remove Instructor/s
+                  Remove Room/s
                 </button>
                 <PasswordPrompt
                   isOpen={showPasswordPrompt}
