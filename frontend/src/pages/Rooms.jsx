@@ -22,7 +22,7 @@ const Rooms = () => {
   const [data, setData] = useState({
     room_name: "",
     room_type: "",
-    room_tags: "",
+    room_building: "",
   });
 
   useEffect(() => {
@@ -46,7 +46,7 @@ const Rooms = () => {
     setData({
       room_name: "",
       room_type: "",
-      room_tags: "",
+      room_building: "",
     });
     setIsUpdating(false);
   };
@@ -55,7 +55,7 @@ const Rooms = () => {
     (room) =>
       room.room_name.toLowerCase().includes(search.toLowerCase()) ||
       room.room_type.toLowerCase().includes(search.toLowerCase()) ||
-      room.room_tags.toLowerCase().includes(search.toLowerCase())
+      room.room_building.toLowerCase().includes(search.toLowerCase())
   );
 
   const selectAll = () => {
@@ -81,7 +81,7 @@ const Rooms = () => {
     setData({
       room_name: room.room_name,
       room_type: room.room_type,
-      room_tags: room.room_tags,
+      room_building: room.room_building,
     });
   };
 
@@ -140,11 +140,11 @@ const Rooms = () => {
   };
 
   const handleExportCSV = () => {
-    const headers = ["Room Name", "Room Type", "Room Tags"];
+    const headers = ["Room Name", "Room Type", "Room Building"];
     const data = filterRooms.map((room) => [
       room.room_name,
       room.room_type,
-      room.room_tags,
+      room.room_building,
     ]);
     exportToCSV("rooms", headers, data);
   };
@@ -166,6 +166,9 @@ const Rooms = () => {
     }
     if (!data.room_type) {
       validateErrors.room_type = "Room Type is required";
+    }
+    if (!data.room_building) {
+      validateErrors.room_building = "Room Building is required";
     }
 
     if (Object.keys(validateErrors).length > 0) {
@@ -280,19 +283,23 @@ const Rooms = () => {
               </select>
             </div>
             <div className="flex flex-col gap-[0.2rem]">
-              <label htmlFor="room_tags" className="text-sm text-black">
-                Labels/Tags:
+              <label htmlFor="room_building" className="text-sm text-black">
+                Building:
               </label>
-              <textarea
-                name="room_tags"
-                id="room_tags"
-                placeholder="ex: Pancho Hall"
-                value={data.room_tags}
-                onChange={(e) =>
-                  setData({ ...data, room_tags: e.target.value })
-                }
-                className="p-2 h-[6rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none placeholder:text-sm placeholder:text-center"
-              ></textarea>
+              <input
+                type="text"
+                name="room_building"
+                id="room_building"
+                placeholder="Building"
+                value={data.room_building}
+                onChange={(e) => {
+                  setData({ ...data, room_building: e.target.value });
+                  setErrors({ ...errors, room_building: "" });
+                }}
+                className={`${
+                  errors.room_name ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
+              />
             </div>
             <div className="flex gap-2">
               <button
@@ -355,7 +362,9 @@ const Rooms = () => {
                     <th className="w-10"></th>
                     <th className="text-sm md:text-[1rem] py-2">Room Name</th>
                     <th className="text-sm md:text-[1rem] py-2">Room Type</th>
-                    <th className="text-sm md:text-[1rem] py-2">Labels</th>
+                    <th className="text-sm md:text-[1rem] py-2">
+                      Room Building
+                    </th>
                     <th className="w-10"></th>
                   </tr>
                 </thead>
@@ -376,7 +385,7 @@ const Rooms = () => {
                         {room.room_type}
                       </td>
                       <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
-                        {room.room_tags}
+                        {room.room_building}
                       </td>
                       <td className="p-2">
                         <button id="update-btn">

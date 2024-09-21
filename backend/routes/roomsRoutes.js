@@ -4,11 +4,11 @@ const router = express.Router();
 
 
 router.post('/adding', (req, res) => {
-    const { room_type, room_name, room_tags } = req.body;
+    const { room_type, room_name, room_building } = req.body;
 
-    const sql = "INSERT INTO rooms (room_type, room_name, room_tags) VALUES (?, ?, ?)";
+    const sql = "INSERT INTO rooms (room_type, room_name, room_building) VALUES (?, ?, ?)";
 
-    db.query(sql, [ room_type, room_name, room_tags], (err, result) => {
+    db.query(sql, [ room_type, room_name, room_building], (err, result) => {
         if (err) {
             console.error('Error inserting data:', err);
             return res.status(500).json({ error: 'Failed to add room' });
@@ -52,11 +52,11 @@ router.delete('/delete', (req, res) => {
 
 router.put('/update/:id', (req, res) => {
     const roomId = req.params.id;
-    const { room_type, room_name, room_tags } = req.body;
+    const { room_type, room_name, room_building } = req.body;
 
-    const sql = "UPDATE rooms SET room_type = ?, room_name = ?, room_tags = ? WHERE room_id = ?";
+    const sql = "UPDATE rooms SET room_type = ?, room_name = ?, room_building = ? WHERE room_id = ?";
 
-    db.query(sql, [room_type, room_name, room_tags, roomId], (err, result) => {
+    db.query(sql, [room_type, room_name, room_building, roomId], (err, result) => {
         if (err) {
             console.error('Error updating room:', err);
             return res.status(500).json({ error: 'Failed to update room' });
