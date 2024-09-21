@@ -3,11 +3,12 @@ import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faUser,
   faChalkboardTeacher,
   faBook,
   faDoorClosed,
   faCalendar,
+  faUser,
+  faBuilding,
 } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
 
@@ -39,7 +40,7 @@ function ActivityLog() {
   const getIcon = (type) => {
     switch (type) {
       case "instructor":
-        return <FontAwesomeIcon icon={faUser} />;
+        return <FontAwesomeIcon icon={faChalkboardTeacher} />;
       case "section":
         return <FontAwesomeIcon icon={faChalkboardTeacher} />;
       case "subject":
@@ -48,6 +49,10 @@ function ActivityLog() {
         return <FontAwesomeIcon icon={faDoorClosed} />;
       case "schedule":
         return <FontAwesomeIcon icon={faCalendar} />;
+      case "user":
+        return <FontAwesomeIcon icon={faUser} />;
+      case "department":
+        return <FontAwesomeIcon icon={faBuilding} />;
       default:
         return null;
     }
@@ -79,6 +84,10 @@ function ActivityLog() {
           return `${log.details} has been added to ${log.type}`;
         } else if (log.type === "schedule") {
           return `Schedule added for ${log.details}`;
+        } else if (log.type === "user") {
+          return `User ${log.details} has been added`;
+        } else if (log.type === "department") {
+          return `Department ${log.details} has been added`;
         }
       case "Update":
         if (log.type === "instructor") {
@@ -91,6 +100,10 @@ function ActivityLog() {
           return `Room ${log.details} has been updated`;
         } else if (log.type === "schedule") {
           return `Schedule added for ${log.details}`;
+        } else if (log.type === "user") {
+          return `User ${log.details} has been updated`;
+        } else if (log.type === "department") {
+          return `Department ${log.details} has been updated`;
         }
       case "Delete":
         return `${log.details} ${log.type} has been deleted`;
