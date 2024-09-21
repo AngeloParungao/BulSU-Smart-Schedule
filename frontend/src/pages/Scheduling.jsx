@@ -139,7 +139,9 @@ const Scheduling = () => {
                 )}
               </select>
             </div>
-            {currentDepartment === "CICT" || currentDepartment === "CIT" ? (
+            {sections
+              .filter((section) => section.section_name === selectedSection)
+              .some((section) => section.section_group) && (
               <div className="flex items-center gap-4">
                 <label
                   htmlFor="group"
@@ -154,22 +156,18 @@ const Scheduling = () => {
                   onChange={(e) => setSelectedGroup(e.target.value)}
                   className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                 >
-                  {sections.length === 0 ? (
-                    <option value="Group">Group</option>
-                  ) : (
-                    sections
-                      .filter(
-                        (section) => section.section_name === selectedSection
-                      )
-                      .map((section, index) => (
-                        <option key={index} value={section.section_group}>
-                          {section.section_group}
-                        </option>
-                      ))
-                  )}
+                  {sections
+                    .filter(
+                      (section) => section.section_name === selectedSection
+                    )
+                    .map((section, index) => (
+                      <option key={index} value={section.section_group}>
+                        {section.section_group}
+                      </option>
+                    ))}
                 </select>
               </div>
-            ) : null}
+            )}
           </div>
           <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
             <button

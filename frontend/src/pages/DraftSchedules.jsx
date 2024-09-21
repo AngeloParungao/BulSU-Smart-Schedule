@@ -312,7 +312,9 @@ function DraftSchedules() {
                     )}
                   </select>
                 </div>
-                {currentDepartment === "CICT" || currentDepartment === "CIT" ? (
+                {sections
+                  .filter((section) => section.section_name === selectedSection)
+                  .some((section) => section.section_group) && (
                   <div className="flex items-center gap-4">
                     <label
                       htmlFor="group"
@@ -327,27 +329,20 @@ function DraftSchedules() {
                       onChange={(e) => setSelectedGroup(e.target.value)}
                       className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                     >
-                      {sections.length === 0 ? (
-                        <option value="Group">Group</option>
-                      ) : (
-                        sections
-                          .filter(
-                            (section) =>
-                              section.section_name === selectedSection
-                          )
-                          .map((section, index) => (
-                            <option key={index} value={section.section_group}>
-                              {section.section_group}
-                            </option>
-                          ))
-                      )}
+                      {sections
+                        .filter(
+                          (section) => section.section_name === selectedSection
+                        )
+                        .map((section, index) => (
+                          <option key={index} value={section.section_group}>
+                            {section.section_group}
+                          </option>
+                        ))}
                     </select>
                   </div>
-                ) : null}
+                )}
               </div>
             )}
-
-            {/* Buttons */}
             <div className="flex md:flex-row flex-col md:gap-4 gap-2">
               <button
                 className="p-2 bg-blue-500 lg:text-sm text-[0.7rem] text-white rounded-md hover:bg-blue-600 transition"
