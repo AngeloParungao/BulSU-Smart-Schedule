@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { exportToCSV } from "../utils/exportToCSV";
 
 function DraftSchedules() {
   const url = process.env.REACT_APP_URL;
@@ -181,6 +182,34 @@ function DraftSchedules() {
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = [
+      "Day",
+      "Start Time",
+      "End Time",
+      "Room",
+      "Course",
+      "Instructor",
+      "Section",
+      "Group",
+      "Department",
+    ];
+
+    const data = schedules.map((schedule) => [
+      schedule.day,
+      schedule.start_time,
+      schedule.end_time,
+      schedule.room,
+      schedule.subject,
+      schedule.instructor,
+      schedule.section_name,
+      schedule.section_group,
+      schedule.department_code,
+    ]);
+
+    exportToCSV("schedules", headers, data);
+  };
+
   const daysOfWeek = [
     "Monday",
     "Tuesday",
@@ -230,10 +259,16 @@ function DraftSchedules() {
         <Sidebar />
       </div>
       <div className="w-full h-screen absolute lg:relative">
-        <div className="flex items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)]">
+        <div className="flex justify-between items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)]">
           <span className="md:text-4xl text-3xl font-medium">
             Draft Schedules
           </span>
+          <button
+            className="mr-4 text-white md:text-[0.8rem] text-[0.6rem] bg-green-500 py-2 px-4 rounded-full hover:bg-green-600 transition-all"
+            onClick={handleExportCSV}
+          >
+            generate CSV
+          </button>
         </div>
         <div className="p-3 md:px-8">
           {/* Category Selector */}
@@ -401,7 +436,8 @@ function DraftSchedules() {
                             item.start_time === time.startTime &&
                             item.day === day &&
                             item.section_name === selectedSection &&
-                            item.section_group === selectedGroup
+                            (!item.section_group ||
+                              item.section_group === selectedGroup)
                           );
                         }
                       });
