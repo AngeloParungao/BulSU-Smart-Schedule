@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar";
 import PasswordPrompt from "../components/PasswordPrompt";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { exportToCSV } from "../utils/exportToCSV";
 
 const Subjects = () => {
   const currentDepartment = atob(localStorage.getItem("userDept"));
@@ -181,6 +182,28 @@ const Subjects = () => {
     } finally {
       setShowPasswordPrompt(false);
     }
+  };
+
+  const handleExportCSV = () => {
+    const headers = [
+      "Subject Name",
+      "Subject Code",
+      "Year Level",
+      "Subject Type",
+      "Subject Units",
+      "Subject Tags",
+      "Department Code",
+    ];
+    const data = subjects.map((subject) => [
+      subject.subject_name,
+      subject.subject_code,
+      subject.year_level,
+      subject.subject_type,
+      subject.subject_units,
+      subject.subject_tags,
+      subject.department_code,
+    ]);
+    exportToCSV("subjects", headers, data);
   };
 
   const handleSubmit = async (e) => {
@@ -656,6 +679,12 @@ const Subjects = () => {
                   ))}
                 </tbody>
               </table>
+              <button
+                className="fixed bottom-5 right-5 text-white md:text-[0.8rem] text-[0.6rem] bg-green-500 py-2 px-4 rounded-full hover:bg-green-600 transition-all"
+                onClick={handleExportCSV}
+              >
+                generate CSV
+              </button>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import PasswordPrompt from "../components/PasswordPrompt";
+import { exportToCSV } from "../utils/exportToCSV";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAdd,
@@ -192,6 +193,28 @@ const Sections = () => {
     } finally {
       setShowPasswordPrompt(false);
     }
+  };
+
+  const handleExportCSV = () => {
+    const headers = [
+      "Section Name",
+      "Section Group",
+      "Year Level",
+      "Section Capacity",
+      "Department Code",
+      "Section Tags",
+    ];
+
+    const data = filterSections.map((section) => [
+      section.section_name,
+      section.section_group,
+      section.year_level,
+      section.section_capacity,
+      section.department_code,
+      section.section_tags,
+    ]);
+
+    exportToCSV("sections", headers, data);
   };
 
   const handleSubmit = async (e) => {
@@ -601,6 +624,12 @@ const Sections = () => {
                   ))}
                 </tbody>
               </table>
+              <button
+                className="fixed bottom-5 right-5 text-white md:text-[0.8rem] text-[0.6rem] bg-green-500 py-2 px-4 rounded-full hover:bg-green-600 transition-all"
+                onClick={handleExportCSV}
+              >
+                generate CSV
+              </button>
             </div>
           </div>
         </div>

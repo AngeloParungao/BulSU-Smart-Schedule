@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar";
 import PasswordPrompt from "../components/PasswordPrompt";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { exportToCSV } from "../utils/exportToCSV";
 
 const Rooms = () => {
   const currentDepartment = atob(localStorage.getItem("userDept"));
@@ -138,6 +139,15 @@ const Rooms = () => {
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = ["Room Name", "Room Type", "Room Tags"];
+    const data = filterRooms.map((room) => [
+      room.room_name,
+      room.room_type,
+      room.room_tags,
+    ]);
+    exportToCSV("rooms", headers, data);
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -381,6 +391,12 @@ const Rooms = () => {
                   ))}
                 </tbody>
               </table>
+              <button
+                className="fixed bottom-5 right-5 text-white md:text-[0.8rem] text-[0.6rem] bg-green-500 py-2 px-4 rounded-full hover:bg-green-600 transition-all"
+                onClick={handleExportCSV}
+              >
+                generate CSV
+              </button>
             </div>
           </div>
         </div>

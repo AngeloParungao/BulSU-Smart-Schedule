@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import UserForm from "../components/UserForm";
+import { exportToCSV } from "../utils/exportToCSV";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
 
@@ -34,6 +35,24 @@ const Users = () => {
       user.department_code.toLowerCase().includes(search.toLowerCase())
     );
   });
+
+  const handleExportCSV = () => {
+    const headers = [
+      "Email",
+      "First Name",
+      "Middle Name",
+      "Last Name",
+      "Department Code",
+    ];
+    const data = users.map((user) => [
+      user.email,
+      user.first_name,
+      user.middle_name,
+      user.last_name,
+      user.department_code,
+    ]);
+    exportToCSV("users", headers, data);
+  };
 
   return (
     <div className="h-[100dvh] flex bg-[var(--background-color)] text-[var(--text-color)]">
@@ -124,6 +143,12 @@ const Users = () => {
                 ))}
               </tbody>
             </table>
+            <button
+              className="fixed bottom-5 right-5 text-white md:text-[0.8rem] text-[0.6rem] bg-green-500 py-2 px-4 rounded-full hover:bg-green-600 transition-all"
+              onClick={handleExportCSV}
+            >
+              generate CSV
+            </button>
           </div>
         </div>
       </div>
