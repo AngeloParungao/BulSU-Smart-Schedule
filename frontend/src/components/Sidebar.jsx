@@ -89,6 +89,16 @@ function Sidebar() {
         >
           <FontAwesomeIcon icon={faHome} />
         </NavLink>
+        <NavLink
+          to="/draft-schedules"
+          className={({ isActive }) =>
+            `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+              isActive ? "bg-white text-[#343B46]" : ""
+            }`
+          }
+        >
+          <FontAwesomeIcon icon={faNoteSticky} />
+        </NavLink>
         {role === "Administrator" ? (
           <>
             <NavLink
@@ -114,16 +124,6 @@ function Sidebar() {
           </>
         ) : (
           <>
-            <NavLink
-              to="/draft-schedules"
-              className={({ isActive }) =>
-                `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
-                  isActive ? "bg-white text-[#343B46]" : ""
-                }`
-              }
-            >
-              <FontAwesomeIcon icon={faNoteSticky} />
-            </NavLink>
             <NavLink
               to="/scheduling"
               className={({ isActive }) =>
