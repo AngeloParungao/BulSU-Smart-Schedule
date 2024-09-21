@@ -21,8 +21,13 @@ router.post('/adding', (req, res) => {
 
 router.get('/fetch', (req, res) => {
     const { dept_code } = req.query;
-    const sql = "SELECT * FROM schedules WHERE department_code = ?";
-    db.query(sql, [dept_code], (err, results) => {
+    let sql;
+    if (dept_code === 'ADMIN') {
+        sql = "SELECT * FROM schedules";
+    } else {
+        sql = "SELECT * FROM schedules WHERE department_code = ?";
+    }
+    db.query(sql, dept_code !== 'ADMIN' ? [dept_code] : [], (err, results) => {
         if (err) {
             console.error('Error fetching data:', err);
             return res.status(500).json({ error: 'Failed to fetch schedules' });
