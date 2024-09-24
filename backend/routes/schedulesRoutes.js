@@ -7,8 +7,7 @@ router.post('/adding', (req, res) => {
 
     const sql = `
         INSERT INTO schedules (instructor, subject, section_name, section_group, class_type, room, background_color, day, start_time, end_time, department_code)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     db.query(sql, [instructorName, subjectName, section, group, courseType, roomName, selectedColor, meetingDay, startTime, endTime, department_code], (err, result) => {
         if (err) {
