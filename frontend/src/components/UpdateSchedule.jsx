@@ -15,7 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "./scheduling.css";
 
-const UpdateSchedule = ({ onClose, item }) => {
+const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
   const url = process.env.REACT_APP_URL;
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const currentDepartment = atob(localStorage.getItem("userDept"));
@@ -443,7 +443,8 @@ const UpdateSchedule = ({ onClose, item }) => {
       });
 
       toast.success("Item updated successfully!");
-      setTimeout(onClose, 1000);
+      onRefreshSchedules();
+      setTimeout(onClose, 2000);
     } catch (error) {
       console.error("Error updating item:", error);
       toast.error("Failed to update item");
@@ -936,9 +937,14 @@ const UpdateSchedule = ({ onClose, item }) => {
                 .map((room) => (
                   <li
                     key={room.id}
-                    onClick={() => setData({ ...data, room: room.room_name })}
+                    onClick={() =>
+                      setData({
+                        ...data,
+                        room: `${room.room_name} - ${room.room_building}`,
+                      })
+                    }
                   >
-                    {room.room_name}
+                    {room.room_name} - {room.room_building}
                   </li>
                 ))}
             </ul>

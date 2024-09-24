@@ -26,7 +26,10 @@ const Scheduling = () => {
   useEffect(() => {
     toast.dismiss();
     fetchData();
-  }, [showDeleteModal, showUpdateModal, showAddModal]);
+    return () => {
+      toast.dismiss();
+    };
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -37,13 +40,19 @@ const Scheduling = () => {
       setSchedules(scheduleRes.data);
       setSections(sectionRes.data);
 
-      if (sectionRes.data.length > 0) {
-        setSelectedSection(sectionRes.data[0].section_name.toString());
-        setSelectedGroup(sectionRes.data[0].section_group.toString());
+      if (scheduleRes.data.length > 0) {
+        if (selectedSection === "")
+          setSelectedSection(scheduleRes.data[0].section_name);
+        if (selectedGroup === "")
+          setSelectedGroup(scheduleRes.data[0].section_group);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
+  };
+
+  const refreshData = () => {
+    fetchData();
   };
 
   const handleEditItemClick = (item) => {
@@ -302,6 +311,7 @@ const Scheduling = () => {
           onClose={() => setShowAddModal(false)}
           section={selectedSection}
           group={selectedGroup}
+          onRefreshSchedules={refreshData}
         />
       )}
       {showListModal && (
@@ -319,6 +329,7 @@ const Scheduling = () => {
         <UpdateItem
           onClose={() => setShowUpdateModal(false)}
           item={itemToEdit}
+          onRefreshSchedules={refreshData}
         />
       )}
       {showDeleteModal && (
@@ -329,6 +340,7 @@ const Scheduling = () => {
               schedule.section_name === selectedSection &&
               schedule.section_group === selectedGroup
           )}
+          onRefreshSchedules={refreshData}
         />
       )}
     </div>

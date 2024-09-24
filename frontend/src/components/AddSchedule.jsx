@@ -15,7 +15,7 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
-const AddSchedule = ({ onClose, section, group }) => {
+const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
   const url = process.env.REACT_APP_URL;
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const currentDepartment = atob(localStorage.getItem("userDept"));
@@ -487,7 +487,8 @@ const AddSchedule = ({ onClose, section, group }) => {
         });
 
         toast.success("Item added successfully!");
-        setTimeout(onClose, 1000);
+        onRefreshSchedules();
+        setTimeout(onClose, 2000);
       } catch (error) {
         console.error("Error adding item:", error);
         toast.error("Failed to add item");
@@ -989,8 +990,13 @@ const AddSchedule = ({ onClose, section, group }) => {
                   (currentRoomPage + 1) * itemsPerPage
                 )
                 .map((room) => (
-                  <li key={room.id} onClick={() => setRoomName(room.room_name)}>
-                    {room.room_name}
+                  <li
+                    key={room.id}
+                    onClick={() =>
+                      setRoomName(`${room.room_name} - ${room.room_building}`)
+                    }
+                  >
+                    {room.room_name} - {room.room_building}
                   </li>
                 ))}
             </ul>

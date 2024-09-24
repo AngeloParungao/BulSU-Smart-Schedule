@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
-function DeleteItem({ onClose, schedule }) {
+function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const url = process.env.REACT_APP_URL;
@@ -94,7 +94,8 @@ function DeleteItem({ onClose, schedule }) {
 
           toast.success("Deleted successfully!");
           setSelectedSchedules([]);
-          setTimeout(onClose, 1000);
+          onRefreshSchedules();
+          setTimeout(onClose, 2000);
         } catch (error) {
           console.error("Error deleting data:", error);
           toast.error("Error deleting schedule.");
