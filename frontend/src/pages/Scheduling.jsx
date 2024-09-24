@@ -39,13 +39,6 @@ const Scheduling = () => {
       ]);
       setSchedules(scheduleRes.data);
       setSections(sectionRes.data);
-
-      if (scheduleRes.data.length > 0) {
-        if (selectedSection === "")
-          setSelectedSection(scheduleRes.data[0].section_name);
-        if (selectedGroup === "")
-          setSelectedGroup(scheduleRes.data[0].section_group);
-      }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -135,15 +128,12 @@ const Scheduling = () => {
                 onChange={(e) => setSelectedSection(e.target.value)}
                 className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
               >
-                {sections.length === 0 ? (
-                  <option value="Section">Section</option>
-                ) : (
-                  [...new Set(sections.map((s) => s.section_name))].map(
-                    (section, index) => (
-                      <option key={index} value={section}>
-                        {section}
-                      </option>
-                    )
+                <option value="">Section</option>
+                {[...new Set(sections.map((s) => s.section_name))].map(
+                  (section, index) => (
+                    <option key={index} value={section}>
+                      {section}
+                    </option>
                   )
                 )}
               </select>
