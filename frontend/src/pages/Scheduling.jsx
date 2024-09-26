@@ -171,19 +171,37 @@ const Scheduling = () => {
           <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
             <button
               className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                if (!selectedSection) {
+                  toast.error("Please select a section and group");
+                  return;
+                }
+                setShowAddModal(true);
+              }}
             >
               Add Item
             </button>
             <button
               className="bg-yellow-400 hover:bg-yellow-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
-              onClick={() => setShowListModal(true)}
+              onClick={() => {
+                if (!selectedSection) {
+                  toast.error("Please select a section and group");
+                  return;
+                }
+                setShowListModal(true);
+              }}
             >
               Edit Item
             </button>
             <button
               className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
-              onClick={() => setShowDeleteModal(true)}
+              onClick={() => {
+                if (!selectedSection) {
+                  toast.error("Please select a section and group");
+                  return;
+                }
+                setShowDeleteModal(true);
+              }}
             >
               Delete Item
             </button>
