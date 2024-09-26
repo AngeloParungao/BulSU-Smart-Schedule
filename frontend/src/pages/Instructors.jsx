@@ -20,6 +20,7 @@ const Instructors = () => {
   const [instructors, setInstructors] = useState([]);
   const [instructorIdToUpdate, setInstructorIdToUpdate] = useState("");
   const [selectedInstructors, setSelectedInstructors] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     email: "",
@@ -73,15 +74,21 @@ const Instructors = () => {
     setIsUpdating(false);
   };
 
-  const filterInstructors = instructors.filter(
-    (instructor) =>
+  const filterInstructors = instructors.filter((instructor) => {
+    const matchesSearch =
       instructor.email.toLowerCase().includes(search.toLowerCase()) ||
       instructor.first_name.toLowerCase().includes(search.toLowerCase()) ||
       instructor.middle_name.toLowerCase().includes(search.toLowerCase()) ||
       instructor.last_name.toLowerCase().includes(search.toLowerCase()) ||
       instructor.tags.toLowerCase().includes(search.toLowerCase()) ||
-      instructor.department_code.toLowerCase().includes(search.toLowerCase())
-  );
+      instructor.department_code.toLowerCase().includes(search.toLowerCase());
+
+    const matchesDepartment =
+      selectedDepartment === "All" ||
+      instructor.department_code === selectedDepartment;
+
+    return matchesSearch && matchesDepartment;
+  });
 
   const selectAll = () => {
     if (selectedInstructors.length === filterInstructors.length) {
@@ -468,17 +475,39 @@ const Instructors = () => {
           </form>
           <div className="h-full md:flex-1 w-full flex flex-col items-center lg:px-4 px-0 gap-2">
             <div className="relative flex justify-between items-center w-full">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="absolute left-3 text-sm text-gray-300"
-              />
-              <input
-                className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
-                type="text"
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)} // Update search term on input change
-              />
+              <div className="flex flex-col gap-4">
+                <FontAwesomeIcon
+                  icon={faSearch}
+                  className="absolute left-3 top-3 text-sm text-gray-300"
+                />
+                <input
+                  className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
+                  type="text"
+                  placeholder="Search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)} // Update search term on input change
+                />
+                {currentRole === "Administrator" && (
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="department" className="text-sm text-black">
+                      Department:
+                    </label>
+                    <select
+                      className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      id="department"
+                      value={selectedDepartment}
+                      onChange={(e) => setSelectedDepartment(e.target.value)}
+                    >
+                      <option value="All">All</option>
+                      {departments.map((department, index) => (
+                        <option key={index} value={department.code}>
+                          {department.department_code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
               <div className="flex gap-4">
                 <button
                   className="text-orange-500 md:text-sm text-[0.8rem] hover:text-orange-600"

@@ -26,6 +26,7 @@ const Sections = () => {
   const [sectionIdToUpdate, setSectionIdToUpdate] = useState("");
   const [selectedSections, setSelectedSections] = useState([]);
   const [selectedYear, setSelectedYear] = useState("All");
+  const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     section_name: "",
@@ -90,7 +91,11 @@ const Sections = () => {
       const matchesYear =
         selectedYear === "All" || section.year_level === selectedYear;
 
-      return matchesSearch && matchesYear;
+      const matchesDepartment =
+        selectedDepartment === "All" ||
+        section.department_code === selectedDepartment;
+
+      return matchesSearch && matchesYear && matchesDepartment;
     })
     .sort((a, b) => {
       // Priority sorting for groups
@@ -513,10 +518,10 @@ const Sections = () => {
           </form>
           <div className="h-full md:flex-1 w-full flex flex-col items-center lg:px-4 px-0 gap-2">
             <div className="relative flex justify-between items-center w-full">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-4">
                 <FontAwesomeIcon
                   icon={faSearch}
-                  className="absolute left-3 text-sm text-gray-300"
+                  className="absolute left-3 top-3 text-sm text-gray-300"
                 />
                 <input
                   className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
@@ -525,22 +530,47 @@ const Sections = () => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)} // Update search term on input change
                 />
-                <div className="flex items-center gap-2">
-                  <label htmlFor="order" className="text-sm text-black">
-                    Year:
-                  </label>
-                  <select
-                    className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    id="order"
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                  >
-                    <option value="All">All</option>
-                    <option value="1st Year">1st Year</option>
-                    <option value="2nd Year">2nd Year</option>
-                    <option value="3rd Year">3rd Year</option>
-                    <option value="4th Year">4th Year</option>
-                  </select>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="order" className="text-sm text-black">
+                      Year:
+                    </label>
+                    <select
+                      className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      id="order"
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                    >
+                      <option value="All">All</option>
+                      <option value="1st Year">1st Year</option>
+                      <option value="2nd Year">2nd Year</option>
+                      <option value="3rd Year">3rd Year</option>
+                      <option value="4th Year">4th Year</option>
+                    </select>
+                  </div>
+                  {currentRole === "Administrator" && (
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="department"
+                        className="text-sm text-black"
+                      >
+                        Department:
+                      </label>
+                      <select
+                        className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        id="department"
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                      >
+                        <option value="All">All</option>
+                        {departments.map((department, index) => (
+                          <option key={index} value={department.code}>
+                            {department.department_code}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex gap-4">

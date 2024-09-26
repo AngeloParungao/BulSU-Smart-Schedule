@@ -22,6 +22,7 @@ const Subjects = () => {
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedSemester, setSelectedSemester] = useState("All");
+  const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     subject_name: "",
@@ -95,7 +96,11 @@ const Subjects = () => {
       selectedSemester === "All" ||
       subject.subject_semester.toString() === selectedSemester;
 
-    return matchesSearch && matchesYear && matchesSemester;
+    const matchesDepartment =
+      selectedDepartment === "All" ||
+      subject.department_code === selectedDepartment;
+
+    return matchesSearch && matchesYear && matchesSemester && matchesDepartment;
   });
 
   const selectAll = () => {
@@ -535,10 +540,10 @@ const Subjects = () => {
           </form>
           <div className="h-full md:flex-1 w-full flex flex-col items-center lg:px-4 px-0 gap-2">
             <div className="relative flex justify-between items-center w-full">
-              <div className="flex md:flex-row flex-col md:items-center justify-center md:gap-4 gap-2">
+              <div className="flex flex-col gap-4">
                 <FontAwesomeIcon
                   icon={faSearch}
-                  className="absolute left-3 md:top-5 top-3 text-sm text-gray-300"
+                  className="absolute left-3 top-3 text-sm text-gray-300"
                 />
                 <input
                   className="md:w-[14rem] w-[8rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
@@ -547,8 +552,8 @@ const Subjects = () => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)} // Update search term on input change
                 />
-                <div className="flex md:flex-row flex-col md:items-center justify-center gap-2">
-                  <div className="flex md:flex-col flex-row gap-[0.2rem] w-full">
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2">
                     <label
                       htmlFor="order"
                       className="flex items-center md:text-sm text-xs text-black"
@@ -568,7 +573,7 @@ const Subjects = () => {
                       <option value="4th Year">4th Year</option>
                     </select>
                   </div>
-                  <div className="flex md:flex-col flex-row gap-[0.2rem] w-full">
+                  <div className="flex items-center gap-2">
                     <label
                       htmlFor="order"
                       className="flex items-center md:text-sm text-xs text-black"
@@ -586,6 +591,29 @@ const Subjects = () => {
                       <option value="2">2nd Semester</option>
                     </select>
                   </div>
+                  {currentRole === "Administrator" && (
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="department"
+                        className="text-sm text-black"
+                      >
+                        Department:
+                      </label>
+                      <select
+                        className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        id="department"
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                      >
+                        <option value="All">All</option>
+                        {departments.map((department, index) => (
+                          <option key={index} value={department.code}>
+                            {department.department_code}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex gap-4">
