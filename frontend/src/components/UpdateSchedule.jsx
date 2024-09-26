@@ -31,6 +31,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
     subject: item.subject,
     instructor: item.instructor,
     room: item.room,
+    room_building: item.room_building,
     background_color: item.background_color,
     day: item.day,
     start_time: item.start_time,
@@ -65,6 +66,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
     data.subject,
     data.instructor,
     data.room,
+    data.room_building,
     data.background_color,
     data.day,
     data.start_time,
@@ -497,7 +499,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
 
   return (
     <div className="modal">
-      <div className="modal-content">
+      <div className="modal-content bg-white">
         <div className="upper">
           <button className="close-btn" onClick={onClose}>
             X
@@ -940,7 +942,8 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
                     onClick={() =>
                       setData({
                         ...data,
-                        room: `${room.room_name} - ${room.room_building}`,
+                        room: room.room_name,
+                        room_building: room.room_building,
                       })
                     }
                   >
