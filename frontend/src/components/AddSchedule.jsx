@@ -30,6 +30,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
   const [subjectName, setSubjectName] = useState("");
   const [instructorName, setInstructorName] = useState("");
   const [roomName, setRoomName] = useState("");
+  const [roomBuilding, setRoomBuilding] = useState("");
   const [selectedColor, setSelectedColor] = useState("#ffffff");
   const [meetingDay, setMeetingDay] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -415,6 +416,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
         subjectName,
         instructorName,
         roomName,
+        roomBuilding,
         selectedColor,
         meetingDay,
         startTime,
@@ -540,7 +542,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
 
   return (
     <div className="modal">
-      <div className="modal-content">
+      <div className="modal-content bg-white">
         <div className="upper">
           <button className="close-btn" onClick={onClose}>
             X
@@ -992,9 +994,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                 .map((room) => (
                   <li
                     key={room.id}
-                    onClick={() =>
-                      setRoomName(`${room.room_name} - ${room.room_building}`)
-                    }
+                    onClick={() => {
+                      setRoomName(room.room_name);
+                      setRoomBuilding(room.room_building);
+                    }}
                   >
                     {room.room_name} - {room.room_building}
                   </li>
