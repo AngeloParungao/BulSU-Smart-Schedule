@@ -3,13 +3,13 @@ const db = require('../config/database');
 const router = express.Router();
 
 router.post('/adding', (req, res) => {
-    const { instructorName, subjectName, section, group, courseType, roomName, selectedColor, meetingDay, startTime, endTime, department_code } = req.body;
+    const { instructorName, subjectName, section, group, courseType, roomName, roomBuilding, selectedColor, meetingDay, startTime, endTime, department_code } = req.body;
 
     const sql = `
-        INSERT INTO schedules (instructor, subject, section_name, section_group, class_type, room, background_color, day, start_time, end_time, department_code)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        INSERT INTO schedules (instructor, subject, section_name, section_group, class_type, room, room_building, background_color, day, start_time, end_time, department_code)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, [instructorName, subjectName, section, group, courseType, roomName, selectedColor, meetingDay, startTime, endTime, department_code], (err, result) => {
+    db.query(sql, [instructorName, subjectName, section, group, courseType, roomName, roomBuilding, selectedColor, meetingDay, startTime, endTime, department_code], (err, result) => {
         if (err) {
             console.error('Error inserting data:', err);
             return res.status(500).json({ error: 'Failed to add schedule' });
@@ -56,15 +56,15 @@ router.delete('/delete', (req, res) => {
 
 router.put('/update/:id', (req, res) => {
     const { id } = req.params;
-    const { instructor, subject, course_type, room, background_color, day, start_time, end_time } = req.body;
+    const { instructor, subject, course_type, room, room_building, background_color, day, start_time, end_time } = req.body;
 
     const sql = `
         UPDATE schedules 
-        SET instructor = ?, subject = ?, class_type = ?, room = ?, background_color = ?, day = ?, start_time = ?, end_time = ?
+        SET instructor = ?, subject = ?, class_type = ?, room = ?, room_building = ?, background_color = ?, day = ?, start_time = ?, end_time = ?
         WHERE schedule_id = ?
     `;
 
-    db.query(sql, [instructor, subject, course_type, room, background_color, day, start_time, end_time, id], (err, result) => {
+    db.query(sql, [instructor, subject, course_type, room, room_building, background_color, day, start_time, end_time, id], (err, result) => {
         if (err) {
             console.error('Error updating data:', err);
             return res.status(500).json({ error: 'Failed to update schedule' });
