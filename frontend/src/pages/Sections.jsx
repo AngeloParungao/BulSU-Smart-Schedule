@@ -322,7 +322,10 @@ const Sections = () => {
                 placeholder="Section Name"
                 value={data.section_name}
                 onChange={(e) => {
-                  setData({ ...data, section_name: e.target.value });
+                  setData({
+                    ...data,
+                    section_name: e.target.value.toUpperCase(),
+                  });
                   setErrors({ ...errors, section_name: "" });
                 }}
                 className={`${
