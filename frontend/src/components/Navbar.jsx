@@ -56,14 +56,16 @@ function Navbar() {
         >
           Subjects
         </NavLink>
-        <NavLink
-          to="/rooms"
-          className={({ isActive }) =>
-            isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
-          }
-        >
-          Rooms
-        </NavLink>
+        {role === "Administrator" ? (
+          <NavLink
+            to="/rooms"
+            className={({ isActive }) =>
+              isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
+            }
+          >
+            Rooms
+          </NavLink>
+        ) : null}
       </div>
       <div className="lg:hidden">
         <select value={location.pathname} onChange={handleSelectChange}>
@@ -75,7 +77,9 @@ function Navbar() {
           <option value="/instructors">Instructors</option>
           <option value="/sections">Sections</option>
           <option value="/subjects">Subjects</option>
-          <option value="/rooms">Rooms</option>
+          {role === "Administrator" ? (
+            <option value="/rooms">Rooms</option>
+          ) : null}
         </select>
       </div>
     </div>
