@@ -125,7 +125,21 @@ const Scheduling = () => {
                 name="section"
                 id="section"
                 value={selectedSection}
-                onChange={(e) => setSelectedSection(e.target.value)}
+                onChange={(e) => {
+                  const selectedSectionName = e.target.value;
+                  setSelectedSection(selectedSectionName);
+
+                  // Automatically select the first group of the selected section
+                  const sectionGroups = sections.filter(
+                    (section) => section.section_name === selectedSectionName
+                  );
+
+                  if (sectionGroups.length > 0) {
+                    setSelectedGroup(sectionGroups[0].section_group); // Set first group
+                  } else {
+                    setSelectedGroup(""); // No group available
+                  }
+                }}
                 className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
               >
                 <option value="">Section</option>
