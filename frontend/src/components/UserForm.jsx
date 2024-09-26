@@ -7,6 +7,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
   const url = process.env.REACT_APP_URL;
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [errors, setErrors] = useState({});
@@ -97,6 +98,8 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setIsSubmitting(true);
+
     let validationErrors = {};
     if (data.email && !/\S+@\S+\.\S+/.test(data.email)) {
       validationErrors.email = "Invalid email address";
@@ -157,6 +160,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
         toast.error(`Error ${isUpdating ? "updating" : "adding"} instructor.`);
       }
     }
+    setIsSubmitting(false);
   };
 
   return (
@@ -284,6 +288,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 mt-4 rounded-md w-[100%] hover:bg-blue-600"
+          disabled={isSubmitting}
         >
           {isUpdating ? "Update" : "Add"}
         </button>
