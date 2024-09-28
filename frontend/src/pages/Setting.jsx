@@ -2,11 +2,21 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
+import UserForm from "../components/UserForm";
+import PasswordPrompt from "../components/PasswordPrompt";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
 function Settings() {
   const url = process.env.REACT_APP_URL;
   const [backgroundColor, setBackgroundColor] = useState("");
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
+  const currentDepartment = atob(localStorage.getItem("userDept"));
+  const currentRole = atob(localStorage.getItem("userRole"));
+  const [collaborators, setCollaborators] = useState([]);
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [selectedCollaborator, setSelectedCollaborator] = useState(null);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
@@ -16,12 +26,22 @@ function Settings() {
   });
 
   useEffect(() => {
+    fetchData();
+  }, [showAddUser, selectedCollaborator, showPasswordPrompt]);
+
+  const fetchData = async () => {
     if (currentUser) {
       try {
         axios
           .get(`${url}api/users/fetch`)
           .then((response) => {
             const user = response.data.find((u) => u.user_id === currentUser);
+            const collab = response.data.filter(
+              (u) =>
+                u.department_code === currentDepartment &&
+                u.user_id !== currentUser
+            );
+            setCollaborators(collab);
             if (user) {
               const { email } = user;
               setCredentials((prevState) => ({ ...prevState, email }));
@@ -40,7 +60,7 @@ function Settings() {
     } else {
       toast.error("User not logged in.");
     }
-  }, []);
+  };
 
   const handleBackgroundColorChange = (color) => {
     document.body.classList.remove("default", "gray", "red", "green");
@@ -58,6 +78,56 @@ function Settings() {
       }
     } catch (error) {
       toast.error("Error saving theme. Please try again.");
+    }
+  };
+
+  const updatePage = () => {
+    fetchData();
+    setShowAddUser(false);
+  };
+
+  const handlePasswordSubmit = async (password) => {
+    try {
+      // Fetch user data to validate password
+      const response = await axios.post(`${url}api/auth/verify-password`, {
+        user_id: currentUser,
+        password: password,
+      });
+
+      // Check if the password is correct (isMatch: true)
+      if (response.data.isMatch) {
+        try {
+          // Proceed with deletion
+          await axios.delete(
+            `${url}api/users/delete/${selectedCollaborator.user_id}`
+          );
+
+          // Log the deletion activity
+          await axios.post(`${url}api/activity/adding`, {
+            user_id: currentUser,
+            department_code: currentDepartment,
+            action: "Delete",
+            details: `${selectedCollaborator.first_name} ${selectedCollaborator.last_name})`,
+            type: "user",
+          });
+
+          toast.success("Deleted successfully!");
+          setSelectedCollaborator(null);
+          fetchData();
+        } catch (error) {
+          console.error("Error deleting data:", error);
+          toast.error("Error deleting data.");
+        }
+      }
+    } catch (error) {
+      if (error.response.status === 401) {
+        toast.error("Incorrect Password!");
+      } else {
+        console.error("Error verifying password:", error);
+        toast.error("Error verifying password.");
+      }
+    } finally {
+      setShowPasswordPrompt(false);
     }
   };
 
@@ -112,7 +182,7 @@ function Settings() {
         <div className="flex items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)]">
           <span className="md:text-4xl text-3xl font-medium">Settings</span>
         </div>
-        <div className="flex lg:flex-row flex-col justify-center items-center lg:h-[calc(100vh-4.5rem)] w-full md:gap-8 gap-4 lg:p-0 p-8">
+        <div className="flex lg:flex-row flex-col justify-center items-center lg:h-[calc(100vh-4.5rem)] w-full gap-4 lg:p-0 p-8">
           <div className="flex flex-col justify-center items-center p-5 bg-white rounded-lg shadow-md w-[25rem] h-[30rem] gap-2">
             <h3 className="self-start text-xl font-bold text-black">
               Settings
@@ -242,7 +312,63 @@ function Settings() {
               </button>
             </div>
           </div>
+          {currentRole === "User" && (
+            <div className="flex flex-col items-center p-5 bg-white rounded-xl shadow-md w-[25rem] h-[30rem] gap-2 overflow-auto">
+              <h3 className="self-start text-xl font-bold mt-3 text-black">
+                Collaborators
+              </h3>
+              <div className="flex flex-col w-full gap-4 py-2">
+                <div className="flex flex-col gap-3 w-full h-[20rem]">
+                  {collaborators.length === 0 ? (
+                    <div className="flex justify-center items-center px-3">
+                      <p className="text-gray-500 text-sm p-4 italic">
+                        No Collaborators Added
+                      </p>
+                    </div>
+                  ) : (
+                    collaborators.map((collaborator, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center px-3 border border-gray-200 rounded-xl"
+                      >
+                        <p className="text-black text-sm p-4">{`${collaborator.first_name} ${collaborator.middle_name} ${collaborator.last_name}`}</p>
+                        <button
+                          className="text-sm text-white hover:cursor-pointer"
+                          onClick={() => {
+                            setShowPasswordPrompt(true);
+                            setSelectedCollaborator(collaborator);
+                          }}
+                        >
+                          <FontAwesomeIcon
+                            icon={faTrashCan}
+                            className="text-red-500 text-lg hover:text-red-600"
+                          />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <button
+                  className="w-full bg-green-500 text-sm text-white font-medium p-2 rounded-md"
+                  onClick={() => setShowAddUser(true)}
+                >
+                  Add Collaborator
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+        <UserForm
+          isOpen={showAddUser}
+          onRequestClose={() => {
+            updatePage();
+          }}
+        />
+        <PasswordPrompt
+          isOpen={showPasswordPrompt}
+          onRequestClose={() => setShowPasswordPrompt(false)}
+          onSubmit={handlePasswordSubmit}
+        />
       </div>
     </div>
   );
