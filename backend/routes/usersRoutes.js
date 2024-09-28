@@ -6,13 +6,13 @@ require('dotenv').config();
 const { sendEmail } = require('../services/emailer');
 
 router.post('/adding', async (req, res) => {
-    const { email, first_name, middle_name, last_name, department_code, password } = req.body;
+    const { email, first_name, middle_name, last_name, department_code, password, role } = req.body;
     const hashedPassword = await bcryptjs.hash(password, 10);
-    const sql = "INSERT INTO users (email, first_name, middle_name, last_name, department_code, password) VALUES (?, ?, ?, ?, ?, ?)";
+    const sql = "INSERT INTO users (email, first_name, middle_name, last_name, department_code, password, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     try {
         const result = await new Promise((resolve, reject) => {
-            db.query(sql, [email, first_name, middle_name, last_name, department_code, hashedPassword], (err, result) => {
+            db.query(sql, [email, first_name, middle_name, last_name, department_code, hashedPassword, role], (err, result) => {
                 if (err) {
                     return reject(err);
                 }
@@ -56,6 +56,19 @@ router.put('/update/:user_id', (req, res) => {
             return res.status(500).json({ error: 'Failed to update user' });
         }
         res.status(200).json({ message: 'User updated successfully' });
+    });
+});
+
+router.delete('/delete/:user_id', (req, res) => {
+    const user_id = req.params.user_id;
+    const sql = "DELETE FROM users WHERE user_id = ?";
+
+    db.query(sql, [user_id], (err, result) => {
+        if (err) {
+            console.error('Error deleting data:', err);
+            return res.status(500).json({ error: 'Failed to delete user' });
+        }  
+        res.status(200).json({ message: 'User deleted successfully' });
     });
 });
 
