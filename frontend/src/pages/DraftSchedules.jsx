@@ -52,21 +52,34 @@ function DraftSchedules() {
     const scheduleContainer = document.querySelector("#scheduleTable");
     if (!scheduleContainer) return toast.error("No schedule found to print.");
 
-    const timeElements = document.querySelectorAll(".time");
+    // Clone the scheduleContainer to avoid changing the original
+    const clone = scheduleContainer.cloneNode(true);
+    document.body.appendChild(clone); // Append the clone to the body
+
+    // Temporarily set the height of the clone for better PDF rendering
+    clone.style.height = "800px"; // Set a new height for the clone
+    clone.style.position = "absolute"; // Position it off-screen
+    clone.style.left = "-9999px"; // Move it out of view
+
+    // Center the table using CSS (if necessary, for future reference)
+    clone.style.margin = "0 auto"; // Center the table horizontally
+
+    const timeElements = clone.querySelectorAll(".time");
     timeElements.forEach((el) => (el.style.color = "black")); // Set time color to black
 
     try {
-      const canvas = await html2canvas(scheduleContainer, {
+      const canvas = await html2canvas(clone, {
         scale: 2,
         useCORS: true,
         backgroundColor: null,
       });
-      const pdf = new jsPDF("l", "mm", "a4");
+      const pdf = new jsPDF("p", "mm", "a4");
       const imgData = canvas.toDataURL("image/png");
-      const imgWidth = 297,
-        imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
       let heightLeft = imgHeight,
-        pageHeight = 210;
+        pageHeight = 297; // A4 height in mm
 
       pdf
         .setFontSize(18)
@@ -99,38 +112,59 @@ function DraftSchedules() {
       console.error("Error generating PDF:", error);
       toast.error("Failed to generate PDF");
     } finally {
+      // Remove the clone from the document
+      document.body.removeChild(clone); // Clean up the cloned table
       timeElements.forEach((el) => (el.style.color = "")); // Reset time color
     }
   };
 
   const generateAllPDFs = async () => {
-    const timeElements = document.querySelectorAll(".time");
-    timeElements.forEach((el) => (el.style.color = "black"));
+    const scheduleContainer = document.querySelector("#scheduleTable");
+    if (!scheduleContainer) return toast.error("No schedule found to print.");
+
+    // Clone the scheduleContainer to avoid changing the original
+    const clone = scheduleContainer.cloneNode(true);
+    document.body.appendChild(clone);
+
+    // Temporarily set the height of the clone for better PDF rendering
+    clone.style.height = "800px"; // Set a new height for the clone
+    clone.style.position = "absolute"; // Position it off-screen
+    clone.style.left = "-9999px"; // Move it out of view
+    clone.style.margin = "0 auto"; // Center the table horizontally
+
+    const timeElements = clone.querySelectorAll(".time");
+    timeElements.forEach((el) => (el.style.color = "black")); // Set time color to black
 
     try {
-      const pdf = new jsPDF("l", "mm", "a4"),
-        imgWidth = 297,
-        pageHeight = 210;
+      const pdf = new jsPDF("p", "mm", "a4"); // Create a single PDF document
       let isFirstPage = true;
 
-      const generatePage = async (text, setFields) => {
-        setFields();
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        const canvas = await html2canvas(
-          document.querySelector("#scheduleTable"),
-          { scale: 2, useCORS: true, backgroundColor: null }
-        );
-        const imgData = canvas.toDataURL("image/png"),
-          imgHeight = (canvas.height * imgWidth) / canvas.width;
-        let heightLeft = imgHeight;
+      const addPage = async (title, subTitle) => {
+        // Update the content of the cloned element
+        const contentToClone = document
+          .querySelector("#scheduleTable")
+          .cloneNode(true);
+        contentToClone
+          .querySelectorAll(".time")
+          .forEach((el) => (el.style.color = "black"));
+
+        // Replace the content in the clone with the correct section/instructor
+        clone.innerHTML = contentToClone.innerHTML;
+
+        const canvas = await html2canvas(clone, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL("image/png");
+        const imgWidth = 210; // A4 width in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight,
+          pageHeight = 297; // A4 height in mm
 
         if (!isFirstPage) pdf.addPage();
         isFirstPage = false;
 
-        pdf
-          .setFontSize(18)
-          .text(text, 14, 20)
-          .addImage(imgData, "PNG", 0, 40, imgWidth, imgHeight);
+        pdf.setFontSize(18).text(title, 14, 20);
+        pdf.setFontSize(14).text(subTitle, 14, 30);
+        pdf.addImage(imgData, "PNG", 0, 40, imgWidth, imgHeight);
+
         while (heightLeft > pageHeight) {
           pdf.addPage();
           pdf.addImage(
@@ -145,17 +179,16 @@ function DraftSchedules() {
         }
       };
 
+      // Add instructor schedules to the PDF
       if (category === "instructor") {
         for (const instructor of instructors) {
-          await generatePage(
-            `Instructor: ${instructor.firstname} ${instructor.lastname}`,
-            () =>
-              setSelectedInstructor(
-                `${instructor.firstname} ${instructor.middlename} ${instructor.lastname}`
-              )
-          );
+          const selectedInstructor = `${instructor.firstname} ${instructor.lastname}`;
+          // Set the content for the specific instructor
+          setSelectedInstructor(selectedInstructor); // Ensure this updates the displayed schedule
+          await addPage("Schedule for:", `Instructor: ${selectedInstructor}`);
         }
       } else {
+        // Add section group schedules to the PDF
         const sectionGroups = [
           ...new Set(
             sections.map(
@@ -166,18 +199,24 @@ function DraftSchedules() {
         ];
         for (const sectionGroup of sectionGroups) {
           const [sectionName, group] = sectionGroup.split("-");
-          await generatePage(`Section: ${sectionName}, Group: ${group}`, () => {
-            setSelectedSection(sectionName);
-            setSelectedGroup(group);
-          });
+          // Set the content for the specific section
+          setSelectedSection(sectionName);
+          setSelectedGroup(group);
+          await addPage(
+            "Schedule for:",
+            `Section: ${sectionName}, Group: ${group}`
+          );
         }
       }
 
+      // Save the combined PDF
       pdf.save("all_schedules.pdf");
     } catch (error) {
       console.error("Error generating all PDFs:", error);
       toast.error("Failed to generate all PDFs");
     } finally {
+      // Clean up the cloned table and reset styles
+      document.body.removeChild(clone);
       timeElements.forEach((el) => (el.style.color = ""));
     }
   };
@@ -188,6 +227,7 @@ function DraftSchedules() {
       "Start Time",
       "End Time",
       "Room",
+      "Building",
       "Course",
       "Instructor",
       "Section",
@@ -200,6 +240,7 @@ function DraftSchedules() {
       schedule.start_time,
       schedule.end_time,
       schedule.room,
+      schedule.room_building,
       schedule.subject,
       schedule.instructor,
       schedule.section_name,
