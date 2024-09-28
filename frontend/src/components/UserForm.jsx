@@ -7,6 +7,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
   const url = process.env.REACT_APP_URL;
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
+  const currentRole = atob(localStorage.getItem("userRole"));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -16,7 +17,8 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
     first_name: "",
     middle_name: "",
     last_name: "",
-    department_code: "",
+    department_code: currentRole === "Administrator" ? "" : currentDepartment,
+    role: "User",
   });
 
   useEffect(() => {
@@ -28,6 +30,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
         middle_name: user.middle_name,
         last_name: user.last_name,
         department_code: user.department_code,
+        role: user.role,
       });
     } else if (!isOpen) {
       setIsUpdating(false);
@@ -36,7 +39,9 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
         first_name: "",
         middle_name: "",
         last_name: "",
-        department_code: "",
+        department_code:
+          currentRole === "Administrator" ? "" : currentDepartment,
+        role: "User",
       });
     }
   }, [isOpen, user]);
@@ -69,7 +74,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
     },
     content: {
       width: "25rem",
-      height: "35rem",
+      height: "fit-content",
       padding: "1rem",
       background: "#fff",
       borderRadius: "0.5rem",
@@ -97,70 +102,73 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setIsSubmitting(true);
 
     let validationErrors = {};
-    if (data.email && !/\S+@\S+\.\S+/.test(data.email)) {
-      validationErrors.email = "Invalid email address";
-    }
-    if (!data.email) {
-      validationErrors.email = "Email is required.";
-    }
-    if (!data.first_name) {
-      validationErrors.first_name = "First name is required.";
-    }
-    if (!data.last_name) {
-      validationErrors.last_name = "Last name is required.";
-    }
-    if (!data.department_code) {
-      validationErrors.department_code = "Department is required.";
-    }
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-    } else {
-      setErrors({});
-
-      try {
-        let password = generateRandomPassword();
-        if (isUpdating) {
-          await axios.put(`${url}api/users/update/${user.user_id}`, data);
-          toast.success("User updated successfully!");
-        } else {
-          await axios.post(`${url}api/users/adding`, {
-            ...data,
-            password: password,
-          });
-          toast.success("User created successfully!");
+    try {
+      await axios.get(`${url}api/users/fetch/`).then((res) => {
+        if (res.data.some((user) => user.email === data.email)) {
+          validationErrors.email = "Email already exists";
+        }
+        if (data.email && !/\S+@\S+\.\S+/.test(data.email)) {
+          validationErrors.email = "Invalid email address";
+        }
+        if (!data.email) {
+          validationErrors.email = "Email is required.";
+        }
+        if (!data.first_name) {
+          validationErrors.first_name = "First name is required.";
+        }
+        if (!data.last_name) {
+          validationErrors.last_name = "Last name is required.";
+        }
+        if (currentRole === "Administrator") {
+          if (!data.department_code) {
+            validationErrors.department_code = "Department is required.";
+          }
         }
 
-        // Log activity
-        await axios.post(`${url}api/activity/adding`, {
-          user_id: currentUser,
-          department_code: currentDepartment,
-          action: isUpdating ? "Update" : "Add",
-          details: `${data.last_name}, ${data.first_name} ${data.middle_name}`,
-          type: "user",
-        });
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors);
+        } else {
+          setErrors({});
 
-        onRequestClose();
-        setData({
-          email: "",
-          first_name: "",
-          middle_name: "",
-          last_name: "",
-          department_code: "",
-        });
-      } catch (error) {
-        console.error(
-          `Error ${isUpdating ? "updating" : "adding"} instructor:`,
-          error
-        );
-        toast.error(`Error ${isUpdating ? "updating" : "adding"} instructor.`);
-      }
+          let password = generateRandomPassword();
+          if (isUpdating) {
+            axios.put(`${url}api/users/update/${user.user_id}`, data);
+            toast.success("User updated successfully!");
+          } else {
+            axios.post(`${url}api/users/adding`, {
+              ...data,
+              password: password,
+            });
+            toast.success("User created successfully!");
+          }
+
+          // Log activity
+          axios.post(`${url}api/activity/adding`, {
+            user_id: currentUser,
+            department_code: currentDepartment,
+            action: isUpdating ? "Update" : "Add",
+            details: `${data.last_name}, ${data.first_name} ${data.middle_name}`,
+            type: "user",
+          });
+
+          onRequestClose();
+          setData({
+            email: "",
+            first_name: "",
+            middle_name: "",
+            last_name: "",
+            department_code: "",
+          });
+        }
+        setIsSubmitting(false);
+      });
+    } catch (err) {
+      console.error(`Error ${isUpdating ? "updating" : "adding"} user:`);
+      toast.error(`Error ${isUpdating ? "updating" : "adding"} user.`);
     }
-    setIsSubmitting(false);
   };
 
   return (
@@ -176,7 +184,11 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
         className="flex flex-col items-center gap-4 w-full"
       >
         <span className="text-xl font-semibold text-black w-[100%] text-center border-b-2 pb-2 mb-2 border-gray-200 uppercase">
-          {isUpdating ? "Update User" : "Add User"}
+          {isUpdating
+            ? "Update User"
+            : currentRole === "Administrator"
+            ? "Add User"
+            : "Add Collaborator"}
         </span>
         <div className="flex flex-col gap-[0.2rem] w-[100%]">
           <div className="flex items-center gap-2 w-[100%]">
@@ -193,7 +205,10 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
             id="email"
             placeholder="Email"
             value={data.email}
-            onChange={(e) => setData({ ...data, email: e.target.value })}
+            onChange={(e) => {
+              setData({ ...data, email: e.target.value });
+              setErrors({ ...errors, email: "" });
+            }}
             className={`${
               errors.email ? "border-red-500" : ""
             } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
@@ -214,7 +229,10 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
             id="firstName"
             placeholder="First Name"
             value={data.first_name}
-            onChange={(e) => setData({ ...data, first_name: e.target.value })}
+            onChange={(e) => {
+              setData({ ...data, first_name: e.target.value });
+              setErrors({ ...errors, first_name: "" });
+            }}
             className={`${
               errors.first_name ? "border-red-500" : ""
             } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
@@ -251,40 +269,46 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
             id="lastName"
             placeholder="Last Name"
             value={data.last_name}
-            onChange={(e) => setData({ ...data, last_name: e.target.value })}
+            onChange={(e) => {
+              setData({ ...data, last_name: e.target.value });
+              setErrors({ ...errors, last_name: "" });
+            }}
             className={`${
               errors.last_name ? "border-red-500" : ""
             } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
           />
         </div>
-        <div className="flex flex-col gap-[0.2rem] w-[100%]">
-          <div className="flex items-center gap-2 w-[100%]">
-            <label htmlFor="department" className="text-sm text-black">
-              Department:
-            </label>
-            {errors.department_code && (
-              <p className="text-red-500 text-xs">{errors.department_code}</p>
-            )}
+        {currentRole === "Administrator" && (
+          <div className="flex flex-col gap-[0.2rem] w-[100%]">
+            <div className="flex items-center gap-2 w-[100%]">
+              <label htmlFor="department" className="text-sm text-black">
+                Department:
+              </label>
+              {errors.department_code && (
+                <p className="text-red-500 text-xs">{errors.department_code}</p>
+              )}
+            </div>
+            <select
+              name="department"
+              id="department"
+              value={data.department_code}
+              onChange={(e) => {
+                setData({ ...data, department_code: e.target.value });
+                setErrors({ ...errors, department_code: "" });
+              }}
+              className={`${
+                errors.department_code ? "border-red-500" : ""
+              } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+            >
+              <option value="">Department</option>
+              {departments.map((department, index) => (
+                <option key={index} value={department.code}>
+                  {department.department_code}
+                </option>
+              ))}
+            </select>
           </div>
-          <select
-            name="department"
-            id="department"
-            value={data.department_code}
-            onChange={(e) =>
-              setData({ ...data, department_code: e.target.value })
-            }
-            className={`${
-              errors.department_code ? "border-red-500" : ""
-            } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
-          >
-            <option value="">Department</option>
-            {departments.map((department, index) => (
-              <option key={index} value={department.code}>
-                {department.department_code}
-              </option>
-            ))}
-          </select>
-        </div>
+        )}
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 mt-4 rounded-md w-[100%] hover:bg-blue-600"
