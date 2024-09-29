@@ -2,13 +2,18 @@ const express = require('express');
 const db = require('../config/database');
 const router = express.Router();
 
+const getLocalTime = () => {
+    return new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
+};
+
 
 router.post('/adding', (req, res) => {
     const { user_id , department_code , action , details , type} = req.body;
+    const timestamp = getLocalTime(); // Get the local time
 
-    const sql = "INSERT INTO activity (user_id, department_code, action, details, type) VALUES (?, ?, ?, ?, ?)";
+    const sql = "INSERT INTO activity (user_id, department_code, action, details, type, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
 
-    db.query(sql, [user_id, department_code, action, details, type], (err, result) => {
+    db.query(sql, [user_id, department_code, action, details, type, timestamp], (err, result) => {
         if (err) {
             console.error('Error inserting data:', err);
             return res.status(500).json({ error: 'Failed to add history' });
