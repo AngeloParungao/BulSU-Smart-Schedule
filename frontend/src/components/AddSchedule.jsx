@@ -403,13 +403,14 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
     e.preventDefault();
 
     if (
+      meetingDay === "" ||
       instructorError ||
       roomError ||
       subjectError ||
       courseError ||
       timeError
     ) {
-      toast.error("Error in adding");
+      toast.error("Please fill in all the required fields.");
       return;
     } else {
       const newItem = {
@@ -593,6 +594,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   onChange={(e) => setInstructorName(e.target.value)}
                   className={instructorError ? "error-border" : ""}
                   required
+                  readOnly
                 />
               </div>
               <div>
@@ -635,6 +637,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   onChange={(e) => setSubjectName(e.target.value)}
                   className={subjectError ? "error-border" : ""}
                   required
+                  readOnly
                 />
               </div>
               <div>
@@ -688,6 +691,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   onChange={(e) => setRoomName(e.target.value)}
                   className={roomError ? "error-border" : ""}
                   required
+                  readOnly
                 />
               </div>
               <div>
