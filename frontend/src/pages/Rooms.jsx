@@ -245,7 +245,7 @@ const Rooms = () => {
                 type="text"
                 name="room_name"
                 id="room_name"
-                placeholder="Room Name"
+                placeholder="ex: RM101"
                 value={data.room_name}
                 onChange={(e) => {
                   setData({ ...data, room_name: e.target.value });
@@ -253,7 +253,7 @@ const Rooms = () => {
                 }}
                 className={`${
                   errors.room_name ? "border-red-500" : ""
-                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500} placeholder:text-gray-300 placeholder:italic`}
               />
             </div>
             <div className="flex flex-col gap-[0.2rem]">
@@ -290,7 +290,7 @@ const Rooms = () => {
                 type="text"
                 name="room_building"
                 id="room_building"
-                placeholder="Building"
+                placeholder="ex: Pancho Hall"
                 value={data.room_building}
                 onChange={(e) => {
                   setData({ ...data, room_building: e.target.value });
@@ -298,7 +298,7 @@ const Rooms = () => {
                 }}
                 className={`${
                   errors.room_name ? "border-red-500" : ""
-                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500} placeholder:text-gray-300 placeholder:italic`}
               />
             </div>
             <div className="flex gap-2">
