@@ -107,7 +107,11 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
     let validationErrors = {};
     try {
       await axios.get(`${url}api/users/fetch/`).then((res) => {
-        if (res.data.some((user) => user.email === data.email)) {
+        if (
+          res.data.some(
+            (user) => user.email === data.email && user.user_id !== user.user_id
+          )
+        ) {
           validationErrors.email = "Email already exists";
         }
         if (data.email && !/\S+@\S+\.\S+/.test(data.email)) {
