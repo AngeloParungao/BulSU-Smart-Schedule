@@ -89,7 +89,7 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
             department_code: currentDepartment,
             action: "Delete",
             details: `${selectedSchedules.length}`,
-            type: "Schedule",
+            type: "schedule",
           });
 
           toast.success("Deleted successfully!");
