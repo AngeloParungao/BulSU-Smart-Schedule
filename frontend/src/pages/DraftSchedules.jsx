@@ -235,18 +235,51 @@ function DraftSchedules() {
       "Department",
     ];
 
-    const data = schedules.map((schedule) => [
-      schedule.day,
-      schedule.start_time,
-      schedule.end_time,
-      schedule.room,
-      schedule.room_building,
-      schedule.subject,
-      schedule.instructor,
-      schedule.section_name,
-      schedule.section_group,
-      schedule.department_code,
-    ]);
+    // Create an object to group schedules by specified fields
+    const groupedSchedules = {};
+
+    schedules.forEach((schedule) => {
+      const key = `${schedule.day}-${schedule.start_time}-${schedule.end_time}-${schedule.subject}-${schedule.section_name}`;
+
+      if (!groupedSchedules[key]) {
+        groupedSchedules[key] = {
+          ...schedule,
+          section_group: [schedule.section_group],
+        };
+      } else {
+        groupedSchedules[key].section_group.push(schedule.section_group);
+      }
+    });
+
+    // Convert the grouped schedules object back to an array
+    const data = Object.values(groupedSchedules).map((schedule) => {
+      // Sort the section_group to ensure "Group 1" comes first
+      const sortedGroups = schedule.section_group.sort((a, b) => {
+        if (a === "Group 1") return -1; // Group 1 comes first
+        if (b === "Group 1") return 1; // Group 1 comes first
+        return 0; // Maintain the order of other groups
+      });
+
+      return [
+        schedule.day,
+        schedule.start_time,
+        schedule.end_time,
+        schedule.room,
+        schedule.room_building,
+        schedule.subject,
+        schedule.instructor,
+        schedule.section_name,
+        sortedGroups.join(" and "), // Concatenate sorted groups with " and "
+        schedule.department_code,
+      ];
+    });
+
+    // Sort data by department_code
+    data.sort((a, b) => {
+      if (a[9] < b[9]) return -1; // Compare department code in the 10th position (index 9)
+      if (a[9] > b[9]) return 1;
+      return 0;
+    });
 
     exportToCSV("schedules", headers, data);
   };
