@@ -25,7 +25,7 @@ function DraftSchedules() {
   const fetchData = async () => {
     try {
       const [scheduleRes, sectionRes, instructorRes] = await Promise.all([
-        axios.get(`${url}api/schedule/fetch?dept_code=${currentDepartment}`),
+        axios.get(`${url}api/schedule/fetch`),
         axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
         axios.get(`${url}api/instructors/fetch?dept_code=${currentDepartment}`),
       ]);
