@@ -27,15 +27,20 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
   const [rooms, setRooms] = useState([]);
 
   // State variables for the form fields
-  const [subjectName, setSubjectName] = useState("");
-  const [instructorName, setInstructorName] = useState("");
-  const [roomName, setRoomName] = useState("");
-  const [roomBuilding, setRoomBuilding] = useState("");
-  const [selectedColor, setSelectedColor] = useState("#ffffff");
-  const [meetingDay, setMeetingDay] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [courseType, setCourseType] = useState("Lecture");
+  const [data, setData] = useState({
+    subject: "",
+    instructor: "",
+    room: "",
+    room_building: "",
+    background_color: "#ffffff",
+    day: "",
+    start_time: "",
+    end_time: "",
+    course_type: "Lecture",
+    section,
+    group,
+    department_code: currentDepartment,
+  });
 
   // Pagination state for instructors, subjects, and rooms
   const [currentInstructorPage, setCurrentInstructorPage] = useState(0);
@@ -56,109 +61,66 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
 
   // Fetch data when the component mounts
   useEffect(() => {
-    fetchSchedules();
-    fetchInstructors();
-    fetchSections();
-    fetchSubjects();
-    fetchRooms();
+    fetchData();
   }, []);
 
   // Generate recommendations whenever relevant fields change
   useEffect(() => {
+    // Call generateRecommendations and checkRealTimeErrors
     generateRecommendations(schedules);
-  }, [instructorName, subjectName, roomName, courseType, meetingDay]);
-
-  // Check for real-time errors whenever relevant fields change
-  useEffect(() => {
     checkRealTimeErrors();
   }, [
-    instructorName,
-    subjectName,
-    roomName,
-    meetingDay,
-    startTime,
-    endTime,
-    courseType,
+    data.subject,
+    data.instructor,
+    data.room,
+    data.room_building,
+    data.background_color,
+    data.day,
+    data.start_time,
+    data.end_time,
+    data.course_type,
   ]);
 
-  // Fetch schedules from the API
-  const fetchSchedules = async () => {
+  // Fetch data from the server
+  const fetchData = async () => {
     try {
-      const response = await axios.get(
-        `${url}api/schedule/fetch?dept_code=${currentDepartment}`
-      );
-      setSchedules(response.data);
-    } catch (error) {
-      console.error("Error fetching schedules:", error);
-      toast.error("Failed to fetch schedules");
-    }
-  };
+      const [scheduleRes, instructorRes, sectionRes, subjectRes, roomRes] =
+        await Promise.all([
+          axios.get(`${url}api/schedule/fetch`),
+          axios.get(
+            `${url}api/instructors/fetch?dept_code=${currentDepartment}`
+          ),
+          axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
+          axios.get(`${url}api/subjects/fetch?dept_code=${currentDepartment}`),
+          axios.get(`${url}api/rooms/fetch`),
+        ]);
 
-  // Fetch instructors from the API
-  const fetchInstructors = async () => {
-    try {
-      const response = await axios.get(
-        `${url}api/instructors/fetch?dept_code=${currentDepartment}`
-      );
-      setInstructors(response.data);
+      setSchedules(scheduleRes.data);
+      setInstructors(instructorRes.data);
+      setSections(sectionRes.data);
+      setSubjects(subjectRes.data);
+      setRooms(roomRes.data);
     } catch (error) {
-      console.error("Error fetching instructors:", error);
-      toast.error("Failed to fetch instructors");
-    }
-  };
-
-  // Fetch sections from the API
-  const fetchSections = async () => {
-    try {
-      const response = await axios.get(
-        `${url}api/sections/fetch?dept_code=${currentDepartment}`
-      );
-      setSections(response.data);
-    } catch (error) {
-      console.error("Error fetching sections:", error);
-      toast.error("Failed to fetch sections");
-    }
-  };
-
-  // Fetch subjects from the API
-  const fetchSubjects = async () => {
-    try {
-      const response = await axios.get(
-        `${url}api/subjects/fetch?dept_code=${currentDepartment}`
-      );
-      setSubjects(response.data);
-    } catch (error) {
-      console.error("Error fetching subjects:", error);
-      toast.error("Failed to fetch subjects");
-    }
-  };
-
-  // Fetch rooms from the API
-  const fetchRooms = async () => {
-    try {
-      const response = await axios.get(`${url}api/rooms/fetch`);
-      setRooms(response.data);
-    } catch (error) {
-      console.error("Error fetching rooms:", error);
-      toast.error("Failed to fetch rooms");
+      console.error("Error fetching data:", error);
+      toast.error("Failed to fetch data");
     }
   };
 
   // Generate recommendations based on availability of instructors, rooms, and sections
   const generateRecommendations = (schedules) => {
-    if (!instructorName || !roomName) {
-      setRecommendations([]);
-      return;
-    }
-
     const subject = subjects.find(
-      (subject) => subject.subject_name === subjectName
+      (subject) => subject.subject_name === data.subject
     );
+
+    // Determine the duration based on course type, subject type, and unit
     const duration =
-      courseType === "Laboratory" ||
-      (subject && subject.subject_type === "Minor")
+      subject && subject.subject_units === 1
+        ? 1
+        : data.course_type === "Laboratory" ||
+          (subject && subject.subject_type === "Minor")
         ? 3
         : 2;
+
     const days = [
       "Monday",
       "Tuesday",
@@ -170,7 +132,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
     const availableSlots = [];
 
     days.forEach((day) => {
-      if (meetingDay && meetingDay !== day) {
+      if (data.day && data.day !== day) {
         return;
       }
 
@@ -178,22 +140,26 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
         const start = `${hour.toString().padStart(2, "0")}:00:00`;
         const end = `${(hour + duration).toString().padStart(2, "0")}:00:00`;
 
+        const isConflict = (schedule, start, end) => {
+          return (
+            (start >= schedule.start_time && start < schedule.end_time) ||
+            (end > schedule.start_time && end <= schedule.end_time) ||
+            (start <= schedule.start_time && end >= schedule.end_time)
+          );
+        };
+
         const instructorAvailable = !schedules.some(
           (schedule) =>
-            schedule.instructor === instructorName &&
+            schedule.instructor === data.instructor &&
             schedule.day === day &&
-            ((start >= schedule.start_time && start < schedule.end_time) ||
-              (end > schedule.start_time && end <= schedule.end_time) ||
-              (start <= schedule.start_time && end >= schedule.end_time))
+            isConflict(schedule, start, end)
         );
 
         const roomAvailable = !schedules.some(
           (schedule) =>
-            schedule.room === roomName &&
+            schedule.room === data.room &&
             schedule.day === day &&
-            ((start >= schedule.start_time && start < schedule.end_time) ||
-              (end > schedule.start_time && end <= schedule.end_time) ||
-              (start <= schedule.start_time && end >= schedule.end_time))
+            isConflict(schedule, start, end)
         );
 
         const sectionAvailable = !schedules.some(
@@ -201,13 +167,11 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
             schedule.section_name === section &&
             schedule.section_group === group &&
             schedule.day === day &&
-            ((start >= schedule.start_time && start < schedule.end_time) ||
-              (end > schedule.start_time && end <= schedule.end_time) ||
-              (start <= schedule.start_time && end >= schedule.end_time))
+            isConflict(schedule, start, end)
         );
 
         const subject = subjects.find(
-          (subject) => subject.subject_name === subjectName
+          (subject) => subject.subject_name === data.subject
         );
         const alternateGroupAvailable =
           subject && subject.subject_type === "Minor"
@@ -246,10 +210,11 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
   const checkRealTimeErrors = () => {
     // Convert the new start and end times to minutes
     const newStartTimeInMinutes =
-      parseInt(startTime.split(":")[0]) * 60 +
-      parseInt(startTime.split(":")[1]);
+      parseInt(data.start_time.split(":")[0]) * 60 +
+      parseInt(data.start_time.split(":")[1]);
     const newEndTimeInMinutes =
-      parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
+      parseInt(data.end_time.split(":")[0]) * 60 +
+      parseInt(data.end_time.split(":")[1]);
 
     let foundSectionCollisionTime = null;
     let foundInstructorCollisionTime = null;
@@ -266,7 +231,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
       if (
         schedule.section_name === section &&
         schedule.section_group === group &&
-        schedule.day === meetingDay
+        schedule.day === data.day
       ) {
         const isConflict =
           (newStartTimeInMinutes >= startTimeInMinutes &&
@@ -296,8 +261,8 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
         parseInt(schedule.end_time.split(":")[1]);
 
       if (
-        schedule.instructor === instructorName &&
-        schedule.day === meetingDay
+        schedule.instructor === data.instructor &&
+        schedule.day === data.day
       ) {
         const isConflict =
           (newStartTimeInMinutes >= startTimeInMinutes &&
@@ -326,7 +291,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
         parseInt(schedule.end_time.split(":")[0]) * 60 +
         parseInt(schedule.end_time.split(":")[1]);
 
-      if (schedule.room === roomName && schedule.day === meetingDay) {
+      if (schedule.room === data.room && schedule.day === data.day) {
         const isConflict =
           (newStartTimeInMinutes >= startTimeInMinutes &&
             newStartTimeInMinutes < endTimeInMinutes) ||
@@ -358,15 +323,16 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
     setRoomCollisionTime(foundRoomCollisionTime);
 
     const startTimeInMinutes =
-      parseInt(startTime.split(":")[0]) * 60 +
-      parseInt(startTime.split(":")[1]);
+      parseInt(data.start_time.split(":")[0]) * 60 +
+      parseInt(data.start_time.split(":")[1]);
     const endTimeInMinutes =
-      parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
+      parseInt(data.end_time.split(":")[0]) * 60 +
+      parseInt(data.end_time.split(":")[1]);
     const newDuration = (endTimeInMinutes - startTimeInMinutes) / 60;
 
     const subjectSectionSchedules = schedules.filter(
       (schedule) =>
-        schedule.subject === subjectName &&
+        schedule.subject === data.subject &&
         schedule.section_name === section &&
         schedule.section_group === group
     );
@@ -394,8 +360,8 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
     );
 
     const alreadyExists =
-      (courseType === "Lecture" && hasLecture) ||
-      (courseType === "Laboratory" && hasLaboratory);
+      (data.course_type === "Lecture" && hasLecture) ||
+      (data.course_type === "Laboratory" && hasLaboratory);
     setCourseError(alreadyExists);
   };
 
@@ -403,7 +369,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
     e.preventDefault();
 
     if (
-      meetingDay === "" ||
+      data.day === "" ||
       instructorError ||
       roomError ||
       subjectError ||
@@ -413,25 +379,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
       toast.error("Please fill in all the required fields.");
       return;
     } else {
-      const newItem = {
-        subjectName,
-        instructorName,
-        roomName,
-        roomBuilding,
-        selectedColor,
-        meetingDay,
-        startTime,
-        endTime,
-        courseType,
-        section,
-        group,
-        department_code: currentDepartment,
-      };
-
       try {
         // Check if subject type is 'Minor'
         const subject = subjects.find(
-          (subject) => subject.subject_name === subjectName
+          (subject) => subject.subject_name === data.subject
         );
         if (subject && subject.subject_type === "Minor") {
           // Find the alternate group
@@ -448,13 +399,13 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
               (schedule) =>
                 schedule.section_name === section &&
                 schedule.section_group === alternateGroup &&
-                schedule.day === meetingDay &&
-                ((startTime >= schedule.start_time &&
-                  startTime < schedule.end_time) ||
-                  (endTime > schedule.start_time &&
-                    endTime <= schedule.end_time) ||
-                  (startTime <= schedule.start_time &&
-                    endTime >= schedule.end_time))
+                schedule.day === data.day &&
+                ((data.start_time >= schedule.start_time &&
+                  data.start_time < schedule.end_time) ||
+                  (data.end_time > schedule.start_time &&
+                    data.end_time <= schedule.end_time) ||
+                  (data.start_time <= schedule.start_time &&
+                    data.end_time >= schedule.end_time))
             );
 
             if (
@@ -462,7 +413,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
             ) {
               // Add the same item to the alternate group
               const alternateItem = {
-                ...newItem,
+                ...data,
                 group: alternateGroup,
               };
               await axios.post(`${url}api/schedule/adding`, alternateItem);
@@ -478,7 +429,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
         }
 
         // Add the item to the original group
-        await axios.post(`${url}api/schedule/adding`, newItem);
+        await axios.post(`${url}api/schedule/adding`, data);
 
         // Add to activity history for the original item
         await axios.post(`${url}api/activity/adding`, {
@@ -539,7 +490,9 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
   });
 
   //------rooms-------//
-  const filteredRooms = rooms.filter((room) => room.room_type === courseType);
+  const filteredRooms = rooms.filter(
+    (room) => room.room_type === data.course_type
+  );
 
   return (
     <div className="modal">
@@ -560,9 +513,12 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                 <div
                   key={index}
                   onClick={() => {
-                    setMeetingDay(rec.day);
-                    setStartTime(rec.start);
-                    setEndTime(rec.end);
+                    setData({
+                      ...data,
+                      day: rec.day,
+                      start_time: rec.start,
+                      end_time: rec.end,
+                    });
                   }}
                 >
                   <span id="day">{rec.day}</span>:
@@ -590,8 +546,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   type="text"
                   name="instructorName"
                   placeholder="Instructor Name"
-                  value={instructorName}
-                  onChange={(e) => setInstructorName(e.target.value)}
+                  value={data.instructor}
+                  onChange={(e) =>
+                    setData({ ...data, instructor: e.target.value })
+                  }
                   className={instructorError ? "error-border" : ""}
                   required
                   readOnly
@@ -633,8 +591,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   type="text"
                   name="subjectName"
                   placeholder="Subject Name"
-                  value={subjectName}
-                  onChange={(e) => setSubjectName(e.target.value)}
+                  value={data.subject}
+                  onChange={(e) =>
+                    setData({ ...data, subject: e.target.value })
+                  }
                   className={subjectError ? "error-border" : ""}
                   required
                   readOnly
@@ -652,18 +612,20 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                 )}
               </div>
             </div>
-            {subjectName === "" ||
-            subjects.find((subject) => subject.subject_name === subjectName)
+            {data.subject === "" ||
+            subjects.find((subject) => subject.subject_name === data.subject)
               ?.subject_type === "Major" ? (
               <div className="form-content">
                 <div>
                   <label>Course Type</label>
                   <select
-                    value={courseType}
+                    value={data.course_type}
                     className={courseError ? "error-border" : ""}
-                    onChange={(e) => setCourseType(e.target.value)}
+                    onChange={(e) =>
+                      setData({ ...data, course_type: e.target.value })
+                    }
                   >
-                    <option>Lecture</option>
+                    <option value="Lecture">Lecture</option>
                     <option value="Laboratory">Laboratory</option>
                   </select>
                 </div>
@@ -687,8 +649,8 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   type="text"
                   name="roomName"
                   placeholder="Room"
-                  value={roomName}
-                  onChange={(e) => setRoomName(e.target.value)}
+                  value={data.room}
+                  onChange={(e) => setData({ ...data, room: e.target.value })}
                   className={roomError ? "error-border" : ""}
                   required
                   readOnly
@@ -726,8 +688,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                 <label>Color</label>
                 <input
                   type="color"
-                  value={selectedColor}
-                  onChange={(e) => setSelectedColor(e.target.value)}
+                  value={data.background_color}
+                  onChange={(e) =>
+                    setData({ ...data, background_color: e.target.value })
+                  }
                 />
               </div>
               <div></div>
@@ -742,8 +706,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                       type="radio"
                       value="Monday"
                       name="day"
-                      checked={meetingDay === "Monday"}
-                      onChange={(e) => setMeetingDay(e.target.value)}
+                      checked={data.day === "Monday"}
+                      onChange={(e) =>
+                        setData({ ...data, day: e.target.value })
+                      }
                     />
                   </label>
                   <label>
@@ -752,8 +718,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                       type="radio"
                       value="Tuesday"
                       name="day"
-                      checked={meetingDay === "Tuesday"}
-                      onChange={(e) => setMeetingDay(e.target.value)}
+                      checked={data.day === "Tuesday"}
+                      onChange={(e) =>
+                        setData({ ...data, day: e.target.value })
+                      }
                     />
                   </label>
                   <label>
@@ -762,8 +730,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                       type="radio"
                       value="Wednesday"
                       name="day"
-                      checked={meetingDay === "Wednesday"}
-                      onChange={(e) => setMeetingDay(e.target.value)}
+                      checked={data.day === "Wednesday"}
+                      onChange={(e) =>
+                        setData({ ...data, day: e.target.value })
+                      }
                     />
                   </label>
                   <label>
@@ -772,8 +742,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                       type="radio"
                       value="Thursday"
                       name="day"
-                      checked={meetingDay === "Thursday"}
-                      onChange={(e) => setMeetingDay(e.target.value)}
+                      checked={data.day === "Thursday"}
+                      onChange={(e) =>
+                        setData({ ...data, day: e.target.value })
+                      }
                     />
                   </label>
                   <label>
@@ -782,8 +754,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                       type="radio"
                       value="Friday"
                       name="day"
-                      checked={meetingDay === "Friday"}
-                      onChange={(e) => setMeetingDay(e.target.value)}
+                      checked={data.day === "Friday"}
+                      onChange={(e) =>
+                        setData({ ...data, day: e.target.value })
+                      }
                     />
                   </label>
                   <label>
@@ -792,8 +766,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                       type="radio"
                       value="Saturday"
                       name="day"
-                      checked={meetingDay === "Saturday"}
-                      onChange={(e) => setMeetingDay(e.target.value)}
+                      checked={data.day === "Saturday"}
+                      onChange={(e) =>
+                        setData({ ...data, day: e.target.value })
+                      }
                     />
                   </label>
                 </div>
@@ -805,9 +781,13 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                 <label>Start time</label>
                 <input
                   type="time"
-                  value={startTime}
+                  name="startTime"
                   className={timeError ? "error-border" : ""}
-                  onChange={(e) => setStartTime(e.target.value)}
+                  value={data.start_time}
+                  onChange={(e) =>
+                    setData({ ...data, start_time: e.target.value })
+                  }
+                  required
                 />
               </div>
               <div>
@@ -840,12 +820,16 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
             </div>
             <div className="form-content">
               <div>
-                <label>End time</label>
+                <label>End Time</label>
                 <input
                   type="time"
-                  value={endTime}
-                  className={timeError ? "error-border" : ""}
-                  onChange={(e) => setEndTime(e.target.value)}
+                  name="endTime"
+                  placeholder="End Time"
+                  value={data.end_time}
+                  onChange={(e) =>
+                    setData({ ...data, end_time: e.target.value })
+                  }
+                  required
                 />
               </div>
               <div></div>
@@ -898,9 +882,10 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   <li
                     key={instructor.id}
                     onClick={() =>
-                      setInstructorName(
-                        `${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`
-                      )
+                      setData({
+                        ...data,
+                        instructor: `${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`,
+                      })
                     }
                   >
                     {instructor.first_name} {instructor.last_name}
@@ -958,7 +943,9 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                 .map((subject) => (
                   <li
                     key={subject.id}
-                    onClick={() => setSubjectName(subject.subject_name)}
+                    onClick={() =>
+                      setData({ ...data, subject: subject.subject_name })
+                    }
                   >
                     {subject.subject_name}
                   </li>
@@ -997,10 +984,13 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                 )
                 .map((room) => (
                   <li
-                    key={room.id}
+                    key={room.room_id}
                     onClick={() => {
-                      setRoomName(room.room_name);
-                      setRoomBuilding(room.room_building);
+                      setData({
+                        ...data,
+                        room: room.room_name,
+                        room_building: room.room_building,
+                      });
                     }}
                   >
                     {room.room_name} - {room.room_building}

@@ -52,6 +52,9 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
   const [subjectError, setSubjectError] = useState(false);
   const [timeError, setTimeError] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [sectionCollisionTime, setSectionCollisionTime] = useState(null);
+  const [instructorCollisionTime, setInstructorCollisionTime] = useState(null);
+  const [roomCollisionTime, setRoomCollisionTime] = useState(null);
 
   // Fetch data when the component mounts
   useEffect(() => {
@@ -79,7 +82,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
     try {
       const [scheduleRes, instructorRes, sectionRes, subjectRes, roomRes] =
         await Promise.all([
-          axios.get(`${url}api/schedule/fetch?dept_code=${currentDepartment}`),
+          axios.get(`${url}api/schedule/fetch`),
           axios.get(
             `${url}api/instructors/fetch?dept_code=${currentDepartment}`
           ),
@@ -108,11 +111,15 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
     const subject = subjects.find(
       (subject) => subject.subject_name === data.subject
     );
+
+    // Determine the duration based on course type, subject type, and unit
     const duration =
-      data.course_type === "Laboratory" ||
-      (subject && subject.subject_type === "Minor")
-        ? 3 // Set the duration to 2 hours for minor subjects
-        : 2; // Set the duration to 3 hours for other subjects
+      subject && subject.subject_units === 1
+        ? 1
+        : data.course_type === "Laboratory" ||
+          (subject && subject.subject_type === "Minor")
+        ? 3
+        : 2;
 
     const days = [
       "Monday",
@@ -223,76 +230,87 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
         : "Group 1"
       : null;
 
-    const checkTimeConflict = (schedule) => {
+    // Common time overlap checker
+    const hasOverlap = (schedule) => {
       const start = parseTimeToMinutes(schedule.start_time);
       const end = parseTimeToMinutes(schedule.end_time);
-
-      if (schedule.schedule_id === item.schedule_id) {
-        return false; // Skip checking the current schedule
-      }
-
-      // Check for conflicts with both groups if minor subject
-      if (isMinor) {
-        const inCurrentGroup =
-          schedule.section_group === item.section_group &&
-          schedule.section_name === item.section_name &&
-          schedule.day === data.day;
-
-        const inAlternateGroup =
-          schedule.section_group === alternateGroup &&
-          schedule.section_name === item.section_name &&
-          schedule.day === data.day;
-
-        const overlaps =
-          (startTimeInMinutes >= start && startTimeInMinutes < end) ||
-          (endTimeInMinutes > start && endTimeInMinutes <= end) ||
-          (startTimeInMinutes <= start && endTimeInMinutes >= end);
-
-        return (inCurrentGroup || inAlternateGroup) && overlaps;
-      }
-
-      // For non-minor subjects
       return (
-        schedule.section_name === item.section_name &&
-        schedule.section_group === item.section_group &&
-        schedule.day === data.day &&
-        ((startTimeInMinutes >= start && startTimeInMinutes < end) ||
-          (endTimeInMinutes > start && endTimeInMinutes <= end) ||
-          (startTimeInMinutes <= start && endTimeInMinutes >= end))
+        (startTimeInMinutes >= start && startTimeInMinutes < end) ||
+        (endTimeInMinutes > start && endTimeInMinutes <= end) ||
+        (startTimeInMinutes <= start && endTimeInMinutes >= end)
       );
     };
 
-    const hasTimeConflict = schedules.some(checkTimeConflict);
-    setTimeError(hasTimeConflict);
+    let foundSectionCollisionTime = null;
+    let foundInstructorCollisionTime = null;
+    let foundRoomCollisionTime = null;
 
-    const instructorAvailability = schedules.some(
-      (schedule) =>
+    // Time conflict check for section
+    const hasSectionConflict = schedules.some((schedule) => {
+      if (schedule.schedule_id === item.schedule_id) return false;
+
+      const inCurrentGroup =
+        schedule.section_group === item.section_group &&
+        schedule.section_name === item.section_name &&
+        schedule.day === data.day;
+
+      const inAlternateGroup =
+        isMinor &&
+        schedule.section_group === alternateGroup &&
+        schedule.section_name === item.section_name &&
+        schedule.day === data.day;
+
+      if ((inCurrentGroup || inAlternateGroup) && hasOverlap(schedule)) {
+        foundSectionCollisionTime = {
+          start: schedule.start_time,
+          end: schedule.end_time,
+        };
+        return true;
+      }
+      return false;
+    });
+    setTimeError(hasSectionConflict);
+    setSectionCollisionTime(foundSectionCollisionTime);
+
+    // Instructor availability check
+    const hasInstructorConflict = schedules.some((schedule) => {
+      if (
         schedule.schedule_id !== item.schedule_id &&
         schedule.instructor === data.instructor &&
         schedule.day === data.day &&
-        ((data.start_time >= schedule.start_time &&
-          data.start_time < schedule.end_time) ||
-          (data.end_time > schedule.start_time &&
-            data.end_time <= schedule.end_time) ||
-          (data.start_time <= schedule.start_time &&
-            data.end_time >= schedule.end_time))
-    );
-    setInstructorError(instructorAvailability);
+        hasOverlap(schedule)
+      ) {
+        foundInstructorCollisionTime = {
+          start: schedule.start_time,
+          end: schedule.end_time,
+        };
+        return true;
+      }
+      return false;
+    });
+    setInstructorError(hasInstructorConflict);
+    setInstructorCollisionTime(foundInstructorCollisionTime);
 
-    const roomAvailability = schedules.some(
-      (schedule) =>
+    // Room availability check
+    const hasRoomConflict = schedules.some((schedule) => {
+      if (
         schedule.schedule_id !== item.schedule_id &&
         schedule.room === data.room &&
         schedule.day === data.day &&
-        ((data.start_time >= schedule.start_time &&
-          data.start_time < schedule.end_time) ||
-          (data.end_time > schedule.start_time &&
-            data.end_time <= schedule.end_time) ||
-          (data.start_time <= schedule.start_time &&
-            data.end_time >= schedule.end_time))
-    );
-    setRoomError(roomAvailability);
+        hasOverlap(schedule)
+      ) {
+        foundRoomCollisionTime = {
+          start: schedule.start_time,
+          end: schedule.end_time,
+        };
+        return true;
+      }
+      return false;
+    });
+    setRoomError(hasRoomConflict);
+    setRoomCollisionTime(foundRoomCollisionTime);
 
+    // Subject section schedules check
     const subjectSectionSchedules = schedules.filter(
       (schedule) =>
         schedule.schedule_id !== item.schedule_id &&
@@ -315,11 +333,10 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
       numberOfMeetings >= 2;
     setSubjectError(exceedsLimits);
 
-    // Check for existing course type conflicts, excluding the current schedule
-    const alreadyExists = subjectSectionSchedules.some((schedule) => {
-      if (schedule.schedule_id === item.schedule_id) return false;
-      return schedule.class_type === data.course_type;
-    });
+    // Course type conflict check
+    const alreadyExists = subjectSectionSchedules.some(
+      (schedule) => schedule.class_type === data.course_type
+    );
     setCourseError(alreadyExists);
   };
 
@@ -328,6 +345,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
 
     // Validate form fields
     if (
+      data.day === "" ||
       instructorError ||
       roomError ||
       subjectError ||
@@ -558,15 +576,36 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
                 />
               </div>
               <div>
-                {instructorError && (
-                  <p className="error-message">
-                    <FontAwesomeIcon
-                      icon={faWarning}
-                      className="warning-icon"
-                    />
-                    Instructor is not available during this time slot.
-                  </p>
-                )}
+                {instructorError &&
+                  instructorCollisionTime &&
+                  instructorCollisionTime.start &&
+                  instructorCollisionTime.end && (
+                    <p className="error-message">
+                      <FontAwesomeIcon
+                        icon={faWarning}
+                        className="warning-icon"
+                      />
+                      Instructor not available between{" "}
+                      {`${
+                        parseInt(instructorCollisionTime.start.slice(0, 2)) %
+                          12 || 12
+                      }:${instructorCollisionTime.start.slice(3, 5)} ${
+                        parseInt(instructorCollisionTime.start.slice(0, 2)) >=
+                        12
+                          ? "PM"
+                          : "AM"
+                      }`}{" "}
+                      and{" "}
+                      {`${
+                        parseInt(instructorCollisionTime.end.slice(0, 2)) %
+                          12 || 12
+                      }:${instructorCollisionTime.end.slice(3, 5)} ${
+                        parseInt(instructorCollisionTime.end.slice(0, 2)) >= 12
+                          ? "PM"
+                          : "AM"
+                      }`}
+                    </p>
+                  )}
               </div>
             </div>
             <div className="form-content">
@@ -646,7 +685,22 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
                       icon={faWarning}
                       className="warning-icon"
                     />
-                    Room is not available during this time slot.
+                    Room is not available between{" "}
+                    {`${
+                      parseInt(roomCollisionTime.start.slice(0, 2)) % 12 || 12
+                    }:${roomCollisionTime.start.slice(3, 5)} ${
+                      parseInt(roomCollisionTime.start.slice(0, 2)) >= 12
+                        ? "PM"
+                        : "AM"
+                    }`}{" "}
+                    and{" "}
+                    {`${
+                      parseInt(roomCollisionTime.end.slice(0, 2)) % 12 || 12
+                    }:${roomCollisionTime.end.slice(3, 5)} ${
+                      parseInt(roomCollisionTime.end.slice(0, 2)) >= 12
+                        ? "PM"
+                        : "AM"
+                    }`}
                   </p>
                 )}
               </div>
@@ -661,7 +715,6 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
                   onChange={(e) =>
                     setData({ ...data, background_color: e.target.value })
                   }
-                  required
                 />
               </div>
               <div></div>
@@ -767,7 +820,23 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
                       icon={faWarning}
                       className="warning-icon"
                     />
-                    Time not available for this section
+                    Time conflict detected between{" "}
+                    {`${
+                      parseInt(sectionCollisionTime.start.slice(0, 2)) % 12 ||
+                      12
+                    }:${sectionCollisionTime.start.slice(3, 5)} ${
+                      parseInt(sectionCollisionTime.start.slice(0, 2)) >= 12
+                        ? "PM"
+                        : "AM"
+                    }`}{" "}
+                    and{" "}
+                    {`${
+                      parseInt(sectionCollisionTime.end.slice(0, 2)) % 12 || 12
+                    }:${sectionCollisionTime.end.slice(3, 5)} ${
+                      parseInt(sectionCollisionTime.end.slice(0, 2)) >= 12
+                        ? "PM"
+                        : "AM"
+                    }`}
                   </p>
                 )}
               </div>
