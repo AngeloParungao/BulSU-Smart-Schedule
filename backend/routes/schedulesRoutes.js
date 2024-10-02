@@ -3,13 +3,13 @@ const db = require('../config/database');
 const router = express.Router();
 
 router.post('/adding', (req, res) => {
-    const { instructorName, subjectName, section, group, courseType, roomName, roomBuilding, selectedColor, meetingDay, startTime, endTime, department_code } = req.body;
+    const { instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code } = req.body;
 
     const sql = `
         INSERT INTO schedules (instructor, subject, section_name, section_group, class_type, room, room_building, background_color, day, start_time, end_time, department_code)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, [instructorName, subjectName, section, group, courseType, roomName, roomBuilding, selectedColor, meetingDay, startTime, endTime, department_code], (err, result) => {
+    db.query(sql, [instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code], (err, result) => {
         if (err) {
             console.error('Error inserting data:', err);
             return res.status(500).json({ error: 'Failed to add schedule' });
@@ -19,14 +19,10 @@ router.post('/adding', (req, res) => {
 });
 
 router.get('/fetch', (req, res) => {
-    const { dept_code } = req.query;
-    let sql;
-    if (dept_code === 'ADMIN') {
-        sql = "SELECT * FROM schedules";
-    } else {
-        sql = "SELECT * FROM schedules WHERE department_code = ?";
-    }
-    db.query(sql, dept_code !== 'ADMIN' ? [dept_code] : [], (err, results) => {
+
+    let sql = "SELECT * FROM schedules";
+  
+    db.query(sql, (err, results) => {
         if (err) {
             console.error('Error fetching data:', err);
             return res.status(500).json({ error: 'Failed to fetch schedules' });
