@@ -253,8 +253,11 @@ function DraftSchedules() {
 
     // Convert the grouped schedules object back to an array
     const data = Object.values(groupedSchedules).map((schedule) => {
+      // Use Set to ensure unique section groups
+      const uniqueGroups = Array.from(new Set(schedule.section_group));
+
       // Sort the section_group to ensure "Group 1" comes first
-      const sortedGroups = schedule.section_group.sort((a, b) => {
+      const sortedGroups = uniqueGroups.sort((a, b) => {
         if (a === "Group 1") return -1; // Group 1 comes first
         if (b === "Group 1") return 1; // Group 1 comes first
         return 0; // Maintain the order of other groups
