@@ -4,12 +4,31 @@ const router = express.Router();
 
 router.post('/adding', (req, res) => {
     const { instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code } = req.body;
+    let semester = "";
+    let academic_year = "";
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+
+    // condition for checking if the date is january to may then set the semester to 2nd semester
+    if (month >= 1 && month <= 5) {
+        semester = "2nd";
+    } else {
+        semester = "1st";
+    }
+    // get the year of the academic year
+    if (month >= 1 && month <= 5) {
+        academic_year = `${year - 1}-${year}`;
+    } else {
+        academic_year = `${year}-${year + 1}`;
+    }
+
 
     const sql = `
-        INSERT INTO schedules (instructor, subject, section_name, section_group, class_type, room, room_building, background_color, day, start_time, end_time, department_code)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        INSERT INTO schedules (instructor, subject, section_name, section_group, class_type, room, room_building, background_color, day, start_time, end_time, department_code, semester, academic_year)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, [instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code], (err, result) => {
+    db.query(sql, [instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code, semester, academic_year], (err, result) => {
         if (err) {
             console.error('Error inserting data:', err);
             return res.status(500).json({ error: 'Failed to add schedule' });
