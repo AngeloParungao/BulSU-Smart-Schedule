@@ -18,7 +18,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
     middle_name: "",
     last_name: "",
     department_code: currentRole === "Administrator" ? "" : currentDepartment,
-    role: "User",
+    role: currentRole === "Administrator" ? "User" : "Collaborator",
   });
 
   useEffect(() => {
@@ -41,7 +41,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
         last_name: "",
         department_code:
           currentRole === "Administrator" ? "" : currentDepartment,
-        role: "User",
+        role: currentRole === "Administrator" ? "User" : "Collaborator",
       });
     }
   }, [isOpen, user]);
@@ -91,7 +91,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
 
   const generateRandomPassword = (length = 12) => {
     const charset =
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*()_+";
     let password = "";
     for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * charset.length);
