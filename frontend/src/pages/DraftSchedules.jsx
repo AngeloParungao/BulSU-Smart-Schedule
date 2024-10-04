@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import Sidebar from "../components/Sidebar";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { exportToCSV } from "../utils/exportToCSV";
+import Sidebar from "../components/Sidebar";
+import Report from "../components/Report";
 
 function DraftSchedules() {
   const url = process.env.REACT_APP_URL;
@@ -16,6 +17,7 @@ function DraftSchedules() {
   const [selectedInstructor, setSelectedInstructor] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
+  const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
     toast.dismiss();
@@ -221,72 +223,6 @@ function DraftSchedules() {
     }
   };
 
-  const handleExportCSV = () => {
-    const headers = [
-      "Day",
-      "Start Time",
-      "End Time",
-      "Room",
-      "Building",
-      "Course",
-      "Instructor",
-      "Section",
-      "Group",
-      "Department",
-    ];
-
-    // Create an object to group schedules by specified fields
-    const groupedSchedules = {};
-
-    schedules.forEach((schedule) => {
-      const key = `${schedule.day}-${schedule.start_time}-${schedule.end_time}-${schedule.subject}-${schedule.section_name}`;
-
-      if (!groupedSchedules[key]) {
-        groupedSchedules[key] = {
-          ...schedule,
-          section_group: [schedule.section_group],
-        };
-      } else {
-        groupedSchedules[key].section_group.push(schedule.section_group);
-      }
-    });
-
-    // Convert the grouped schedules object back to an array
-    const data = Object.values(groupedSchedules).map((schedule) => {
-      // Use Set to ensure unique section groups
-      const uniqueGroups = Array.from(new Set(schedule.section_group));
-
-      // Sort the section_group to ensure "Group 1" comes first
-      const sortedGroups = uniqueGroups.sort((a, b) => {
-        if (a === "Group 1") return -1; // Group 1 comes first
-        if (b === "Group 1") return 1; // Group 1 comes first
-        return 0; // Maintain the order of other groups
-      });
-
-      return [
-        schedule.day,
-        schedule.start_time,
-        schedule.end_time,
-        schedule.room,
-        schedule.room_building,
-        schedule.subject,
-        schedule.instructor,
-        schedule.section_name,
-        sortedGroups.join(" and "), // Concatenate sorted groups with " and "
-        schedule.department_code,
-      ];
-    });
-
-    // Sort data by department_code
-    data.sort((a, b) => {
-      if (a[9] < b[9]) return -1; // Compare department code in the 10th position (index 9)
-      if (a[9] > b[9]) return 1;
-      return 0;
-    });
-
-    exportToCSV("schedules", headers, data);
-  };
-
   const daysOfWeek = [
     "Monday",
     "Tuesday",
@@ -342,10 +278,17 @@ function DraftSchedules() {
           </span>
           <button
             className="mr-4 text-white md:text-[0.8rem] text-[0.6rem] bg-green-500 py-2 px-4 rounded-full hover:bg-green-600 transition-all"
-            onClick={handleExportCSV}
+            onClick={() => setShowReportModal(true)}
           >
             generate CSV
           </button>
+          {showReportModal && (
+            <Report
+              schedules={schedules}
+              isOpen={showReportModal}
+              onClose={() => setShowReportModal(false)}
+            />
+          )}
         </div>
         <div className="p-3 md:px-8">
           {/* Category Selector */}
