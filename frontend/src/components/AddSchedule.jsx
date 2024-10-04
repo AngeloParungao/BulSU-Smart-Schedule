@@ -19,12 +19,15 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
   const url = process.env.REACT_APP_URL;
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const currentDepartment = atob(localStorage.getItem("userDept"));
-  // State variables to manage schedules, instructors, subjects, sections, and rooms data
+
+  // State variables to manage schedules, instructors, subjects, sections, rooms, errors, recommendations data
   const [schedules, setSchedules] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [sections, setSections] = useState([]);
   const [rooms, setRooms] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [recommendations, setRecommendations] = useState([]);
 
   // State variables for the form fields
   const [data, setData] = useState({
@@ -47,17 +50,6 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
   const [currentSubjectPage, setCurrentSubjectPage] = useState(0);
   const [currentRoomPage, setCurrentRoomPage] = useState(0);
   const itemsPerPage = 5;
-
-  // State variables for error handling
-  const [instructorError, setInstructorError] = useState(false);
-  const [roomError, setRoomError] = useState(false);
-  const [courseError, setCourseError] = useState(false);
-  const [subjectError, setSubjectError] = useState(false);
-  const [timeError, setTimeError] = useState(false);
-  const [recommendations, setRecommendations] = useState([]);
-  const [sectionCollisionTime, setSectionCollisionTime] = useState(null);
-  const [instructorCollisionTime, setInstructorCollisionTime] = useState(null);
-  const [roomCollisionTime, setRoomCollisionTime] = useState(null);
 
   // Fetch data when the component mounts
   useEffect(() => {
@@ -108,6 +100,16 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
 
   // Generate recommendations based on availability of instructors, rooms, and sections
   const generateRecommendations = (schedules) => {
+    const days = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const availableSlots = [];
+
     const subject = subjects.find(
       (subject) => subject.subject_name === data.subject
     );
@@ -120,16 +122,6 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
           (subject && subject.subject_type === "Minor")
         ? 3
         : 2;
-
-    const days = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    const availableSlots = [];
 
     days.forEach((day) => {
       if (data.day && data.day !== day) {
@@ -206,163 +198,100 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
     setRecommendations(availableSlots);
   };
 
-  // Check for real-time errors based on the current schedules and form inputs
   const checkRealTimeErrors = () => {
-    // Convert the new start and end times to minutes
-    const newStartTimeInMinutes =
-      parseInt(data.start_time.split(":")[0]) * 60 +
-      parseInt(data.start_time.split(":")[1]);
-    const newEndTimeInMinutes =
-      parseInt(data.end_time.split(":")[0]) * 60 +
-      parseInt(data.end_time.split(":")[1]);
+    const timeToMinutes = (time) =>
+      parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
+    const newStartInMinutes = timeToMinutes(data.start_time);
+    const newEndInMinutes = timeToMinutes(data.end_time);
 
-    let foundSectionCollisionTime = null;
-    let foundInstructorCollisionTime = null;
-    let foundRoomCollisionTime = null;
+    const isTimeConflict = (schedule) => {
+      const scheduleStartInMinutes = timeToMinutes(schedule.start_time);
+      const scheduleEndInMinutes = timeToMinutes(schedule.end_time);
+      return (
+        (newStartInMinutes >= scheduleStartInMinutes &&
+          newStartInMinutes < scheduleEndInMinutes) ||
+        (newEndInMinutes > scheduleStartInMinutes &&
+          newEndInMinutes <= scheduleEndInMinutes) ||
+        (newStartInMinutes <= scheduleStartInMinutes &&
+          newEndInMinutes >= scheduleEndInMinutes)
+      );
+    };
 
-    const timeConflict = (schedule) => {
-      const startTimeInMinutes =
-        parseInt(schedule.start_time.split(":")[0]) * 60 +
-        parseInt(schedule.start_time.split(":")[1]);
-      const endTimeInMinutes =
-        parseInt(schedule.end_time.split(":")[0]) * 60 +
-        parseInt(schedule.end_time.split(":")[1]);
-
-      if (
+    const hasSectionConflict = schedules.find(
+      (schedule) =>
         schedule.section_name === section &&
         schedule.section_group === group &&
-        schedule.day === data.day
-      ) {
-        const isConflict =
-          (newStartTimeInMinutes >= startTimeInMinutes &&
-            newStartTimeInMinutes < endTimeInMinutes) ||
-          (newEndTimeInMinutes > startTimeInMinutes &&
-            newEndTimeInMinutes <= endTimeInMinutes) ||
-          (newStartTimeInMinutes <= startTimeInMinutes &&
-            newEndTimeInMinutes >= endTimeInMinutes);
+        schedule.day === data.day &&
+        isTimeConflict(schedule)
+    );
 
-        if (isConflict) {
-          foundSectionCollisionTime = {
-            start: schedule.start_time,
-            end: schedule.end_time,
-          };
-          return true;
-        }
-      }
-      return false;
-    };
-
-    const instructorConflict = (schedule) => {
-      const startTimeInMinutes =
-        parseInt(schedule.start_time.split(":")[0]) * 60 +
-        parseInt(schedule.start_time.split(":")[1]);
-      const endTimeInMinutes =
-        parseInt(schedule.end_time.split(":")[0]) * 60 +
-        parseInt(schedule.end_time.split(":")[1]);
-
-      if (
+    const hasInstructorConflict = schedules.find(
+      (schedule) =>
         schedule.instructor === data.instructor &&
-        schedule.day === data.day
-      ) {
-        const isConflict =
-          (newStartTimeInMinutes >= startTimeInMinutes &&
-            newStartTimeInMinutes < endTimeInMinutes) ||
-          (newEndTimeInMinutes > startTimeInMinutes &&
-            newEndTimeInMinutes <= endTimeInMinutes) ||
-          (newStartTimeInMinutes <= startTimeInMinutes &&
-            newEndTimeInMinutes >= endTimeInMinutes);
+        schedule.day === data.day &&
+        isTimeConflict(schedule)
+    );
 
-        if (isConflict) {
-          foundInstructorCollisionTime = {
-            start: schedule.start_time,
-            end: schedule.end_time,
-          };
-          return true;
-        }
-      }
-      return false;
-    };
+    const hasRoomConflict = schedules.find(
+      (schedule) =>
+        schedule.room === data.room &&
+        schedule.day === data.day &&
+        isTimeConflict(schedule)
+    );
 
-    const roomConflict = (schedule) => {
-      const startTimeInMinutes =
-        parseInt(schedule.start_time.split(":")[0]) * 60 +
-        parseInt(schedule.start_time.split(":")[1]);
-      const endTimeInMinutes =
-        parseInt(schedule.end_time.split(":")[0]) * 60 +
-        parseInt(schedule.end_time.split(":")[1]);
-
-      if (schedule.room === data.room && schedule.day === data.day) {
-        const isConflict =
-          (newStartTimeInMinutes >= startTimeInMinutes &&
-            newStartTimeInMinutes < endTimeInMinutes) ||
-          (newEndTimeInMinutes > startTimeInMinutes &&
-            newEndTimeInMinutes <= endTimeInMinutes) ||
-          (newStartTimeInMinutes <= startTimeInMinutes &&
-            newEndTimeInMinutes >= endTimeInMinutes);
-
-        if (isConflict) {
-          foundRoomCollisionTime = {
-            start: schedule.start_time,
-            end: schedule.end_time,
-          };
-          return true;
-        }
-      }
-      return false;
-    };
-
-    const hasSectionConflict = schedules.some(timeConflict);
-    const hasInstructorConflict = schedules.some(instructorConflict);
-    const hasRoomConflict = schedules.some(roomConflict);
-
-    setTimeError(hasSectionConflict);
-    setSectionCollisionTime(foundSectionCollisionTime);
-    setInstructorError(hasInstructorConflict);
-    setInstructorCollisionTime(foundInstructorCollisionTime);
-    setRoomError(hasRoomConflict);
-    setRoomCollisionTime(foundRoomCollisionTime);
-
-    const startTimeInMinutes =
-      parseInt(data.start_time.split(":")[0]) * 60 +
-      parseInt(data.start_time.split(":")[1]);
-    const endTimeInMinutes =
-      parseInt(data.end_time.split(":")[0]) * 60 +
-      parseInt(data.end_time.split(":")[1]);
-    const newDuration = (endTimeInMinutes - startTimeInMinutes) / 60;
-
-    const subjectSectionSchedules = schedules.filter(
+    const subjectSchedules = schedules.filter(
       (schedule) =>
         schedule.subject === data.subject &&
         schedule.section_name === section &&
         schedule.section_group === group
     );
 
-    const totalHours = subjectSectionSchedules.reduce((sum, schedule) => {
-      const start =
-        parseInt(schedule.start_time.split(":")[0]) * 60 +
-        parseInt(schedule.start_time.split(":")[1]);
-      const end =
-        parseInt(schedule.end_time.split(":")[0]) * 60 +
-        parseInt(schedule.end_time.split(":")[1]);
-      return sum + (end - start) / 60;
-    }, 0);
+    const calculateTotalDuration = (schedules) => {
+      return schedules.reduce((sum, schedule) => {
+        return (
+          sum +
+          (timeToMinutes(schedule.end_time) -
+            timeToMinutes(schedule.start_time))
+        );
+      }, 0);
+    };
 
-    const numberOfMeetings = subjectSectionSchedules.length;
+    const totalDuration = calculateTotalDuration(subjectSchedules);
+    const newScheduleDuration = newEndInMinutes - newStartInMinutes;
 
-    const exceedsLimits = totalHours + newDuration > 5 || numberOfMeetings >= 2;
-    setSubjectError(exceedsLimits);
+    const exceedsLimits =
+      totalDuration + newScheduleDuration > 5 * 60 ||
+      subjectSchedules.length >= 2;
 
-    const hasLecture = subjectSectionSchedules.some(
-      (schedule) => schedule.class_type === "Lecture"
+    const alreadyExists = subjectSchedules.some(
+      (schedule) => schedule.class_type === data.course_type
     );
-    const hasLaboratory = subjectSectionSchedules.some(
-      (schedule) => schedule.class_type === "Laboratory"
-    );
 
-    const alreadyExists =
-      (data.course_type === "Lecture" && hasLecture) ||
-      (data.course_type === "Laboratory" && hasLaboratory);
-    setCourseError(alreadyExists);
+    setErrors({
+      time_error: !!hasSectionConflict,
+      section_collision_time: hasSectionConflict
+        ? {
+            start_time: hasSectionConflict.start_time,
+            end_time: hasSectionConflict.end_time,
+          }
+        : null,
+      instructor_error: !!hasInstructorConflict,
+      instructor_collision_time: hasInstructorConflict
+        ? {
+            start_time: hasInstructorConflict.start_time,
+            end_time: hasInstructorConflict.end_time,
+          }
+        : null,
+      room_error: !!hasRoomConflict,
+      room_collision_time: hasRoomConflict
+        ? {
+            start_time: hasRoomConflict.start_time,
+            end_time: hasRoomConflict.end_time,
+          }
+        : null,
+      subject_error: exceedsLimits,
+      course_error: alreadyExists,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -370,11 +299,14 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
 
     if (
       data.day === "" ||
-      instructorError ||
-      roomError ||
-      subjectError ||
-      courseError ||
-      timeError
+      errors.time_error ||
+      errors.section_collision_time ||
+      errors.instructor_error ||
+      errors.instructor_collision_time ||
+      errors.room_error ||
+      errors.room_collision_time ||
+      errors.subject_error ||
+      errors.course_error
     ) {
       toast.error("Please fill in all the required fields.");
       return;
@@ -550,13 +482,13 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   onChange={(e) =>
                     setData({ ...data, instructor: e.target.value })
                   }
-                  className={instructorError ? "error-border" : ""}
+                  className={errors.instructor_error ? "error-border" : ""}
                   required
                   readOnly
                 />
               </div>
               <div>
-                {instructorError && (
+                {errors.instructor_error && (
                   <p className="error-message">
                     <FontAwesomeIcon
                       icon={faWarning}
@@ -564,19 +496,31 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                     />
                     Instructor not available between{" "}
                     {`${
-                      parseInt(instructorCollisionTime.start.slice(0, 2)) %
-                        12 || 12
-                    }:${instructorCollisionTime.start.slice(3, 5)} ${
-                      parseInt(instructorCollisionTime.start.slice(0, 2)) >= 12
+                      parseInt(
+                        errors.instructor_collision_time.start_time.slice(0, 2)
+                      ) % 12 || 12
+                    }:${errors.instructor_collision_time.start_time.slice(
+                      3,
+                      5
+                    )} ${
+                      parseInt(
+                        errors.instructor_collision_time.start_time.slice(0, 2)
+                      ) >= 12
                         ? "PM"
                         : "AM"
                     }`}{" "}
                     and{" "}
                     {`${
-                      parseInt(instructorCollisionTime.end.slice(0, 2)) % 12 ||
-                      12
-                    }:${instructorCollisionTime.end.slice(3, 5)} ${
-                      parseInt(instructorCollisionTime.end.slice(0, 2)) >= 12
+                      parseInt(
+                        errors.instructor_collision_time.end_time.slice(0, 2)
+                      ) % 12 || 12
+                    }:${errors.instructor_collision_time.end_time.slice(
+                      3,
+                      5
+                    )} ${
+                      parseInt(
+                        errors.instructor_collision_time.end_time.slice(0, 2)
+                      ) >= 12
                         ? "PM"
                         : "AM"
                     }`}
@@ -595,13 +539,13 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   onChange={(e) =>
                     setData({ ...data, subject: e.target.value })
                   }
-                  className={subjectError ? "error-border" : ""}
+                  className={errors.subject_error ? "error-border" : ""}
                   required
                   readOnly
                 />
               </div>
               <div>
-                {subjectError && (
+                {errors.subject_error && (
                   <p className="error-message">
                     <FontAwesomeIcon
                       icon={faWarning}
@@ -620,7 +564,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   <label>Course Type</label>
                   <select
                     value={data.course_type}
-                    className={courseError ? "error-border" : ""}
+                    className={errors.course_error ? "error-border" : ""}
                     onChange={(e) =>
                       setData({ ...data, course_type: e.target.value })
                     }
@@ -630,7 +574,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   </select>
                 </div>
                 <div>
-                  {courseError && (
+                  {errors.course_error && (
                     <p className="error-message">
                       <FontAwesomeIcon
                         icon={faWarning}
@@ -651,13 +595,13 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   placeholder="Room"
                   value={data.room}
                   onChange={(e) => setData({ ...data, room: e.target.value })}
-                  className={roomError ? "error-border" : ""}
+                  className={errors.room_error ? "error-border" : ""}
                   required
                   readOnly
                 />
               </div>
               <div>
-                {roomError && (
+                {errors.room_error && (
                   <p className="error-message">
                     <FontAwesomeIcon
                       icon={faWarning}
@@ -665,17 +609,25 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                     />
                     Room is not available between{" "}
                     {`${
-                      parseInt(roomCollisionTime.start.slice(0, 2)) % 12 || 12
-                    }:${roomCollisionTime.start.slice(3, 5)} ${
-                      parseInt(roomCollisionTime.start.slice(0, 2)) >= 12
+                      parseInt(
+                        errors.room_collision_time.start_time.slice(0, 2)
+                      ) % 12 || 12
+                    }:${errors.room_collision_time.start_time.slice(3, 5)} ${
+                      parseInt(
+                        errors.room_collision_time.start_time.slice(0, 2)
+                      ) >= 12
                         ? "PM"
                         : "AM"
                     }`}{" "}
                     and{" "}
                     {`${
-                      parseInt(roomCollisionTime.end.slice(0, 2)) % 12 || 12
-                    }:${roomCollisionTime.end.slice(3, 5)} ${
-                      parseInt(roomCollisionTime.end.slice(0, 2)) >= 12
+                      parseInt(
+                        errors.room_collision_time.end_time.slice(0, 2)
+                      ) % 12 || 12
+                    }:${errors.room_collision_time.end_time.slice(3, 5)} ${
+                      parseInt(
+                        errors.room_collision_time.end_time.slice(0, 2)
+                      ) >= 12
                         ? "PM"
                         : "AM"
                     }`}
@@ -782,7 +734,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                 <input
                   type="time"
                   name="startTime"
-                  className={timeError ? "error-border" : ""}
+                  className={errors.time_error ? "error-border" : ""}
                   value={data.start_time}
                   onChange={(e) =>
                     setData({ ...data, start_time: e.target.value })
@@ -791,7 +743,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                 />
               </div>
               <div>
-                {timeError && (
+                {errors.time_error && (
                   <p className="error-message">
                     <FontAwesomeIcon
                       icon={faWarning}
@@ -799,18 +751,25 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                     />
                     Time conflict detected between{" "}
                     {`${
-                      parseInt(sectionCollisionTime.start.slice(0, 2)) % 12 ||
-                      12
-                    }:${sectionCollisionTime.start.slice(3, 5)} ${
-                      parseInt(sectionCollisionTime.start.slice(0, 2)) >= 12
+                      parseInt(
+                        errors.section_collision_time.start_time.slice(0, 2)
+                      ) % 12 || 12
+                    }:${errors.section_collision_time.start_time.slice(3, 5)} ${
+                      parseInt(
+                        errors.section_collision_time.start_time.slice(0, 2)
+                      ) >= 12
                         ? "PM"
                         : "AM"
                     }`}{" "}
                     and{" "}
                     {`${
-                      parseInt(sectionCollisionTime.end.slice(0, 2)) % 12 || 12
-                    }:${sectionCollisionTime.end.slice(3, 5)} ${
-                      parseInt(sectionCollisionTime.end.slice(0, 2)) >= 12
+                      parseInt(
+                        errors.section_collision_time.end_time.slice(0, 2)
+                      ) % 12 || 12
+                    }:${errors.section_collision_time.end_time.slice(3, 5)} ${
+                      parseInt(
+                        errors.section_collision_time.end_time.slice(0, 2)
+                      ) >= 12
                         ? "PM"
                         : "AM"
                     }`}
@@ -825,6 +784,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   type="time"
                   name="endTime"
                   placeholder="End Time"
+                  className={errors.time_error ? "error-border" : ""}
                   value={data.end_time}
                   onChange={(e) =>
                     setData({ ...data, end_time: e.target.value })

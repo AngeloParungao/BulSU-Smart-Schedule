@@ -19,12 +19,14 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
   const url = process.env.REACT_APP_URL;
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const currentDepartment = atob(localStorage.getItem("userDept"));
-  // State variables to manage schedules, instructors, subjects, sections, and rooms data
+
+  // State variables to manage schedules, instructors, subjects, sections, rooms, errors, and recommendations data
   const [schedules, setSchedules] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [sections, setSections] = useState([]);
   const [rooms, setRooms] = useState([]);
+  const [errors, setErrors] = useState({});
 
   // State variables for the form fields
   const [data, setData] = useState({
@@ -103,11 +105,6 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
   };
   // Generate recommendations based on availability of instructors, rooms, and sections
   const generateRecommendations = (schedules) => {
-    if (Object.values(data).some((value) => !value)) {
-      setRecommendations([]);
-      return;
-    }
-
     const subject = subjects.find(
       (subject) => subject.subject_name === data.subject
     );
@@ -212,13 +209,10 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
   };
 
   const checkRealTimeErrors = () => {
-    const parseTimeToMinutes = (time) => {
-      const [hours, minutes] = time.split(":").map(Number);
-      return hours * 60 + minutes;
-    };
-
-    const startTimeInMinutes = parseTimeToMinutes(data.start_time);
-    const endTimeInMinutes = parseTimeToMinutes(data.end_time);
+    const timeToMinutes = (time) =>
+      parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
+    const newStartInMinutes = timeToMinutes(data.start_time);
+    const newEndInMinutes = timeToMinutes(data.end_time);
 
     const subject = subjects.find(
       (subject) => subject.subject_name === data.subject
@@ -230,14 +224,16 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
         : "Group 1"
       : null;
 
-    // Common time overlap checker
-    const hasOverlap = (schedule) => {
-      const start = parseTimeToMinutes(schedule.start_time);
-      const end = parseTimeToMinutes(schedule.end_time);
+    const isTimeConflict = (schedule) => {
+      const scheduleStartInMinutes = timeToMinutes(schedule.start_time);
+      const scheduleEndInMinutes = timeToMinutes(schedule.end_time);
       return (
-        (startTimeInMinutes >= start && startTimeInMinutes < end) ||
-        (endTimeInMinutes > start && endTimeInMinutes <= end) ||
-        (startTimeInMinutes <= start && endTimeInMinutes >= end)
+        (newStartInMinutes >= scheduleStartInMinutes &&
+          newStartInMinutes < scheduleEndInMinutes) ||
+        (newEndInMinutes > scheduleStartInMinutes &&
+          newEndInMinutes <= scheduleEndInMinutes) ||
+        (newStartInMinutes <= scheduleStartInMinutes &&
+          newEndInMinutes >= scheduleEndInMinutes)
       );
     };
 
@@ -260,7 +256,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
         schedule.section_name === item.section_name &&
         schedule.day === data.day;
 
-      if ((inCurrentGroup || inAlternateGroup) && hasOverlap(schedule)) {
+      if ((inCurrentGroup || inAlternateGroup) && isTimeConflict(schedule)) {
         foundSectionCollisionTime = {
           start: schedule.start_time,
           end: schedule.end_time,
@@ -278,7 +274,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
         schedule.schedule_id !== item.schedule_id &&
         schedule.instructor === data.instructor &&
         schedule.day === data.day &&
-        hasOverlap(schedule)
+        isTimeConflict(schedule)
       ) {
         foundInstructorCollisionTime = {
           start: schedule.start_time,
@@ -297,7 +293,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
         schedule.schedule_id !== item.schedule_id &&
         schedule.room === data.room &&
         schedule.day === data.day &&
-        hasOverlap(schedule)
+        isTimeConflict(schedule)
       ) {
         foundRoomCollisionTime = {
           start: schedule.start_time,
@@ -321,15 +317,15 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
     );
 
     const totalHours = subjectSectionSchedules.reduce((sum, schedule) => {
-      const start = parseTimeToMinutes(schedule.start_time);
-      const end = parseTimeToMinutes(schedule.end_time);
+      const start = timeToMinutes(schedule.start_time);
+      const end = timeToMinutes(schedule.end_time);
       return sum + (end - start) / 60;
     }, 0);
 
     const numberOfMeetings = subjectSectionSchedules.length;
 
     const exceedsLimits =
-      totalHours + (endTimeInMinutes - startTimeInMinutes) / 60 > 5 ||
+      totalHours + (newEndInMinutes - newStartInMinutes) / 60 > 5 ||
       numberOfMeetings >= 2;
     setSubjectError(exceedsLimits);
 
