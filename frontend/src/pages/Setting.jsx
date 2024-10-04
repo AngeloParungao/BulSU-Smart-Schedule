@@ -302,12 +302,12 @@ function Settings() {
             </div>
             <div className="flex flex-col w-full gap-2 pb-2">
               <button
-                className="w-full bg-green-500 text-sm text-white font-medium p-2 rounded-md"
+                className="w-full bg-green-500 text-sm text-white font-medium p-2 rounded-md hover:bg-green-600 hover:cursor-pointer"
                 onClick={handleThemeChange}
               >
                 Change Theme
               </button>
-              <button className="w-full bg-gray-500 text-sm text-white font-medium p-2 rounded-md">
+              <button className="w-full bg-gray-500 text-sm text-white font-medium p-2 rounded-md hover:bg-gray-600 hover:cursor-pointer">
                 Discard Changes
               </button>
             </div>
@@ -349,7 +349,7 @@ function Settings() {
                   )}
                 </div>
                 <button
-                  className="w-full bg-green-500 text-sm text-white font-medium p-2 rounded-md"
+                  className="w-full bg-green-500 text-sm text-white font-medium p-2 rounded-md hover:cursor-pointer hover:bg-green-600"
                   onClick={() => setShowAddUser(true)}
                 >
                   Add Collaborator
