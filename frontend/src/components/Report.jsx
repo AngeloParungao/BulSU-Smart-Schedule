@@ -14,7 +14,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
   const [rooms, setRooms] = useState([]);
   const [csvPreview, setCsvPreview] = useState([]); // State for CSV preview
   const [data, setData] = useState({
-    department: "",
+    department: currentRole === "Administrator" ? "" : currentDepartment,
     instructor: "",
     subject: "",
     room: "",
@@ -165,8 +165,8 @@ const Report = ({ schedules, isOpen, onClose }) => {
       appElement={document.getElementById("root")}
     >
       <div className="flex bg-white">
-        <div className="flex gap-4">
-          <form className="flex flex-col gap-4 w-1/3">
+        <div className="flex gap-4 w-full">
+          <form className="flex flex-col gap-4 w-[25rem]">
             <span className="font-medium text-lg text-gray-500">
               FILTER REPORT
             </span>
@@ -179,6 +179,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
                   onChange={(e) =>
                     setData({ ...data, department: e.target.value })
                   }
+                  className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}"
                 >
                   <option value="">Department</option>
                   {departments.map((department, index) => (
@@ -197,6 +198,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
                 onChange={(e) =>
                   setData({ ...data, instructor: e.target.value })
                 }
+                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}"
               >
                 <option value="">Instructor</option>
                 {instructors
@@ -222,6 +224,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
                 name="subject"
                 value={data.subject}
                 onChange={(e) => setData({ ...data, subject: e.target.value })}
+                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}"
               >
                 <option value="">Subject</option>
                 {data.instructor
@@ -260,6 +263,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
                 name="room"
                 value={data.room}
                 onChange={(e) => setData({ ...data, room: e.target.value })}
+                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}"
               >
                 <option value="">Room</option>
                 {rooms
@@ -281,6 +285,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
                 name="day"
                 value={data.day}
                 onChange={(e) => setData({ ...data, day: e.target.value })}
+                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}"
               >
                 <option value="">Day</option>
                 <option value="Monday">Monday</option>
@@ -293,22 +298,24 @@ const Report = ({ schedules, isOpen, onClose }) => {
             </div>
             <button
               type="button"
-              className="bg-blue-500 text-white px-4 py-2 rounded"
+              className="bg-blue-500 text-white px-4 py-2 rounded-md mt-4 hover:bg-blue-600"
               onClick={handleExportCSV}
             >
               Export CSV
             </button>
           </form>
-          <div className="">
-            <h3 className="text-lg font-semibold mb-2">CSV Preview</h3>
-            <div className="overflow-auto">
-              <table className="min-w-full border-collapse border border-gray-300">
+          <div className="flex flex-col items-end h-[calc(100vh-4.5rem)] w-full">
+            <h3 className="text-xl font-semibold mb-2 uppercase opacity-40">
+              Preview
+            </h3>
+            <div className="overflow-y-auto h-full w-full p-2 border border-gray-300 rounded-lg scrollbar bg-[#f5f5f5]">
+              <table className="w-full border-collapse border border-gray-300 bg-white">
                 <thead>
                   <tr>
                     {[
                       "Day",
-                      "Start Time",
-                      "End Time",
+                      "Start",
+                      "End",
                       "Room",
                       "Building",
                       "Course",
@@ -319,14 +326,14 @@ const Report = ({ schedules, isOpen, onClose }) => {
                     ].map((header, index) => (
                       <th
                         key={index}
-                        className="border border-gray-300 p-2 bg-gray-200"
+                        className="text-sm font-semibold border border-gray-300 p-2 bg-gray-200"
                       >
                         {header}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="text-center text-sm">
                   {csvPreview.length > 0 ? (
                     csvPreview.map((row, rowIndex) => (
                       <tr key={rowIndex}>
