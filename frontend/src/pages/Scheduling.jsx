@@ -33,11 +33,23 @@ const Scheduling = () => {
 
   const fetchData = async () => {
     try {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
       const [scheduleRes, sectionRes] = await Promise.all([
         axios.get(`${url}api/schedule/fetch`),
         axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
       ]);
-      setSchedules(scheduleRes.data);
+
+      if (month >= 1 && month <= 5) {
+        setSchedules(
+          scheduleRes.data.filter((item) => item.semester === "2nd")
+        );
+      } else if (month >= 6 && month <= 12) {
+        setSchedules(
+          scheduleRes.data.filter((item) => item.semester === "1st")
+        );
+      }
       setSections(sectionRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);

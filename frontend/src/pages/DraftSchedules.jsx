@@ -3,7 +3,6 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { exportToCSV } from "../utils/exportToCSV";
 import Sidebar from "../components/Sidebar";
 import Report from "../components/Report";
 
@@ -11,6 +10,8 @@ function DraftSchedules() {
   const url = process.env.REACT_APP_URL;
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const [category, setCategory] = useState("section");
+  const [semester, setSemester] = useState("");
+  const [academicYear, setAcademicYear] = useState("");
   const [schedules, setSchedules] = useState([]);
   const [sections, setSections] = useState([]);
   const [instructors, setInstructors] = useState([]);
@@ -22,6 +23,20 @@ function DraftSchedules() {
   useEffect(() => {
     toast.dismiss();
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    if (month >= 1 && month <= 5) {
+      setSemester("2nd");
+      setAcademicYear(`${year - 1}-${year}`);
+    }
+    if (month >= 6 && month <= 12) {
+      setSemester("1st");
+      setAcademicYear(`${year}-${year + 1}`);
+    }
   }, []);
 
   const fetchData = async () => {
@@ -293,22 +308,63 @@ function DraftSchedules() {
         <div className="p-3 md:px-8">
           {/* Category Selector */}
           <div className="flex items-center gap-4">
-            <label
-              htmlFor="category"
-              className="font-semibold text-sm text-[var(--text-color)]"
-            >
-              Schedule for:
-            </label>
-            <select
-              name="category"
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-            >
-              <option value="instructor">Instructor</option>
-              <option value="section">Section</option>
-            </select>
+            <div className="flex items-center gap-4">
+              <label
+                htmlFor="category"
+                className="font-semibold text-sm text-[var(--text-color)]"
+              >
+                Schedule for:
+              </label>
+              <select
+                name="category"
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-[6rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+              >
+                <option value="instructor">Instructor</option>
+                <option value="section">Section</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-4">
+              <label
+                htmlFor="semester"
+                className="font-semibold text-sm text-[var(--text-color)]"
+              >
+                Semester:
+              </label>
+              <select
+                name="semester"
+                id="semester"
+                value={semester}
+                onChange={(e) => setSemester(e.target.value)}
+                className="w-[5rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+              >
+                <option value="1st">1st</option>
+                <option value="2nd">2nd</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-4">
+              <label
+                htmlFor="academic_year"
+                className="font-semibold text-sm text-[var(--text-color)]"
+              >
+                Year:
+              </label>
+              <select
+                name="academic_year"
+                id="academic_year"
+                value={academicYear}
+                onChange={(e) => setAcademicYear(e.target.value)}
+                className="w-[7rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+              >
+                {[...Array(6).keys()].map((i) => (
+                  <option key={i + 2024} value={`${i + 2024}-${i + 2025}`}>{`${
+                    i + 2024
+                  }-${i + 2025}`}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Conditional Instructor or Section/Group */}
@@ -382,7 +438,7 @@ function DraftSchedules() {
                       id="group"
                       value={selectedGroup}
                       onChange={(e) => setSelectedGroup(e.target.value)}
-                      className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                      className="w-[6rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                     >
                       {sections
                         .filter(
@@ -449,13 +505,17 @@ function DraftSchedules() {
                           return (
                             item.start_time === time.startTime &&
                             item.day === day &&
-                            item.instructor === selectedInstructor
+                            item.instructor === selectedInstructor &&
+                            item.semester === semester &&
+                            item.academic_year === academicYear
                           );
                         } else {
                           return (
                             item.start_time === time.startTime &&
                             item.day === day &&
                             item.section_name === selectedSection &&
+                            item.semester === semester &&
+                            item.academic_year === academicYear &&
                             (!item.section_group ||
                               item.section_group === selectedGroup)
                           );
