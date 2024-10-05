@@ -82,6 +82,9 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
   // Fetch data from the API
   const fetchData = async () => {
     try {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
       const [scheduleRes, instructorRes, sectionRes, subjectRes, roomRes] =
         await Promise.all([
           axios.get(`${url}api/schedule/fetch`),
@@ -93,7 +96,23 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
           axios.get(`${url}api/rooms/fetch`),
         ]);
 
-      setSchedules(scheduleRes.data);
+      if (month >= 1 && month <= 5) {
+        setSchedules(
+          scheduleRes.data.filter(
+            (item) =>
+              item.semester === "2nd" &&
+              item.academic_year === `${year - 1}-${year}`
+          )
+        );
+      } else if (month >= 6 && month <= 12) {
+        setSchedules(
+          scheduleRes.data.filter(
+            (item) =>
+              item.semester === "1st" &&
+              item.academic_year === `${year}-${year + 1}`
+          )
+        );
+      }
       setInstructors(instructorRes.data);
       setSections(sectionRes.data);
       setSubjects(subjectRes.data);

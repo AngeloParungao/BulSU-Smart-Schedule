@@ -43,11 +43,19 @@ const Scheduling = () => {
 
       if (month >= 1 && month <= 5) {
         setSchedules(
-          scheduleRes.data.filter((item) => item.semester === "2nd")
+          scheduleRes.data.filter(
+            (item) =>
+              item.semester === "2nd" &&
+              item.academic_year === `${year - 1}-${year}`
+          )
         );
       } else if (month >= 6 && month <= 12) {
         setSchedules(
-          scheduleRes.data.filter((item) => item.semester === "1st")
+          scheduleRes.data.filter(
+            (item) =>
+              item.semester === "1st" &&
+              item.academic_year === `${year}-${year + 1}`
+          )
         );
       }
       setSections(sectionRes.data);
