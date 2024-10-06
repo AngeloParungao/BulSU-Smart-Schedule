@@ -49,7 +49,7 @@ function Sidebar() {
 
   return (
     <div
-      className={`bg-[#343B46] h-screen flex flex-col justify-between pb-4 w-[6rem] ${
+      className={`bg-[#343B46] h-[100dvh] flex flex-col justify-between pb-4 w-[6rem] ${
         showSidebar ? "ml-0" : "ml-[-6rem]"
       } lg:ml-0 transition-all duration-300`}
     >
