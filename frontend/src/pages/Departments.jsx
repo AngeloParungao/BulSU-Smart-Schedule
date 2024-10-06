@@ -62,15 +62,17 @@ const Departments = () => {
     if (selectedDepartments.length === departments.length) {
       setSelectedDepartments([]);
     } else {
-      const allDepartmentIds = departments.map((department) => department._id);
-      setSelectedDepartments(allDepartmentIds);
+      const allDepartmentCodes = departments.map(
+        (department) => department.department_code
+      );
+      setSelectedDepartments(allDepartmentCodes);
     }
   };
 
   const handleCheckboxChange = (department) => {
     if (selectedDepartments.includes(department)) {
       setSelectedDepartments(
-        selectedDepartments.filter((id) => id !== department)
+        selectedDepartments.filter((code) => code !== department)
       );
     } else {
       setSelectedDepartments([...selectedDepartments, department]);
