@@ -174,13 +174,13 @@ function Settings() {
   };
 
   return (
-    <div className="h-[100dvh] flex bg-[var(--background-color)] text-[var(--text-color)]">
+    <div className="h-full flex bg-[var(--background-color)] text-[var(--text-color)]">
       <div className="z-10 fixed lg:relative top-0 left-0">
         <Sidebar />
       </div>
-      <div className="w-full h-screen absolute lg:relative">
+      <div className="w-full h-full">
         <div className="flex items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)]">
-          <span className="md:text-4xl text-3xl font-medium">Settings</span>
+          <span className="md:text-4xl text-2xl font-medium">Settings</span>
         </div>
         <div className="flex lg:flex-row flex-col justify-center items-center lg:h-[calc(100vh-4.5rem)] w-full gap-4 lg:p-0 p-8">
           <div className="flex flex-col justify-center items-center p-5 bg-white rounded-lg shadow-md w-[25rem] h-[30rem] gap-2">

@@ -4,16 +4,15 @@ import { Login, Home, DraftSchedules, Scheduling, Departments, Instructors, Sect
 import './App.css';
 
 function App() {
-  const currentUser = atob(localStorage.getItem("userID"));
-  
   useEffect(() => {
-    if (currentUser) {
-      const getTheme = atob(localStorage.getItem(`theme-${currentUser}`));
-      const theme = getTheme ? getTheme : 'default';
-      document.body.classList.remove("default", "gray", "red", "green");
-      document.body.classList.add(theme);
-    }
-  }, []);
+  const userID = localStorage.getItem("userID");
+  const currentUser = userID ? atob(userID) : "";
+  const theme = localStorage.getItem(`theme-${currentUser}`);
+  const getTheme = theme ? atob(theme) : "default";
+  document.body.classList.remove("default", "gray", "red", "green");
+  document.body.classList.add(getTheme);
+}, []);
+;
 
   // Private route component for authentication check
   const PrivateRoute = ({ element: Component }) => {

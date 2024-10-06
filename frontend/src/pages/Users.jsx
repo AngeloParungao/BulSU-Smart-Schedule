@@ -61,7 +61,7 @@ const Users = () => {
       </div>
       <div className="w-full h-screen absolute lg:relative">
         <div className="flex items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)]">
-          <span className="md:text-4xl text-3xl font-medium">
+          <span className="md:text-4xl text-2xl font-medium">
             Account Management
           </span>
         </div>
@@ -82,26 +82,25 @@ const Users = () => {
             </div>
             <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
               <button
-                className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 px-4 rounded-lg"
+                className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold w-[7rem] py-2 rounded-lg"
                 onClick={() => setShowAddUser(true)}
               >
                 Add Account
               </button>
-              <button className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold py-2 px-4 rounded-lg">
-                Archive Account
+              <button className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold w-[7rem] py-2 rounded-lg">
+                Delete Account
               </button>
             </div>
           </div>
           <div className="scrollbar h-full w-full overflow-y-auto text-black bg-white border border-gray-400 rounded-lg p-[0.4rem]">
             <table className="w-[100%] text-md text-center border border-gray-200 table-fixed">
               <thead>
-                <tr className="border-b border-gray-300">
-                  <th className="w-10"></th>
-                  <th className="text-sm md:text-[1rem] py-2">Name</th>
-                  <th className="text-sm md:text-[1rem] py-2">Email</th>
-                  <th className="text-sm md:text-[1rem] py-2">Department</th>
-                  <th className="text-sm md:text-[1rem] py-2">Last Activity</th>
-                  <th className="w-10"></th>
+                <tr className="border-b border-gray-300 ">
+                  <th className="md:w-10 w-6"></th>
+                  <th className="text-xs md:text-[1rem] py-2">Name</th>
+                  <th className="text-xs md:text-[1rem] py-2">Email</th>
+                  <th className="text-xs md:text-[1rem] py-2">Department</th>
+                  <th className="md:w-10 w-6"></th>
                 </tr>
               </thead>
               <tbody>
@@ -110,22 +109,25 @@ const Users = () => {
                     key={index}
                     className="border-b border-gray-300 h-[2.5rem]"
                   >
-                    <td className="p-2 border-r border-gray-300">
+                    <td className="md:p-2 border-r border-gray-300">
                       <input type="checkbox" />
                     </td>
-                    <td className="p-2 border-r border-gray-300">
+                    <td className="md:p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                       {user.first_name} {user.middle_name} {user.last_name}
                     </td>
-                    <td className="p-2 border-r border-gray-300">
+                    <td
+                      className="md:p-2 md:text-sm text-[0.6rem] border-r border-gray-300"
+                      style={{
+                        wordBreak: "break-word",
+                        overflowWrap: "anywhere",
+                      }}
+                    >
                       {user.email}
                     </td>
-                    <td className="p-2 border-r border-gray-300">
+                    <td className="p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                       {user.department_code}
                     </td>
-                    <td className="p-2 border-r border-gray-300">
-                      {user.last_activity}
-                    </td>
-                    <td className="p-2">
+                    <td className="p-2 md:text-sm text-[0.6rem]">
                       <button
                         id="update-btn"
                         onClick={() => {

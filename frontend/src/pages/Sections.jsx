@@ -292,13 +292,13 @@ const Sections = () => {
   };
 
   return (
-    <div className="h-[100dvh] flex bg-[var(--background-color)] text-[var(--text-color)]">
+    <div className="h-full flex bg-[var(--background-color)] text-[var(--text-color)]">
       <div className="z-20 fixed lg:relative top-0 left-0">
         <Sidebar />
       </div>
-      <div className="w-full h-screen absolute lg:relative">
+      <div className="w-full h-full">
         <div className="flex justify-between items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)] z-10">
-          <span className="md:text-4xl text-3xl font-medium">Sections</span>
+          <span className="md:text-4xl text-2xl font-medium">Sections</span>
           <Navbar />
         </div>
         <div className="flex flex-col lg:flex-row lg:items-start items-center w-full h-[calc(100%-4.5rem)] p-3 gap-8 lg:gap-0">
@@ -518,7 +518,7 @@ const Sections = () => {
           </form>
           <div className="h-full md:flex-1 w-full flex flex-col items-center lg:px-4 px-0 gap-2">
             <div className="relative flex justify-between items-center w-full">
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col md:gap-4 gap-2">
                 <FontAwesomeIcon
                   icon={faSearch}
                   className="absolute left-3 top-3 text-sm text-gray-300"
@@ -530,7 +530,7 @@ const Sections = () => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)} // Update search term on input change
                 />
-                <div className="flex gap-4">
+                <div className="flex md:flex-row flex-col md:gap-4 gap-2">
                   <div className="flex items-center gap-2">
                     <label htmlFor="order" className="text-sm text-black">
                       Year:
@@ -584,7 +584,7 @@ const Sections = () => {
                   className="text-white md:text-[0.8rem] text-[0.6rem] bg-red-500 py-2 px-4 rounded-full hover:bg-red-600 transition-all"
                   onClick={handleDelete}
                 >
-                  Remove Instructor/s
+                  Remove
                 </button>
                 <PasswordPrompt
                   isOpen={showPasswordPrompt}
@@ -593,27 +593,27 @@ const Sections = () => {
                 />
               </div>
             </div>
-            <div className="scrollbar h-full w-full overflow-y-auto text-black bg-white border border-gray-400 rounded-lg p-[0.4rem]">
+            <div className="scrollbar max-h-[30.5rem] w-full overflow-y-auto text-black bg-white border border-gray-400 rounded-lg p-[0.4rem]">
               <table className="w-[100%] text-md text-center border border-gray-200 table-fixed">
                 <thead>
                   <tr className="border-b border-gray-300 bg-gray-100">
-                    <th className="w-10"></th>
+                    <th className="md:w-10 w-6"></th>
                     {currentRole === "Administrator" && (
-                      <th className="text-sm md:text-[1rem] py-2">
+                      <th className="text-[0.6rem] md:text-[1rem] py-2">
                         Department
                       </th>
                     )}
-                    <th className="text-sm md:text-[1rem] py-2">Section</th>
-                    <th className="text-sm md:text-[1rem] py-2">Capacity</th>
-                    <th className="text-sm md:text-[1rem] py-2">Year</th>
-                    <th className="text-sm md:text-[1rem] py-2">Labels</th>
-                    <th className="w-10"></th>
+                    <th className="text-xs md:text-[1rem] py-2">Section</th>
+                    <th className="text-xs md:text-[1rem] py-2">Capacity</th>
+                    <th className="text-xs md:text-[1rem] py-2">Year</th>
+                    <th className="text-xs md:text-[1rem] py-2">Labels</th>
+                    <th className="md:w-10 w-6"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {filterSections.map((section, index) => (
                     <tr key={index} className="border-b border-gray-300">
-                      <td className="p-2 border-r border-gray-300">
+                      <td className="md:p-2 border-r border-gray-300">
                         <input
                           type="checkbox"
                           checked={selectedSections.includes(
@@ -625,26 +625,26 @@ const Sections = () => {
                         />
                       </td>
                       {currentRole === "Administrator" && (
-                        <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
+                        <td className="md:p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                           {section.department_code}
                         </td>
                       )}
-                      <td className="md:p-2 p-1 border border-gray-300 text-xs md:text-[0.8rem]">
+                      <td className="md:p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                         {section.section_name}
                         {section.section_group === ""
                           ? ""
                           : ` - ${section.section_group}`}
                       </td>
-                      <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
+                      <td className="md:p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                         {section.section_capacity}
                       </td>
-                      <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
+                      <td className="md:p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                         {section.year_level}
                       </td>
-                      <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
+                      <td className="p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                         {section.section_tags}
                       </td>
-                      <td className="p-2">
+                      <td className="p-2 md:text-sm text-[0.6rem]">
                         <button id="update-btn">
                           <FontAwesomeIcon
                             icon={faPenToSquare}

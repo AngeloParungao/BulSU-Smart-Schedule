@@ -67,8 +67,12 @@ function Navbar() {
           </NavLink>
         ) : null}
       </div>
-      <div className="lg:hidden">
-        <select value={location.pathname} onChange={handleSelectChange}>
+      <div className="lg:hidden mr-2">
+        <select
+          value={location.pathname}
+          onChange={handleSelectChange}
+          className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}"
+        >
           {role === "Administrator" ? (
             <option value="/departments">Departments</option>
           ) : (

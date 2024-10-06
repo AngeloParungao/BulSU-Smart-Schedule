@@ -23,7 +23,7 @@ function Home() {
       <div className="w-full h-screen absolute lg:relative">
         <div className="flex items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)]">
           {role === "Administrator" ? (
-            <span className="md:text-4xl text-3xl font-medium">
+            <span className="md:text-4xl text-2xl font-medium">
               Admin Dashboard
             </span>
           ) : (

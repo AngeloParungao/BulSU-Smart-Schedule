@@ -226,13 +226,13 @@ const Departments = () => {
   };
 
   return (
-    <div className="h-[100dvh] flex bg-[var(--background-color)] text-[var(--text-color)]">
+    <div className="h-full flex bg-[var(--background-color)] text-[var(--text-color)]">
       <div className="z-20 fixed lg:relative top-0 left-0">
         <Sidebar />
       </div>
-      <div className="w-full h-screen absolute lg:relative">
+      <div className="w-full h-full">
         <div className="flex justify-between items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)] z-10">
-          <span className="md:text-4xl text-3xl font-medium">Departments</span>
+          <span className="md:text-4xl text-2xl font-medium">Departments</span>
           <Navbar />
         </div>
         <div className="flex flex-col lg:flex-row lg:items-start items-center w-full h-[calc(100%-4.5rem)] p-3 gap-8 lg:gap-0">
@@ -364,7 +364,7 @@ const Departments = () => {
                   className="text-white md:text-[0.8rem] text-[0.6rem] bg-red-500 py-2 px-4 rounded-full hover:bg-red-600 transition-all"
                   onClick={handleDelete}
                 >
-                  Remove Department/s
+                  Remove
                 </button>
                 <PasswordPrompt
                   isOpen={showPasswordPrompt}
@@ -373,25 +373,25 @@ const Departments = () => {
                 />
               </div>
             </div>
-            <div className="scrollbar h-full w-full overflow-y-auto text-black bg-white border border-gray-400 rounded-lg p-[0.4rem]">
+            <div className="scrollbar max-h-[30.5rem] w-full overflow-y-auto text-black bg-white border border-gray-400 rounded-lg p-[0.4rem]">
               <table className="w-[100%] text-md text-center border border-gray-200 table-fixed">
                 <thead>
                   <tr className="border-b border-gray-300 bg-gray-100">
-                    <th className="w-10"></th>
-                    <th className="text-sm md:text-[1rem] py-2">Department</th>
-                    <th className="text-sm md:text-[1rem] py-2">
+                    <th className="md:w-10 w-6"></th>
+                    <th className="text-xs md:text-[1rem] py-2">
                       Department Code
                     </th>
-                    <th className="text-sm md:text-[1rem] py-2">
+                    <th className="text-xs md:text-[1rem] py-2">Department</th>
+                    <th className="text-xs md:text-[1rem] py-2">
                       Department Head
                     </th>
-                    <th className="w-10"></th>
+                    <th className="md:w-10 w-6"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {filterDepartments.map((department, index) => (
                     <tr key={index} className="border-b border-gray-300">
-                      <td className="p-2 border-r border-gray-300">
+                      <td className="md:p-2 border-r border-gray-300">
                         <input
                           type="checkbox"
                           checked={selectedDepartments.includes(
@@ -402,16 +402,16 @@ const Departments = () => {
                           }
                         />
                       </td>
-                      <td className="md:p-2 p-1 border border-gray-300 text-xs md:text-[0.9rem]">
-                        {department.department}
-                      </td>
-                      <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
+                      <td className="md:p-2 border border-gray-300 text-[0.6rem] md:text-sm">
                         {department.department_code}
                       </td>
-                      <td className="p-2 border border-gray-300 text-xs md:text-[0.9rem]">
+                      <td className="md:p-2 p-1 border border-gray-300 text-[0.6rem] md:text-sm">
+                        {department.department}
+                      </td>
+                      <td className="md:p-2 border border-gray-300 text-[0.6rem] md:text-sm">
                         {department.department_head}
                       </td>
-                      <td className="p-2">
+                      <td className="p-2 text-[0.6rem] md:text-sm">
                         <button id="update-btn">
                           <FontAwesomeIcon
                             icon={faPenToSquare}
