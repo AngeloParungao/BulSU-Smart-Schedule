@@ -164,9 +164,9 @@ const Report = ({ schedules, isOpen, onClose }) => {
       style={customStyles}
       appElement={document.getElementById("root")}
     >
-      <div className="flex bg-white">
-        <div className="flex gap-4 w-full h-[calc(100vh-4.5rem)]">
-          <form className="flex flex-col gap-4 w-[20rem]">
+      <div className="flex bg-white w-full h-full">
+        <div className="flex lg:flex-row flex-col gap-4 w-full h-[calc(100vh-4.5rem)]">
+          <form className="flex flex-col gap-4 lg:w-[20rem] w-full">
             <span className="font-medium text-lg text-gray-500">
               FILTER REPORT
             </span>
@@ -304,7 +304,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
               Export CSV
             </button>
           </form>
-          <div className="flex flex-col items-end h-full flex-1 gap-4">
+          <div className="flex flex-col items-end h-full flex-1 gap-4 w-full">
             <h3 className="text-xl font-semibold mb-2 uppercase opacity-40">
               Preview
             </h3>
@@ -326,7 +326,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
                     ].map((header, index) => (
                       <th
                         key={index}
-                        className="text-sm font-semibold border border-gray-300 p-2 bg-gray-200"
+                        className="lg:text-sm md:text-xs text-[0.45rem] font-semibold border border-gray-300 md:p-2 bg-gray-200"
                       >
                         {header}
                       </th>
@@ -340,7 +340,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
                         {row.map((cell, cellIndex) => (
                           <td
                             key={cellIndex}
-                            className="border border-gray-300 p-2"
+                            className="border border-gray-300 md:p-2 text-[0.4rem] lg:text-sm md:text-xs"
                           >
                             {cell}
                           </td>
