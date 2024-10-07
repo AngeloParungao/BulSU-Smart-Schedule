@@ -15,9 +15,11 @@ function DraftSchedules() {
   const [schedules, setSchedules] = useState([]);
   const [sections, setSections] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [selectedInstructor, setSelectedInstructor] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
+  const [selectedRoom, setSelectedRoom] = useState("");
   const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
@@ -41,15 +43,20 @@ function DraftSchedules() {
 
   const fetchData = async () => {
     try {
-      const [scheduleRes, sectionRes, instructorRes] = await Promise.all([
-        axios.get(`${url}api/schedule/fetch`),
-        axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
-        axios.get(`${url}api/instructors/fetch?dept_code=${currentDepartment}`),
-      ]);
+      const [scheduleRes, sectionRes, instructorRes, roomRes] =
+        await Promise.all([
+          axios.get(`${url}api/schedule/fetch`),
+          axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
+          axios.get(
+            `${url}api/instructors/fetch?dept_code=${currentDepartment}`
+          ),
+          axios.get(`${url}api/rooms/fetch`),
+        ]);
 
       setSchedules(scheduleRes.data);
       setSections(sectionRes.data);
       setInstructors(instructorRes.data);
+      setRooms(roomRes.data);
 
       if (scheduleRes.data.length > 0) {
         setSelectedInstructor(scheduleRes.data[0].instructor.toString());
@@ -65,6 +72,7 @@ function DraftSchedules() {
     }
   };
 
+  //TODO: fix layout of pdf
   const generatePDF = async () => {
     const scheduleContainer = document.querySelector("#scheduleTable");
     if (!scheduleContainer) return toast.error("No schedule found to print.");
@@ -98,17 +106,39 @@ function DraftSchedules() {
       let heightLeft = imgHeight,
         pageHeight = 297; // A4 height in mm
 
+      // Adding title, room, semester, etc.
       pdf
         .setFontSize(18)
-        .text("Schedule for:", 14, 20)
+        .text(
+          "FACULTY SCHEDULE",
+          pdf.internal.pageSize.getWidth() / 2 - 40,
+          20
+        );
+      pdf
         .setFontSize(14)
         .text(
-          category === "instructor"
-            ? `Instructor: ${selectedInstructor}`
-            : `Section: ${selectedSection}, Group: ${selectedGroup}`,
-          14,
+          "Republic of the Philippines",
+          pdf.internal.pageSize.getWidth() / 2 - 55,
           30
         );
+      pdf
+        .setFontSize(14)
+        .text(
+          "Bulacan State University, Malolos City, Bulacan",
+          pdf.internal.pageSize.getWidth() / 2 - 75,
+          36
+        );
+      pdf
+        .setFontSize(14)
+        .text(
+          "Academic Year: 2nd SEMESTER 2023-2024",
+          pdf.internal.pageSize.getWidth() / 2 - 60,
+          42
+        );
+      pdf
+        .setFontSize(14)
+        .text("Room: 124", pdf.internal.pageSize.getWidth() / 2 - 35, 48);
+
       pdf.addImage(imgData, "PNG", 0, 40, imgWidth, imgHeight);
 
       while (heightLeft > pageHeight) {
@@ -324,6 +354,7 @@ function DraftSchedules() {
               >
                 <option value="instructor">Instructor</option>
                 <option value="section">Section</option>
+                <option value="room">Room</option>
               </select>
             </div>
             <div className="flex items-center gap-4">
@@ -394,7 +425,7 @@ function DraftSchedules() {
                   ))}
                 </select>
               </div>
-            ) : (
+            ) : category === "section" ? (
               <div className="flex md:flex-row flex-col gap-2 md:gap-6">
                 <div className="flex items-center gap-4 ">
                   <label
@@ -453,6 +484,34 @@ function DraftSchedules() {
                   </div>
                 )}
               </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <label
+                  htmlFor="room"
+                  className="font-semibold text-sm text-[var(--text-color)]"
+                >
+                  Room:
+                </label>
+                <select
+                  name="room"
+                  id="room"
+                  value={selectedRoom}
+                  onChange={(e) => setSelectedRoom(e.target.value)}
+                  className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                >
+                  {rooms.length === 0 ? (
+                    <option value="Room">Room</option>
+                  ) : (
+                    [...new Set(rooms.map((r) => r.room_name))].map(
+                      (room, index) => (
+                        <option key={index} value={room}>
+                          {room}
+                        </option>
+                      )
+                    )
+                  )}
+                </select>
+              </div>
             )}
             <div className="flex md:flex-row flex-col md:gap-4 gap-2">
               <button
@@ -506,6 +565,14 @@ function DraftSchedules() {
                             item.start_time === time.startTime &&
                             item.day === day &&
                             item.instructor === selectedInstructor &&
+                            item.semester === semester &&
+                            item.academic_year === academicYear
+                          );
+                        } else if (category === "room") {
+                          return (
+                            item.start_time === time.startTime &&
+                            item.day === day &&
+                            item.room === selectedRoom &&
                             item.semester === semester &&
                             item.academic_year === academicYear
                           );
