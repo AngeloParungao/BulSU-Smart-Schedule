@@ -18,6 +18,7 @@ const Rooms = () => {
   const [rooms, setRooms] = useState([]);
   const [roomsIdToUpdate, setRoomsIdToUpdate] = useState("");
   const [selectedRooms, setSelectedRooms] = useState([]);
+  const [selectedBuilding, setSelectedBuilding] = useState("All");
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     room_name: "",
@@ -51,12 +52,18 @@ const Rooms = () => {
     setIsUpdating(false);
   };
 
-  const filterRooms = rooms.filter(
-    (room) =>
+  const filterRooms = rooms.filter((room) => {
+    const matchesSearch =
       room.room_name.toLowerCase().includes(search.toLowerCase()) ||
       room.room_type.toLowerCase().includes(search.toLowerCase()) ||
-      room.room_building.toLowerCase().includes(search.toLowerCase())
-  );
+      room.room_building.toLowerCase().includes(search.toLowerCase());
+
+    const matchesBuilding =
+      selectedBuilding === "All" ||
+      room.room_building.toLowerCase() === selectedBuilding.toLowerCase();
+
+    return matchesSearch && matchesBuilding;
+  });
 
   const selectAll = () => {
     if (selectedRooms.length === filterRooms.length) {
@@ -324,17 +331,39 @@ const Rooms = () => {
           </form>
           <div className="h-full md:flex-1 w-full flex flex-col items-center lg:px-4 px-0 gap-2">
             <div className="relative flex justify-between items-center w-full">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="absolute left-3 text-sm text-gray-300"
-              />
-              <input
-                className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
-                type="text"
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)} // Update search term on input change
-              />
+              <div className="flex flex-col gap-4">
+                <FontAwesomeIcon
+                  icon={faSearch}
+                  className="absolute left-3 top-3 text-sm text-gray-300"
+                />
+                <input
+                  className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
+                  type="text"
+                  placeholder="Search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)} // Update search term on input change
+                />
+                <div className="flex items-center gap-2">
+                  <label htmlFor="building" className="text-sm text-black">
+                    Building:
+                  </label>
+                  <select
+                    name="building"
+                    value={selectedBuilding}
+                    onChange={(e) => setSelectedBuilding(e.target.value)}
+                    className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="All">All</option>
+                    {Array.from(
+                      new Set(rooms.map((room) => room.room_building))
+                    ).map((building, index) => (
+                      <option key={index} value={building}>
+                        {building}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div className="flex gap-4">
                 <button
                   className="text-orange-500 md:text-sm text-[0.8rem] hover:text-orange-600"
