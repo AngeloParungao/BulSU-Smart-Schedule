@@ -326,7 +326,7 @@ const Departments = () => {
                 type="submit"
                 className="w-full bg-blue-500 text-sm text-white py-2 rounded-md hover:bg-blue-600 transition-all"
               >
-                {isUpdating ? "UPDATE ROOM" : "ADD ROOM"}
+                {isUpdating ? "UPDATE DEPARTMENT" : "ADD DEPARTMENT"}
               </button>
               {isUpdating && (
                 <button
