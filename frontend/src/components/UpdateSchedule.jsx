@@ -317,6 +317,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
         foundRoomCollisionTime = {
           start: schedule.start_time,
           end: schedule.end_time,
+          department: schedule.department_code,
         };
         return true;
       }
@@ -713,22 +714,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
                       icon={faWarning}
                       className="warning-icon"
                     />
-                    Room is not available between{" "}
-                    {`${
-                      parseInt(roomCollisionTime.start.slice(0, 2)) % 12 || 12
-                    }:${roomCollisionTime.start.slice(3, 5)} ${
-                      parseInt(roomCollisionTime.start.slice(0, 2)) >= 12
-                        ? "PM"
-                        : "AM"
-                    }`}{" "}
-                    and{" "}
-                    {`${
-                      parseInt(roomCollisionTime.end.slice(0, 2)) % 12 || 12
-                    }:${roomCollisionTime.end.slice(3, 5)} ${
-                      parseInt(roomCollisionTime.end.slice(0, 2)) >= 12
-                        ? "PM"
-                        : "AM"
-                    }`}
+                    {`Room is occupied by ${roomCollisionTime.department}`}
                   </p>
                 )}
               </div>

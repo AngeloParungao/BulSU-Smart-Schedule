@@ -306,6 +306,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
         ? {
             start_time: hasRoomConflict.start_time,
             end_time: hasRoomConflict.end_time,
+            department: hasRoomConflict.department_code,
           }
         : null,
       subject_error: exceedsLimits,
@@ -636,30 +637,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                       icon={faWarning}
                       className="warning-icon"
                     />
-                    Room is not available between{" "}
-                    {`${
-                      parseInt(
-                        errors.room_collision_time.start_time.slice(0, 2)
-                      ) % 12 || 12
-                    }:${errors.room_collision_time.start_time.slice(3, 5)} ${
-                      parseInt(
-                        errors.room_collision_time.start_time.slice(0, 2)
-                      ) >= 12
-                        ? "PM"
-                        : "AM"
-                    }`}{" "}
-                    and{" "}
-                    {`${
-                      parseInt(
-                        errors.room_collision_time.end_time.slice(0, 2)
-                      ) % 12 || 12
-                    }:${errors.room_collision_time.end_time.slice(3, 5)} ${
-                      parseInt(
-                        errors.room_collision_time.end_time.slice(0, 2)
-                      ) >= 12
-                        ? "PM"
-                        : "AM"
-                    }`}
+                    {`Room is occupied by ${errors.room_collision_time.department} department`}
                   </p>
                 )}
               </div>
