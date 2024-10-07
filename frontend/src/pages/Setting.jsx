@@ -3,9 +3,10 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import UserForm from "../components/UserForm";
+import UserInfo from "../components/UserInfo";
 import PasswordPrompt from "../components/PasswordPrompt";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
 function Settings() {
   const url = process.env.REACT_APP_URL;
@@ -14,6 +15,8 @@ function Settings() {
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const currentRole = atob(localStorage.getItem("userRole"));
   const [collaborators, setCollaborators] = useState([]);
+  const [showUserInfo, setShowUserInfo] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [showAddUser, setShowAddUser] = useState(false);
   const [selectedCollaborator, setSelectedCollaborator] = useState(null);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
@@ -96,28 +99,7 @@ function Settings() {
 
       // Check if the password is correct (isMatch: true)
       if (response.data.isMatch) {
-        try {
-          // Proceed with deletion
-          await axios.delete(
-            `${url}api/users/delete/${selectedCollaborator.user_id}`
-          );
-
-          // Log the deletion activity
-          await axios.post(`${url}api/activity/adding`, {
-            user_id: currentUser,
-            department_code: currentDepartment,
-            action: "Delete",
-            details: `${selectedCollaborator.first_name} ${selectedCollaborator.last_name})`,
-            type: "user",
-          });
-
-          toast.success("Deleted successfully!");
-          setSelectedCollaborator(null);
-          fetchData();
-        } catch (error) {
-          console.error("Error deleting data:", error);
-          toast.error("Error deleting data.");
-        }
+        setShowAddUser(true);
       }
     } catch (error) {
       if (error.response.status === 401) {
@@ -335,13 +317,13 @@ function Settings() {
                         <button
                           className="text-sm text-white hover:cursor-pointer"
                           onClick={() => {
-                            setShowPasswordPrompt(true);
-                            setSelectedCollaborator(collaborator);
+                            setSelectedUser(collaborator);
+                            setShowUserInfo(true);
                           }}
                         >
                           <FontAwesomeIcon
-                            icon={faTrashCan}
-                            className="text-red-500 text-lg hover:text-red-600"
+                            icon={faInfoCircle}
+                            className="text-gray-300 hover:text-gray-500 text-lg"
                           />
                         </button>
                       </div>
@@ -350,7 +332,9 @@ function Settings() {
                 </div>
                 <button
                   className="w-full bg-green-500 text-sm text-white font-medium p-2 rounded-md hover:cursor-pointer hover:bg-green-600"
-                  onClick={() => setShowAddUser(true)}
+                  onClick={() => {
+                    setShowPasswordPrompt(true);
+                  }}
                 >
                   Add Collaborator
                 </button>
@@ -368,6 +352,14 @@ function Settings() {
           isOpen={showPasswordPrompt}
           onRequestClose={() => setShowPasswordPrompt(false)}
           onSubmit={handlePasswordSubmit}
+        />
+        <UserInfo
+          isOpen={showUserInfo}
+          onRequestClose={() => {
+            setShowUserInfo(false);
+            setSelectedCollaborator(null);
+          }}
+          user={selectedUser}
         />
       </div>
     </div>
