@@ -30,7 +30,7 @@ function Settings() {
 
   useEffect(() => {
     fetchData();
-  }, [showAddUser, selectedCollaborator, showPasswordPrompt]);
+  }, [showAddUser, showUserInfo, selectedCollaborator, showPasswordPrompt]);
 
   const fetchData = async () => {
     if (currentUser) {
