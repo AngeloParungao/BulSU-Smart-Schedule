@@ -360,14 +360,27 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
 
     // Validate form fields
     if (
-      data.day === "" ||
-      instructorError ||
-      roomError ||
-      subjectError ||
-      courseError ||
-      timeError
+      data.subject === "" ||
+      data.course_type === "" ||
+      data.instructor === "" ||
+      data.room === "" ||
+      data.start_time === "" ||
+      data.end_time === "" ||
+      data.day === ""
     ) {
-      toast.error("Error in updating");
+      toast.error("Please fill in all the required fields.");
+      return;
+    } else if (
+      errors.time_error ||
+      errors.section_collision_time ||
+      errors.instructor_error ||
+      errors.instructor_collision_time ||
+      errors.room_error ||
+      errors.room_collision_time ||
+      errors.subject_error ||
+      errors.course_error
+    ) {
+      toast.error("There are errors in the form. Please fix them.");
       return;
     }
 
@@ -479,7 +492,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
 
       toast.success("Item updated successfully!");
       onRefreshSchedules();
-      setTimeout(onClose, 2000);
+      onClose();
     } catch (error) {
       console.error("Error updating item:", error);
       toast.error("Failed to update item");

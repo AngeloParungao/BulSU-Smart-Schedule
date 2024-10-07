@@ -317,7 +317,17 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
     e.preventDefault();
 
     if (
-      data.day === "" ||
+      data.subject === "" ||
+      data.course_type === "" ||
+      data.instructor === "" ||
+      data.room === "" ||
+      data.start_time === "" ||
+      data.end_time === "" ||
+      data.day === ""
+    ) {
+      toast.error("Please fill in all the required fields.");
+      return;
+    } else if (
       errors.time_error ||
       errors.section_collision_time ||
       errors.instructor_error ||
@@ -327,7 +337,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
       errors.subject_error ||
       errors.course_error
     ) {
-      toast.error("Please fill in all the required fields.");
+      toast.error("There are errors in the form. Please fix them.");
       return;
     } else {
       try {
@@ -393,7 +403,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
 
         toast.success("Item added successfully!");
         onRefreshSchedules();
-        setTimeout(onClose, 2000);
+        onClose();
       } catch (error) {
         console.error("Error adding item:", error);
         toast.error("Failed to add item");
@@ -758,7 +768,6 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   onChange={(e) =>
                     setData({ ...data, start_time: e.target.value })
                   }
-                  required
                 />
               </div>
               <div>
@@ -808,7 +817,6 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                   onChange={(e) =>
                     setData({ ...data, end_time: e.target.value })
                   }
-                  required
                 />
               </div>
               <div></div>
