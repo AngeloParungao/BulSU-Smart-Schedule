@@ -1,7 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import Modal from "react-modal";
+import toast from "react-hot-toast";
+import PasswordPrompt from "./PasswordPrompt";
 
 const UserInfo = ({ isOpen, onRequestClose, user }) => {
+  const currentDepartment = atob(localStorage.getItem("userDept"));
+  const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
+  const url = process.env.REACT_APP_URL;
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+
   const customStyles = {
     overlay: {
       position: "fixed",
@@ -32,8 +40,46 @@ const UserInfo = ({ isOpen, onRequestClose, user }) => {
     },
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handlePasswordSubmit = async (password) => {
+    try {
+      // Fetch user data to validate password
+      const response = await axios.post(`${url}api/auth/verify-password`, {
+        user_id: currentUser,
+        password: password,
+      });
+
+      // Check if the password is correct (isMatch: true)
+      if (response.data.isMatch) {
+        try {
+          // Proceed with deletion
+          await axios.delete(`${url}api/users/delete/${user?.user_id}`);
+
+          // Log the deletion activity
+          await axios.post(`${url}api/activity/adding`, {
+            user_id: currentUser,
+            department_code: currentDepartment,
+            action: "Delete",
+            details: `${user?.first_name} ${user?.last_name}`,
+            type: "user",
+          });
+
+          toast.success("Deleted successfully!");
+          onRequestClose();
+        } catch (error) {
+          console.error("Error deleting data:", error);
+          toast.error("Error deleting user.");
+        }
+      }
+    } catch (error) {
+      if (error.response.status === 401) {
+        toast.error("Incorrect Password!");
+      } else {
+        console.error("Error verifying password:", error);
+        toast.error("Error verifying password.");
+      }
+    } finally {
+      setShowPasswordPrompt(false);
+    }
   };
 
   return (
@@ -44,10 +90,7 @@ const UserInfo = ({ isOpen, onRequestClose, user }) => {
       appElement={document.getElementById("root")}
       style={customStyles}
     >
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col items-center gap-4 w-full"
-      >
+      <form className="flex flex-col items-center gap-4 w-full">
         <span className="text-xl font-semibold text-black w-[100%] text-center border-b-2 pb-2 mb-2 border-gray-200 uppercase">
           Collaborator
         </span>
@@ -120,12 +163,20 @@ const UserInfo = ({ isOpen, onRequestClose, user }) => {
           />
         </div>
         <button
-          type="submit"
+          onClick={(event) => {
+            event.preventDefault();
+            setShowPasswordPrompt(true);
+          }}
           className="bg-red-500 text-white p-2 w-full rounded-md hover:bg-red-600"
         >
           Delete
         </button>
       </form>
+      <PasswordPrompt
+        isOpen={showPasswordPrompt}
+        onRequestClose={() => setShowPasswordPrompt(false)}
+        onSubmit={handlePasswordSubmit}
+      />
     </Modal>
   );
 };
