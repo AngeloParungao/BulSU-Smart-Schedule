@@ -27,6 +27,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
   const [sections, setSections] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State variables for the form fields
   const [data, setData] = useState({
@@ -358,6 +359,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     // Validate form fields
     if (
@@ -492,6 +494,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
       });
 
       toast.success("Item updated successfully!");
+      setIsSubmitting(false);
       onRefreshSchedules();
       onClose();
     } catch (error) {
@@ -871,7 +874,7 @@ const UpdateSchedule = ({ onClose, item, onRefreshSchedules }) => {
               </div>
               <div></div>
             </div>
-            <button type="submit" className="add-sched">
+            <button type="submit" className="add-sched" disabled={isSubmitting}>
               Save
             </button>
           </div>

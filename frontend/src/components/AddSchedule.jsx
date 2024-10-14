@@ -28,6 +28,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
   const [rooms, setRooms] = useState([]);
   const [errors, setErrors] = useState({});
   const [recommendations, setRecommendations] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State variables for the form fields
   const [data, setData] = useState({
@@ -316,6 +317,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     if (
       data.subject === "" ||
@@ -403,6 +405,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
         });
 
         toast.success("Item added successfully!");
+        setIsSubmitting(false);
         onRefreshSchedules();
         onClose();
       } catch (error) {
@@ -637,7 +640,32 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
                       icon={faWarning}
                       className="warning-icon"
                     />
-                    {`Room is occupied by ${errors.room_collision_time.department} department`}
+                    {`Room is occupied by ${
+                      errors.room_collision_time.department
+                    } department at
+                    ${
+                      parseInt(
+                        errors.room_collision_time.start_time.slice(0, 2)
+                      ) % 12 || 12
+                    }:${errors.room_collision_time.start_time.slice(3, 5)} ${
+                      parseInt(
+                        errors.room_collision_time.start_time.slice(0, 2)
+                      ) >= 12
+                        ? "PM"
+                        : "AM"
+                    }`}{" "}
+                    to{" "}
+                    {`${
+                      parseInt(
+                        errors.room_collision_time.end_time.slice(0, 2)
+                      ) % 12 || 12
+                    }:${errors.room_collision_time.end_time.slice(3, 5)} ${
+                      parseInt(
+                        errors.room_collision_time.end_time.slice(0, 2)
+                      ) >= 12
+                        ? "PM"
+                        : "AM"
+                    }`}
                   </p>
                 )}
               </div>
@@ -799,7 +827,7 @@ const AddSchedule = ({ onClose, section, group, onRefreshSchedules }) => {
               </div>
               <div></div>
             </div>
-            <button className="add-sched" type="submit">
+            <button className="add-sched" type="submit" disabled={isSubmitting}>
               Add schedule
             </button>
           </div>
