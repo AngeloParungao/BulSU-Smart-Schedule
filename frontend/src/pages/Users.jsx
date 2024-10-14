@@ -2,25 +2,36 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import UserForm from "../components/UserForm";
+import PasswordPrompt from "../components/PasswordPrompt";
 import { exportToCSV } from "../utils/exportToCSV";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
+import toast from "react-hot-toast";
 
 const Users = () => {
   const url = process.env.REACT_APP_URL;
+  const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [onDelete, setOnDelete] = useState(false);
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [showArchive, setShowArchive] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
   const [userToUpdate, setUserToUpdate] = useState(null);
 
   useEffect(() => {
     fetchUsers();
-  }, [showAddUser, userToUpdate]);
+  }, [showAddUser, userToUpdate, showArchive]);
 
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${url}api/users/fetch`);
-      setUsers(response.data);
+      if (showArchive) {
+        setUsers(response.data.filter((user) => user.status === "archived"));
+      } else {
+        setUsers(response.data.filter((user) => user.status === "active"));
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -54,6 +65,73 @@ const Users = () => {
     exportToCSV("users", headers, data);
   };
 
+  const handleCheckboxChange = (user) => {
+    if (selectedUsers.includes(user)) {
+      setSelectedUsers(selectedUsers.filter((u) => u !== user));
+    } else {
+      setSelectedUsers([...selectedUsers, user]);
+    }
+  };
+
+  const changeStatus = async () => {
+    if (selectedUsers.length === 0) {
+      toast.error("Please select at least one user");
+      return;
+    }
+    // Prompt the user to confirm the deletion
+    setShowPasswordPrompt(true);
+  };
+
+  const handlePasswordSubmit = async (password) => {
+    try {
+      // Fetch user data to validate password
+      const response = await axios.post(`${url}api/auth/verify-password`, {
+        user_id: currentUser,
+        password: password,
+      });
+
+      // Check if the password is correct (isMatch: true)
+      if (response.data.isMatch) {
+        if (onDelete) {
+          try {
+            await axios.delete(`${url}api/users/delete`, {
+              data: { user_ids: selectedUsers }, // Ensure it's passed as the data payload
+            });
+            toast.success("User/s deleted successfully!");
+            setSelectedUsers([]);
+            setOnDelete(false);
+            fetchUsers();
+          } catch (error) {
+            console.error("Error deleting user:", error);
+            toast.error("Failed to delete user/s."); // Notify the user of the failure
+          }
+        } else {
+          try {
+            await axios.put(`${url}api/users/update`, {
+              user_ids: selectedUsers, // Use directly if already an array
+              status: showArchive ? "active" : "archived",
+            });
+            toast.success("User status updated successfully!");
+            setSelectedUsers([]);
+            fetchUsers();
+          } catch (error) {
+            console.error("Error updating user status:", error);
+            toast.error("Failed to update user status."); // Notify the user of the failure
+          }
+        }
+      }
+    } catch (error) {
+      if (error.response.status === 401) {
+        toast.error("Incorrect Password!");
+      } else {
+        console.error("Error verifying password:", error);
+        toast.error("Error verifying password.");
+      }
+    } finally {
+      setShowPasswordPrompt(false);
+    }
+  };
+
   return (
     <div className="h-[100dvh] flex bg-[var(--background-color)] text-[var(--text-color)]">
       <div className="z-10 fixed lg:relative top-0 left-0">
@@ -79,17 +157,53 @@ const Users = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)} // Update search term on input change
               />
+              <button
+                className="ml-4 text-sm text-red-300 hover:text-red-500"
+                onClick={() => {
+                  setShowArchive(!showArchive);
+                  setSelectedUsers([]);
+                }}
+              >
+                see archive
+              </button>
             </div>
             <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
               <button
-                className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold w-[7rem] py-2 rounded-lg"
+                className={`${
+                  showArchive
+                    ? "hidden"
+                    : "bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold w-[7rem] py-2 rounded-lg"
+                }`}
                 onClick={() => setShowAddUser(true)}
               >
                 Add Account
               </button>
-              <button className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold w-[7rem] py-2 rounded-lg">
-                Delete Account
+              <button
+                className={`${
+                  showArchive
+                    ? "bg-blue-400 hover:bg-blue-500"
+                    : "bg-red-400 hover:bg-red-500"
+                } text-white text-xs font-semibold w-[7rem] py-[0.6rem] rounded-lg`}
+                onClick={changeStatus}
+              >
+                {showArchive ? "Restore Account" : "Archive Account"}
               </button>
+              {showArchive && (
+                <button
+                  className="bg-red-400 hover:bg-red-500 text-white text-xs font-semibold w-[9rem] py-[0.6rem] px-[0.2rem] rounded-lg"
+                  onClick={() => {
+                    setOnDelete(true);
+                    changeStatus();
+                  }}
+                >
+                  Delete Permanently
+                </button>
+              )}
+              <PasswordPrompt
+                isOpen={showPasswordPrompt}
+                onRequestClose={() => setShowPasswordPrompt(false)}
+                onSubmit={handlePasswordSubmit}
+              />
             </div>
           </div>
           <div className="scrollbar h-full w-full overflow-y-auto text-black bg-white border border-gray-400 rounded-lg p-[0.4rem]">
@@ -100,7 +214,8 @@ const Users = () => {
                   <th className="text-xs md:text-[1rem] py-2">Name</th>
                   <th className="text-xs md:text-[1rem] py-2">Email</th>
                   <th className="text-xs md:text-[1rem] py-2">Department</th>
-                  <th className="md:w-10 w-6"></th>
+                  <th className="text-xs md:text-[1rem] py-2">Date Created</th>
+                  {showArchive ? null : <th className="md:w-10 w-6"></th>}
                 </tr>
               </thead>
               <tbody>
@@ -110,7 +225,11 @@ const Users = () => {
                     className="border-b border-gray-300 h-[2.5rem]"
                   >
                     <td className="md:p-2 border-r border-gray-300">
-                      <input type="checkbox" />
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.user_id)}
+                        onChange={() => handleCheckboxChange(user.user_id)}
+                      />
                     </td>
                     <td className="md:p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                       {user.first_name} {user.middle_name} {user.last_name}
@@ -127,20 +246,25 @@ const Users = () => {
                     <td className="p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                       {user.department_code}
                     </td>
-                    <td className="p-2 md:text-sm text-[0.6rem]">
-                      <button
-                        id="update-btn"
-                        onClick={() => {
-                          setUserToUpdate(user);
-                          setShowAddUser(true);
-                        }}
-                      >
-                        <FontAwesomeIcon
-                          icon={faPenToSquare}
-                          className="text-orange-500 hover:text-orange-600 cursor-pointer"
-                        />
-                      </button>
+                    <td className="p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
+                      {user.created_at}
                     </td>
+                    {showArchive ? null : (
+                      <td className="p-2 md:text-sm text-[0.6rem]">
+                        <button
+                          id="update-btn"
+                          onClick={() => {
+                            setUserToUpdate(user);
+                            setShowAddUser(true);
+                          }}
+                        >
+                          <FontAwesomeIcon
+                            icon={faPenToSquare}
+                            className="text-orange-500 hover:text-orange-600 cursor-pointer"
+                          />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
