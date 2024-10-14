@@ -49,6 +49,23 @@ router.get('/fetch', (req, res) => {
     });
 });
 
+router.put('/update', (req, res) => {
+    const { user_ids, status } = req.body;
+    
+    if (!Array.isArray(user_ids) || user_ids.length === 0) {
+        return res.status(400).json({ error: 'Invalid user IDs' });
+    }
+
+    const sql = "UPDATE users SET status =? WHERE user_id IN (?)";
+
+    db.query(sql, [status, user_ids], (err, result) => {
+        if (err) {
+            console.error('Error updating data:', err);
+            return res.status(500).json({ error: 'Failed to update user' });
+        }
+        res.status(200).json({ message: 'User updated successfully' }); 
+    });
+});
 router.put('/update/:user_id', (req, res) => {
     const user_id = req.params.user_id;
     const { email, first_name, middle_name, last_name, department_code } = req.body;
@@ -62,6 +79,25 @@ router.put('/update/:user_id', (req, res) => {
         res.status(200).json({ message: 'User updated successfully' });
     });
 });
+
+router.delete('/delete', (req, res) => {
+    const { user_ids } = req.body;
+
+    if (!Array.isArray(user_ids) || user_ids.length === 0) {
+        return res.status(400).json({ error: 'Invalid user IDs' });
+    }
+
+    const sql = "DELETE FROM users WHERE user_id IN (?)";
+
+    db.query(sql, [user_ids], (err, result) => {
+        if (err) {
+            console.error('Error deleting users:', err);
+            return res.status(500).json({ error: 'Failed to delete users' });
+        }
+        res.status(200).json({ message: 'Users deleted successfully' });
+    });
+});
+
 
 router.delete('/delete/:user_id', (req, res) => {
     const user_id = req.params.user_id;
