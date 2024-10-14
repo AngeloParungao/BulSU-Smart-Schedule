@@ -51,7 +51,7 @@ function Home() {
             className="relative overflow-hidden flex justify-center items-center md:h-[15rem] md:w-[15rem] h-[8rem] w-[8rem] rounded-2xl bg-green-500 hover:bg-green-600 text-white p-4 shadow-md shadow-gray-600 hover:cursor-pointer"
             onClick={() => {
               role === "Administrator"
-                ? navigate("/admin-tables")
+                ? navigate("/users")
                 : navigate("/scheduling");
             }}
           >
