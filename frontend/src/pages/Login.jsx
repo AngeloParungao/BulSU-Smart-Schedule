@@ -83,7 +83,13 @@ function Login() {
 
         // Check if login was successful
         if (response.data) {
-          const { user_id, department_code, role } = response.data;
+          const { user_id, department_code, role, status } = response.data;
+
+          if (status === "archived") {
+            setLoading(false);
+            toast.error("Invalid email or password");
+            return;
+          }
 
           localStorage.setItem("userID", btoa(user_id));
           localStorage.setItem("userDept", btoa(department_code));
