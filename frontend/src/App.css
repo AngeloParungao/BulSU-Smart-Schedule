@@ -50,7 +50,7 @@ body{
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgb(2, 112, 30);
+    background-color: rgb(207, 207, 207);
     border-radius: 20px;
     border: 1px solid transparent;
     background-clip: content-box;
