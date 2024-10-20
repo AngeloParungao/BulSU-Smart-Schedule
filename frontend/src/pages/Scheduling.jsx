@@ -350,6 +350,7 @@ const Scheduling = () => {
       </div>
       {showAddModal && (
         <AddItem
+          isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
           section={selectedSection}
           group={selectedGroup}
