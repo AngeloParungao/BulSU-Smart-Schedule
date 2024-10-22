@@ -29,6 +29,7 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
   const [sections, setSections] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [errors, setErrors] = useState({});
+  const [recommendations, setRecommendations] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // For mobile view
@@ -58,17 +59,6 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
   const [currentSubjectPage, setCurrentSubjectPage] = useState(0);
   const [currentRoomPage, setCurrentRoomPage] = useState(0);
   const itemsPerPage = 5;
-
-  // State variables for error handling
-  const [instructorError, setInstructorError] = useState(false);
-  const [roomError, setRoomError] = useState(false);
-  const [courseError, setCourseError] = useState(false);
-  const [subjectError, setSubjectError] = useState(false);
-  const [timeError, setTimeError] = useState(false);
-  const [recommendations, setRecommendations] = useState([]);
-  const [sectionCollisionTime, setSectionCollisionTime] = useState(null);
-  const [instructorCollisionTime, setInstructorCollisionTime] = useState(null);
-  const [roomCollisionTime, setRoomCollisionTime] = useState(null);
 
   // Fetch data when the component mounts
   useEffect(() => {
@@ -289,15 +279,13 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
 
       if ((inCurrentGroup || inAlternateGroup) && isTimeConflict(schedule)) {
         foundSectionCollisionTime = {
-          start: schedule.start_time,
-          end: schedule.end_time,
+          start_time: schedule.start_time,
+          end_time: schedule.end_time,
         };
         return true;
       }
       return false;
     });
-    setTimeError(hasSectionConflict);
-    setSectionCollisionTime(foundSectionCollisionTime);
 
     // Instructor availability check
     const hasInstructorConflict = schedules.some((schedule) => {
@@ -308,15 +296,13 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
         isTimeConflict(schedule)
       ) {
         foundInstructorCollisionTime = {
-          start: schedule.start_time,
-          end: schedule.end_time,
+          start_time: schedule.start_time,
+          end_time: schedule.end_time,
         };
         return true;
       }
       return false;
     });
-    setInstructorError(hasInstructorConflict);
-    setInstructorCollisionTime(foundInstructorCollisionTime);
 
     // Room availability check
     const hasRoomConflict = schedules.some((schedule) => {
@@ -327,16 +313,14 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
         isTimeConflict(schedule)
       ) {
         foundRoomCollisionTime = {
-          start: schedule.start_time,
-          end: schedule.end_time,
+          start_time: schedule.start_time,
+          end_time: schedule.end_time,
           department: schedule.department_code,
         };
         return true;
       }
       return false;
     });
-    setRoomError(hasRoomConflict);
-    setRoomCollisionTime(foundRoomCollisionTime);
 
     // Subject section schedules check
     const subjectSectionSchedules = schedules.filter(
@@ -359,13 +343,37 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
     const exceedsLimits =
       totalHours + (newEndInMinutes - newStartInMinutes) / 60 > 5 ||
       numberOfMeetings >= 2;
-    setSubjectError(exceedsLimits);
 
     // Course type conflict check
     const alreadyExists = subjectSectionSchedules.some(
       (schedule) => schedule.class_type === data.course_type
     );
-    setCourseError(alreadyExists);
+
+    setErrors({
+      time_error: hasSectionConflict,
+      section_collision_time: hasSectionConflict
+        ? {
+            start_time: foundSectionCollisionTime.start_time,
+            end_time: foundSectionCollisionTime.end_time,
+          }
+        : null,
+      instructor_error: hasInstructorConflict,
+      instructor_collision_time: hasInstructorConflict
+        ? {
+            start_time: foundInstructorCollisionTime.start_time,
+            end_time: foundInstructorCollisionTime.end_time,
+          }
+        : null,
+      room_error: hasRoomConflict,
+      room_collision_time: hasRoomConflict
+        ? {
+            start_time: foundRoomCollisionTime.start_time,
+            end_time: foundRoomCollisionTime.end_time,
+          }
+        : null,
+      subject_error: exceedsLimits,
+      course_error: alreadyExists,
+    });
   };
 
   const handleSubmit = async (e) => {
