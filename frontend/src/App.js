@@ -1,36 +1,40 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Login, Home, DraftSchedules, Scheduling, Departments, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting, Users, ResetPassword } from './pages/Pages';
+import OfflinePage from './pages/OfflinePage'; // Import your OfflinePage
 import './App.css';
 
 function App() {
-  useEffect(() => {
-  const userID = localStorage.getItem("userID");
-  const currentUser = userID ? atob(userID) : "";
-  const theme = localStorage.getItem(`theme-${currentUser}`);
-  const getTheme = theme ? atob(theme) : "default";
-  document.body.classList.remove("default", "gray", "red", "green");
-  document.body.classList.add(getTheme);
-}, []);
-;
 
-  // Private route component for authentication check
+  useEffect(() => {
+    const userID = localStorage.getItem("userID");
+    const currentUser = userID ? atob(userID) : "";
+    const theme = localStorage.getItem(`theme-${currentUser}`);
+    const getTheme = theme ? atob(theme) : "default";
+    document.body.classList.remove("default", "gray", "red", "green");
+    document.body.classList.add(getTheme);
+  }, []);
+
   const PrivateRoute = ({ element: Component }) => {
     return localStorage.getItem('userID') ? <Component /> : <Navigate to="/" />;
   };
 
   return (
     <Router>
+      <NetworkChecker />
       <Routes>
         {/* Public route for Login */}
         <Route path="/" element={<Login />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Private route for Home and Settings */}
+        {/* Offline route */}
+        <Route path="/offline" element={<OfflinePage />} />
+
+        {/* Private routes */}
         <Route path="/home" element={<PrivateRoute element={Home} />} />
         <Route path="/draft-schedules" element={<PrivateRoute element={DraftSchedules} />} />
         <Route path="/scheduling" element={<PrivateRoute element={Scheduling} />} />
-        <Route path="/departments" element={<PrivateRoute element={Departments} />} /> 
+        <Route path="/departments" element={<PrivateRoute element={Departments} />} />
         <Route path="/instructors" element={<PrivateRoute element={Instructors} />} />
         <Route path="/rooms" element={<PrivateRoute element={Rooms} />} />
         <Route path="/sections" element={<PrivateRoute element={Sections} />} />
@@ -42,5 +46,43 @@ function App() {
     </Router>
   );
 }
+
+const NetworkChecker = () => {
+  const navigate = useNavigate();
+  const location = useLocation(); // Get the current location
+  const [lastLocation, setLastLocation] = useState(location.pathname); // Store the last known page
+
+  useEffect(() => {
+    // Update the last known location when the user navigates
+    if (navigator.onLine) {
+      setLastLocation(location.pathname);
+    }
+
+    const handleOnline = () => {
+      console.log('You are back online');
+      // Navigate back to the last known page when online
+      if (location.pathname === '/offline') {
+        navigate(lastLocation);
+      }
+    };
+
+    const handleOffline = () => {
+      console.log('You are offline');
+      // Store the current location and navigate to the offline page
+      setLastLocation(location.pathname);
+      navigate('/offline');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [navigate, location, lastLocation]);
+
+  return null; // This component doesn't render anything
+};
 
 export default App;
