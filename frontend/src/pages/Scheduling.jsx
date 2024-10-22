@@ -370,6 +370,7 @@ const Scheduling = () => {
       )}
       {showUpdateModal && (
         <UpdateItem
+          isOpen={showUpdateModal}
           onClose={() => setShowUpdateModal(false)}
           item={itemToEdit}
           onRefreshSchedules={refreshData}
