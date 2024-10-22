@@ -436,44 +436,45 @@ const AddSchedule = ({
   //------instructors-------//
   const [selectedTag, setSelectedTag] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleTagChange = (e) => {
-    setSelectedTag(e.target.value);
-    setCurrentInstructorPage(0); // Reset pagination when filter changes
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentInstructorPage(0); // Reset pagination when search query changes
-  };
+  const [searchInstructorQuery, setSearchInstructorQuery] = useState("");
+  const [searchSubjectQuery, setSearchSubjectQuery] = useState("");
+  const [searchRoomQuery, setSearchRoomQuery] = useState("");
 
   const filteredInstructors = instructors.filter((instructor) => {
     const matchesTag = selectedTag === "" || instructor.tags === selectedTag;
     const matchesSearch =
-      instructor.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      instructor.last_name.toLowerCase().includes(searchQuery.toLowerCase());
+      instructor.first_name
+        .toLowerCase()
+        .includes(searchInstructorQuery.toLowerCase()) ||
+      instructor.last_name
+        .toLowerCase()
+        .includes(searchInstructorQuery.toLowerCase());
     return matchesTag && matchesSearch;
   });
 
-  //------subject-------//
-  const handleLevelChange = (e) => {
-    setSelectedLevel(e.target.value);
-    setCurrentInstructorPage(0); // Reset pagination when filter changes
-  };
-
   const filteredSubjects = subjects.filter((subject) => {
+    const matchesSearch =
+      subject.subject_name
+        .toLowerCase()
+        .includes(searchSubjectQuery.toLowerCase()) ||
+      subject.subject_code
+        .toLowerCase()
+        .includes(searchSubjectQuery.toLowerCase());
     const matchesLevel =
-      selectedLevel === "" || subject.year_lvl === selectedLevel;
+      selectedLevel === "" || subject.year_level === selectedLevel;
     const specialized =
       selectedTag === "" || subject.subject_tags === selectedTag;
-    return matchesLevel && specialized;
+    return matchesSearch && matchesLevel && specialized;
   });
 
   //------rooms-------//
-  const filteredRooms = rooms.filter(
-    (room) => room.room_type === data.course_type
-  );
+  const filteredRooms = rooms.filter((room) => {
+    const matchesSearch =
+      room.room_name.toLowerCase().includes(searchRoomQuery.toLowerCase()) ||
+      room.room_type.toLowerCase().includes(searchRoomQuery.toLowerCase()) ||
+      room.room_building.toLowerCase().includes(searchRoomQuery.toLowerCase());
+    return matchesSearch;
+  });
 
   const customStyles = {
     overlay: {
@@ -514,13 +515,13 @@ const AddSchedule = ({
     >
       <div className="flex flex-col w-full h-full lg:gap-0 gap-4">
         <div className="flex w-full lg:h-1/2">
-          <div className="absolute top-0 right-0">
+          <div className="absolute top-2 right-4">
             <button onClick={onClose}>
               <FontAwesomeIcon icon={faXmark} className="text-lg" />
             </button>
           </div>
           <div className="w-full h-full flex flex-col lg:flex-row items-center gap-4">
-            <div className="lg:w-1/3 w-full lg:h-full h-[15rem] overflow-y-auto p-2 flex flex-col md:gap-2 gap-1 border-4 border-orange-100 rounded-md scrollbar">
+            <div className="lg:w-1/3 w-full lg:h-full h-[25rem] overflow-y-auto p-2 flex flex-col md:gap-2 gap-1 border-4 border-orange-100 rounded-md scrollbar">
               <span className="md:text-lg text-sm text-orange-400">
                 <FontAwesomeIcon
                   icon={faLightbulb}
@@ -1000,7 +1001,7 @@ const AddSchedule = ({
                   <div className="lg:block lg:w-1/2 w-full hidden"></div>
                 </div>
                 <button
-                  className="w-1/2 h-8 bg-green-500 rounded-md text-white hover:bg-green-600"
+                  className="lg:w-1/2 w-full h-8 bg-green-500 rounded-md text-white hover:bg-green-600"
                   type="submit"
                   disabled={isSubmitting}
                 >
@@ -1011,8 +1012,8 @@ const AddSchedule = ({
           </div>
         </div>
         <div className="flex lg:flex-row flex-col justify-between lg:gap-8 gap-4 h-1/2 w-full">
-          <div className="h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
-            <div>
+          <div className="flex flex-col justify-between items-center h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
+            <div className="w-full">
               <div className="flex justify-between items-center">
                 <span className="text-md">
                   <FontAwesomeIcon
@@ -1029,7 +1030,7 @@ const AddSchedule = ({
                     name="specialization"
                     id="specialization"
                     value={selectedTag}
-                    onChange={handleTagChange}
+                    onChange={(e) => setSelectedTag(e.target.value)}
                     className="w-16 px-2 rounded-sm"
                   >
                     <option value="">All</option>
@@ -1050,14 +1051,14 @@ const AddSchedule = ({
                 />
                 <input
                   type="text"
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
+                  placeholder="Search instructors"
+                  value={searchInstructorQuery}
+                  onChange={(e) => setSearchInstructorQuery(e.target.value)}
                   className="w-full rounded-md text-sm focus:outline-none text-black"
                 />
               </div>
             </div>
-            <ul className="flex flex-col justify-between py-2 gap-1">
+            <ul className="flex flex-col py-2 gap-1 w-full h-full">
               {filteredInstructors
                 .slice(
                   currentInstructorPage * itemsPerPage,
@@ -1097,11 +1098,11 @@ const AddSchedule = ({
                 setCurrentInstructorPage(selected)
               }
               activeClassName={"bg-green-600 text-white rounded-md p-1 px-2"}
-              className="flex justify-end items-center gap-2 p-1 px-2"
+              className="flex justify-end items-center gap-2 p-1 px-2 w-full"
             />
           </div>
-          <div className="h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
-            <div>
+          <div className="flex flex-col justify-between items-center h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
+            <div className="w-full">
               <div className="flex justify-between items-center">
                 <span className="text-md">
                   <FontAwesomeIcon
@@ -1118,12 +1119,12 @@ const AddSchedule = ({
                     name="yearLevel"
                     id="yearLevel"
                     value={selectedLevel}
-                    onChange={handleLevelChange}
+                    onChange={(e) => setSelectedLevel(e.target.value)}
                     className="w-16 px-2 rounded-sm"
                   >
                     <option value="">All</option>
                     {Array.from(
-                      new Set(subjects.map((subject) => subject.year_lvl))
+                      new Set(subjects.map((subject) => subject.year_level))
                     ).map((year, index) => (
                       <option key={index} value={year}>
                         {year}
@@ -1132,8 +1133,21 @@ const AddSchedule = ({
                   </select>
                 </div>
               </div>
+              <div className="flex items-center p-[0.5rem] px-4 gap-2 border border-gray-300 rounded-lg focus-within:border-green-500">
+                <FontAwesomeIcon
+                  icon={faSearch}
+                  className="text-gray-400 text-sm"
+                />
+                <input
+                  type="text"
+                  placeholder="Search subjects"
+                  value={searchSubjectQuery}
+                  onChange={(e) => setSearchSubjectQuery(e.target.value)}
+                  className="w-full rounded-md text-sm focus:outline-none text-black"
+                />
+              </div>
             </div>
-            <ul className="flex flex-col justify-between py-2 gap-1">
+            <ul className="flex flex-col py-2 gap-1 w-full h-full">
               {filteredSubjects
                 .slice(
                   currentSubjectPage * itemsPerPage,
@@ -1167,11 +1181,11 @@ const AddSchedule = ({
               pageCount={Math.ceil(subjects.length / itemsPerPage)}
               onPageChange={({ selected }) => setCurrentSubjectPage(selected)}
               activeClassName={"bg-green-600 text-white rounded-md p-1 px-2"}
-              className="flex justify-end items-center gap-2 p-1 px-2"
+              className="flex justify-end items-center gap-2 p-1 px-2 w-full"
             />
           </div>
-          <div className="h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
-            <div>
+          <div className="flex flex-col justify-between items-center h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
+            <div className="w-full">
               <span className="text-md">
                 <FontAwesomeIcon
                   icon={faDoorOpen}
@@ -1179,8 +1193,21 @@ const AddSchedule = ({
                 />
                 Rooms
               </span>
+              <div className="flex items-center p-[0.5rem] px-4 gap-2 border border-gray-300 rounded-lg focus-within:border-green-500">
+                <FontAwesomeIcon
+                  icon={faSearch}
+                  className="text-gray-400 text-sm"
+                />
+                <input
+                  type="text"
+                  placeholder="Search rooms"
+                  value={searchRoomQuery}
+                  onChange={(e) => setSearchRoomQuery(e.target.value)}
+                  className="w-full rounded-md text-sm focus:outline-none text-black"
+                />
+              </div>
             </div>
-            <ul className="flex flex-col justify-between py-2 gap-1">
+            <ul className="flex flex-col py-2 gap-1 w-full h-full">
               {filteredRooms
                 .slice(
                   currentRoomPage * itemsPerPage,
@@ -1218,7 +1245,7 @@ const AddSchedule = ({
               pageCount={Math.ceil(filteredRooms.length / itemsPerPage)}
               onPageChange={({ selected }) => setCurrentRoomPage(selected)}
               activeClassName={"bg-green-600 text-white rounded-md p-1 px-2"}
-              className="flex justify-end items-center gap-2 p-1 px-2"
+              className="flex justify-end items-center gap-2 p-1 px-2 w-full"
             />
           </div>
         </div>
