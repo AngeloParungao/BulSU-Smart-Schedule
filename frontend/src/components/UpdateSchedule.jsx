@@ -15,7 +15,6 @@ import {
   faSearch,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
-import "./scheduling.css";
 
 const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
   const url = process.env.REACT_APP_URL;
