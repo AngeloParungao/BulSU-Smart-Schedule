@@ -163,13 +163,13 @@ const Scheduling = () => {
                 className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
               >
                 <option value="">Section</option>
-                {[...new Set(sections.map((s) => s.section_name))].map(
-                  (section, index) => (
+                {[...new Set(sections.map((s) => s.section_name))]
+                  .sort() // Sort section names alphabetically
+                  .map((section, index) => (
                     <option key={index} value={section}>
                       {section}
                     </option>
-                  )
-                )}
+                  ))}
               </select>
             </div>
             {sections

@@ -444,13 +444,13 @@ function DraftSchedules() {
                     {sections.length === 0 ? (
                       <option value="Section">Section</option>
                     ) : (
-                      [...new Set(sections.map((s) => s.section_name))].map(
-                        (section, index) => (
+                      [...new Set(sections.map((s) => s.section_name))]
+                        .sort() // Sort section names alphabetically
+                        .map((section, index) => (
                           <option key={index} value={section}>
                             {section}
                           </option>
-                        )
-                      )
+                        ))
                     )}
                   </select>
                 </div>
