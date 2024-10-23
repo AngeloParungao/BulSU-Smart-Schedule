@@ -84,25 +84,42 @@ const Scheduling = () => {
   ];
   const rowSpans = Array(daysOfWeek.length).fill(0);
   const timesOfDay = [
-    { startTime: "07:00:00", endTime: "08:00:00" },
-    { startTime: "08:00:00", endTime: "09:00:00" },
-    { startTime: "09:00:00", endTime: "10:00:00" },
-    { startTime: "10:00:00", endTime: "11:00:00" },
-    { startTime: "11:00:00", endTime: "12:00:00" },
-    { startTime: "12:00:00", endTime: "13:00:00" },
-    { startTime: "13:00:00", endTime: "14:00:00" },
-    { startTime: "14:00:00", endTime: "15:00:00" },
-    { startTime: "15:00:00", endTime: "16:00:00" },
-    { startTime: "16:00:00", endTime: "17:00:00" },
-    { startTime: "17:00:00", endTime: "18:00:00" },
-    { startTime: "18:00:00", endTime: "19:00:00" },
-    { startTime: "19:00:00", endTime: "20:00:00" },
+    { startTime: "07:00:00", endTime: "07:30:00" },
+    { startTime: "07:30:00", endTime: "08:00:00" },
+    { startTime: "08:00:00", endTime: "08:30:00" },
+    { startTime: "08:30:00", endTime: "09:00:00" },
+    { startTime: "09:00:00", endTime: "09:30:00" },
+    { startTime: "09:30:00", endTime: "10:00:00" },
+    { startTime: "10:00:00", endTime: "10:30:00" },
+    { startTime: "10:30:00", endTime: "11:00:00" },
+    { startTime: "11:00:00", endTime: "11:30:00" },
+    { startTime: "11:30:00", endTime: "12:00:00" },
+    { startTime: "12:00:00", endTime: "12:30:00" },
+    { startTime: "12:30:00", endTime: "13:00:00" },
+    { startTime: "13:00:00", endTime: "13:30:00" },
+    { startTime: "13:30:00", endTime: "14:00:00" },
+    { startTime: "14:00:00", endTime: "14:30:00" },
+    { startTime: "14:30:00", endTime: "15:00:00" },
+    { startTime: "15:00:00", endTime: "15:30:00" },
+    { startTime: "15:30:00", endTime: "16:00:00" },
+    { startTime: "16:00:00", endTime: "16:30:00" },
+    { startTime: "16:30:00", endTime: "17:00:00" },
+    { startTime: "17:00:00", endTime: "17:30:00" },
+    { startTime: "17:30:00", endTime: "18:00:00" },
+    { startTime: "18:00:00", endTime: "18:30:00" },
+    { startTime: "18:30:00", endTime: "19:00:00" },
+    { startTime: "19:00:00", endTime: "19:30:00" },
+    { startTime: "19:30:00", endTime: "20:00:00" },
   ];
 
   const calculateRowSpan = (startTime, endTime) => {
-    const startHour = parseInt(startTime.split(":")[0], 10);
-    const endHour = parseInt(endTime.split(":")[0], 10);
-    return endHour - startHour;
+    const startMinutes =
+      parseInt(startTime.split(":")[0], 10) * 60 +
+      parseInt(startTime.split(":")[1], 10);
+    const endMinutes =
+      parseInt(endTime.split(":")[0], 10) * 60 +
+      parseInt(endTime.split(":")[1], 10);
+    return (endMinutes - startMinutes) / 30;
   };
 
   const isDarkBackground = (backgroundColor) => {
@@ -242,7 +259,7 @@ const Scheduling = () => {
           </div>
         </div>
         <div className="timetable md:h-[calc(100vh-10rem)]" id="scheduleTable">
-          <div className="h-full w-[95%] bg-white p-4 border rounded-lg border-gray-300">
+          <div className="h-full w-[95%] bg-white p-4 border rounded-lg border-gray-300 overflow-y-auto ">
             <table>
               <thead>
                 <tr>
