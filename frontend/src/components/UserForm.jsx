@@ -19,6 +19,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
     last_name: "",
     department_code: currentRole === "Administrator" ? "" : currentDepartment,
     role: currentRole === "Administrator" ? "User" : "Collaborator",
+    status: "active",
   });
 
   useEffect(() => {
@@ -31,6 +32,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
         last_name: user.last_name,
         department_code: user.department_code,
         role: user.role,
+        status: user.status,
       });
     } else if (!isOpen) {
       setIsUpdating(false);
@@ -42,6 +44,7 @@ const UserForm = ({ isOpen, onRequestClose, user }) => {
         department_code:
           currentRole === "Administrator" ? "" : currentDepartment,
         role: currentRole === "Administrator" ? "User" : "Collaborator",
+        status: "active",
       });
     }
   }, [isOpen, user]);
