@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 function ActivityLog() {
   const url = process.env.REACT_APP_URL;
   const [activity, setActivity] = useState([]);
-  const [user, setUser] = useState([]);
+  const [users, setUsers] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const currentDepartment = atob(localStorage.getItem("userDept"));
 
@@ -31,7 +31,7 @@ function ActivityLog() {
         axios.get(`${url}api/users/fetch`),
       ]);
       setActivity(activityRes.data);
-      setUser(userRes.data);
+      setUsers(userRes.data);
     } catch (err) {
       console.error("Error fetching activity logs:", err);
     }
@@ -169,7 +169,17 @@ function ActivityLog() {
                   </div>
                   <div className="flex justify-between items-center w-full">
                     <div className="font-medium text-[0.7rem] md:text-sm text-gray-700">
-                      {getActionMessage(log)}
+                      {`
+                        ${getActionMessage(log)} by ${
+                        users.find((u) => u.user_id === log.user_id)
+                          ?.first_name +
+                        " " +
+                        users.find((u) => u.user_id === log.user_id)
+                          ?.middle_name +
+                        " " +
+                        users.find((u) => u.user_id === log.user_id)?.last_name
+                      }
+                      `}
                     </div>
                     <div className="text-[0.5rem] md:text-[0.7rem] text-gray-500 flex items-center justify-end md:w-1/4 w-2/3 px-2">
                       <span>{new Date(log.timestamp).toLocaleString()}</span>
