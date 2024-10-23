@@ -12,10 +12,10 @@ const Users = () => {
   const url = process.env.REACT_APP_URL;
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
-  const [onDelete, setOnDelete] = useState(false);
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [onDelete, setOnDelete] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
   const [userToUpdate, setUserToUpdate] = useState(null);
@@ -73,13 +73,36 @@ const Users = () => {
     }
   };
 
-  const changeStatus = async () => {
+  const changeStatus = async (action) => {
+    // Check if there are any selected users
     if (selectedUsers.length === 0) {
       toast.error("Please select at least one user");
       return;
     }
-    // Prompt the user to confirm the deletion
-    setShowPasswordPrompt(true);
+    // Handle different confirmation messages based on the state
+    let confirmationMessage = "";
+    if (action === "delete") {
+      confirmationMessage =
+        "Are you sure you want to permanently delete the selected user(s)?";
+      setOnDelete(true);
+    } else if (action === "archive") {
+      confirmationMessage =
+        "Are you sure you want to archive the selected user(s)?";
+      setOnDelete(false);
+    } else if (action === "restore") {
+      confirmationMessage =
+        "Are you sure you want to restore the selected user(s)?";
+      setOnDelete(false);
+    }
+
+    // Show confirmation dialog
+    const confirmed = window.confirm(confirmationMessage);
+
+    // If user confirms, proceed with password prompt
+    if (confirmed) {
+      // Show the password prompt to validate the action
+      setShowPasswordPrompt(true);
+    }
   };
 
   const handlePasswordSubmit = async (password) => {
@@ -184,7 +207,11 @@ const Users = () => {
                     ? "bg-blue-400 hover:bg-blue-500"
                     : "bg-red-400 hover:bg-red-500"
                 } text-white text-xs font-semibold w-[7rem] py-[0.6rem] rounded-lg`}
-                onClick={changeStatus}
+                onClick={() => {
+                  showArchive
+                    ? changeStatus("restore")
+                    : changeStatus("archive");
+                }}
               >
                 {showArchive ? "Restore Account" : "Archive Account"}
               </button>
@@ -192,8 +219,7 @@ const Users = () => {
                 <button
                   className="bg-red-400 hover:bg-red-500 text-white text-xs font-semibold w-[9rem] py-[0.6rem] px-[0.2rem] rounded-lg"
                   onClick={() => {
-                    setOnDelete(true);
-                    changeStatus();
+                    changeStatus("delete");
                   }}
                 >
                   Delete Permanently
@@ -283,6 +309,7 @@ const Users = () => {
         onRequestClose={() => {
           setShowAddUser(false);
           setUserToUpdate(null);
+          fetchUsers();
         }}
         user={userToUpdate}
       />
