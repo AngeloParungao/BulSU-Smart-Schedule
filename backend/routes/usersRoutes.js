@@ -10,13 +10,13 @@ router.post('/adding', async (req, res) => {
     const localDate = new Date(date);
     const formattedDate = `${localDate.getMonth() + 1}/${localDate.getDate()}/${localDate.getFullYear()}`;
 
-    const { email, first_name, middle_name, last_name, department_code, password, role } = req.body;
+    const { email, first_name, middle_name, last_name, department_code, password, role, status } = req.body;
     const hashedPassword = await bcryptjs.hash(password, 10);
-    const sql = "INSERT INTO users (email, first_name, middle_name, last_name, department_code, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    const sql = "INSERT INTO users (email, first_name, middle_name, last_name, department_code, password, role, created_at, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     try {
         const result = await new Promise((resolve, reject) => {
-            db.query(sql, [email, first_name, middle_name, last_name, department_code, hashedPassword, role , formattedDate], (err, result) => {
+            db.query(sql, [email, first_name, middle_name, last_name, department_code, hashedPassword, role , formattedDate, status], (err, result) => {
                 if (err) {
                     return reject(err);
                 }
