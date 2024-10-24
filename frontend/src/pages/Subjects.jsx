@@ -20,6 +20,9 @@ const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
   const [subjectIdToUpdate, setSubjectIdToUpdate] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [selectedType, setSelectedType] = useState("All");
+  const [selectedUnits, setSelectedUnits] = useState("All");
+  const [selectedLabels, setSelectedLabels] = useState("All");
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedSemester, setSelectedSemester] = useState("All");
   const [selectedDepartment, setSelectedDepartment] = useState("All");
@@ -89,6 +92,17 @@ const Subjects = () => {
       subject.subject_tags.toLowerCase().includes(search.toLowerCase()) ||
       subject.department_code.toLowerCase().includes(search.toLowerCase());
 
+    const matchesType =
+      selectedType === "All" || subject.subject_type === selectedType;
+
+    const matchesUnits =
+      selectedUnits === "All" ||
+      subject.subject_units.toString() === selectedUnits;
+
+    const matchesLabels =
+      selectedLabels === "All" ||
+      subject.subject_tags.toLowerCase().includes(selectedLabels);
+
     const matchesYear =
       selectedYear === "All" || subject.year_level === selectedYear;
 
@@ -100,7 +114,15 @@ const Subjects = () => {
       selectedDepartment === "All" ||
       subject.department_code === selectedDepartment;
 
-    return matchesSearch && matchesYear && matchesSemester && matchesDepartment;
+    return (
+      matchesSearch &&
+      matchesType &&
+      matchesUnits &&
+      matchesLabels &&
+      matchesYear &&
+      matchesSemester &&
+      matchesDepartment
+    );
   });
 
   const selectAll = () => {
@@ -541,17 +563,81 @@ const Subjects = () => {
           <div className="h-full md:flex-1 w-full flex flex-col items-center lg:px-4 px-0 gap-2">
             <div className="relative flex justify-between items-center w-full">
               <div className="flex flex-col md:gap-4 gap-2">
-                <FontAwesomeIcon
-                  icon={faSearch}
-                  className="absolute left-3 top-3 text-sm text-gray-300"
-                />
-                <input
-                  className="md:w-[14rem] w-[8rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
-                  type="text"
-                  placeholder="Search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)} // Update search term on input change
-                />
+                <div>
+                  <FontAwesomeIcon
+                    icon={faSearch}
+                    className="absolute left-3 top-3 text-sm text-gray-300"
+                  />
+                  <input
+                    className="md:w-[14rem] w-[8rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
+                    type="text"
+                    placeholder="Search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)} // Update search term on input change
+                  />
+                </div>
+                <div className="flex md:flex-row flex-col md:items-center md:gap-4 gap-2">
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="course_type"
+                      className="md:text-sm text-xs text-black"
+                    >
+                      Type:
+                    </label>
+                    <select
+                      className="p-[0.2rem] text-black md:text-sm text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      id="course_type"
+                      value={selectedType}
+                      onChange={(e) => setSelectedType(e.target.value)}
+                    >
+                      <option value="All">All</option>
+                      <option value="Major">Major</option>
+                      <option value="Minor">Minor</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="units"
+                      className="md:text-sm text-xs text-black"
+                    >
+                      Units:
+                    </label>
+                    <select
+                      className="p-[0.2rem] text-black md:text-sm text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      id="units"
+                      value={selectedUnits}
+                      onChange={(e) => setSelectedUnits(e.target.value)}
+                    >
+                      <option value="All">All</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="labels"
+                      className="md:text-sm text-xs text-black"
+                    >
+                      Labels/Tags:
+                    </label>
+                    <select
+                      className="p-[0.2rem] text-black md:text-sm text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      id="labels"
+                      value={selectedLabels}
+                      onChange={(e) => setSelectedLabels(e.target.value)}
+                    >
+                      <option value="All">All</option>
+                      {Array.from(
+                        new Set(subjects.map((subject) => subject.subject_tags))
+                      ).map((label, index) => (
+                        <option key={index} value={label}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
                 <div className="flex md:flex-row flex-col md:gap-4 gap-2">
                   <div className="flex items-center gap-2">
                     <label

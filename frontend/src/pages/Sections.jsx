@@ -26,6 +26,7 @@ const Sections = () => {
   const [sections, setSections] = useState([]);
   const [sectionIdToUpdate, setSectionIdToUpdate] = useState("");
   const [selectedSections, setSelectedSections] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState("All");
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [errors, setErrors] = useState({});
@@ -89,6 +90,9 @@ const Sections = () => {
         section.section_tags.toLowerCase().includes(search.toLowerCase()) ||
         section.department_code.toLowerCase().includes(search.toLowerCase());
 
+      const matchesGroup =
+        selectedGroup === "All" || section.section_group === selectedGroup;
+
       const matchesYear =
         selectedYear === "All" || section.year_level === selectedYear;
 
@@ -96,7 +100,7 @@ const Sections = () => {
         selectedDepartment === "All" ||
         section.department_code === selectedDepartment;
 
-      return matchesSearch && matchesYear && matchesDepartment;
+      return matchesSearch && matchesGroup && matchesYear && matchesDepartment;
     })
     .sort((a, b) => {
       // Priority sorting for groups
@@ -531,17 +535,36 @@ const Sections = () => {
           <div className="h-full md:flex-1 w-full flex flex-col items-center lg:px-4 px-0 gap-2">
             <div className="relative flex justify-between items-center w-full">
               <div className="flex flex-col md:gap-4 gap-2">
-                <FontAwesomeIcon
-                  icon={faSearch}
-                  className="absolute left-3 top-3 text-sm text-gray-300"
-                />
-                <input
-                  className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
-                  type="text"
-                  placeholder="Search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)} // Update search term on input change
-                />
+                <div className="flex md:flex-row flex-col md:items-center md:gap-4 gap-2">
+                  <div>
+                    <FontAwesomeIcon
+                      icon={faSearch}
+                      className="absolute left-3 top-3 text-sm text-gray-300"
+                    />
+                    <input
+                      className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
+                      type="text"
+                      placeholder="Search"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)} // Update search term on input change
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="group" className="text-sm text-black">
+                      Group:
+                    </label>
+                    <select
+                      className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      id="group"
+                      value={selectedGroup}
+                      onChange={(e) => setSelectedGroup(e.target.value)}
+                    >
+                      <option value="All">All</option>
+                      <option value="Group 1">Group 1</option>
+                      <option value="Group 2">Group 2</option>
+                    </select>
+                  </div>
+                </div>
                 <div className="flex md:flex-row flex-col md:gap-4 gap-2">
                   <div className="flex items-center gap-2">
                     <label htmlFor="order" className="text-sm text-black">

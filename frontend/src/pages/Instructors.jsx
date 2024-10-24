@@ -20,6 +20,7 @@ const Instructors = () => {
   const [instructors, setInstructors] = useState([]);
   const [instructorIdToUpdate, setInstructorIdToUpdate] = useState("");
   const [selectedInstructors, setSelectedInstructors] = useState([]);
+  const [selectedWorkType, setSelectedWorkType] = useState("All");
   const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
@@ -83,11 +84,14 @@ const Instructors = () => {
       instructor.tags.toLowerCase().includes(search.toLowerCase()) ||
       instructor.department_code.toLowerCase().includes(search.toLowerCase());
 
+    const matchesWorkType =
+      selectedWorkType === "All" || instructor.work_type === selectedWorkType;
+
     const matchesDepartment =
       selectedDepartment === "All" ||
       instructor.department_code === selectedDepartment;
 
-    return matchesSearch && matchesDepartment;
+    return matchesSearch && matchesWorkType && matchesDepartment;
   });
 
   const selectAll = () => {
@@ -489,26 +493,46 @@ const Instructors = () => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)} // Update search term on input change
                 />
-                {currentRole === "Administrator" && (
+                <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <label htmlFor="department" className="text-sm text-black">
-                      Department:
+                    <label htmlFor="work_type" className="text-sm text-black">
+                      Work Type:
                     </label>
                     <select
                       className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      id="department"
-                      value={selectedDepartment}
-                      onChange={(e) => setSelectedDepartment(e.target.value)}
+                      id="work_type"
+                      value={selectedWorkType}
+                      onChange={(e) => setSelectedWorkType(e.target.value)}
                     >
                       <option value="All">All</option>
-                      {departments.map((department, index) => (
-                        <option key={index} value={department.code}>
-                          {department.department_code}
-                        </option>
-                      ))}
+                      <option value="Regular">Regular</option>
+                      <option value="Part-timer">Part Time</option>
                     </select>
                   </div>
-                )}
+                  {currentRole === "Administrator" && (
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="department"
+                        className="text-sm text-black"
+                      >
+                        Department:
+                      </label>
+                      <select
+                        className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        id="department"
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                      >
+                        <option value="All">All</option>
+                        {departments.map((department, index) => (
+                          <option key={index} value={department.code}>
+                            {department.department_code}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex gap-4">
                 <button
