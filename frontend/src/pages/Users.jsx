@@ -38,6 +38,11 @@ const Users = () => {
     }
   };
 
+  const refreshUser = () => {
+    fetchUsers();
+    setUserToUpdate(null);
+  };
+
   const filterUsers = users.filter((user) => {
     return (
       user.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -326,10 +331,10 @@ const Users = () => {
       </div>
       <UserForm
         isOpen={showAddUser}
+        refresh={fetchUsers}
         onRequestClose={() => {
-          setShowAddUser(false);
           setUserToUpdate(null);
-          fetchUsers();
+          setShowAddUser(false);
         }}
         user={userToUpdate}
       />
