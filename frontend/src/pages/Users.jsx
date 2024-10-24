@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 const Users = () => {
   const url = process.env.REACT_APP_URL;
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
+  const currentDepartment = atob(localStorage.getItem("userDept"));
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
@@ -120,6 +121,16 @@ const Users = () => {
             await axios.delete(`${url}api/users/delete`, {
               data: { user_ids: selectedUsers }, // Ensure it's passed as the data payload
             });
+
+            // Log the deletion activity
+            await axios.post(`${url}api/activity/adding`, {
+              user_id: currentUser,
+              department_code: currentDepartment,
+              action: "Delete",
+              details: `${selectedUsers.length}`,
+              type: "user",
+            });
+
             toast.success("User/s deleted successfully!");
             setSelectedUsers([]);
             setOnDelete(false);
@@ -134,6 +145,15 @@ const Users = () => {
               user_ids: selectedUsers, // Use directly if already an array
               status: showArchive ? "active" : "archived",
             });
+
+            await axios.post(`${url}api/activity/adding`, {
+              user_id: currentUser,
+              department_code: currentDepartment,
+              action: showArchive ? "Restored" : "Archived",
+              details: `${selectedUsers.length}`,
+              type: "user",
+            });
+
             toast.success("User status updated successfully!");
             setSelectedUsers([]);
             fetchUsers();
