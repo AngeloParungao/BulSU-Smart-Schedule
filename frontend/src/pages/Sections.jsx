@@ -330,7 +330,7 @@ const Sections = () => {
                 onChange={(e) => {
                   setData({
                     ...data,
-                    section_name: e.target.value.toUpperCase(),
+                    section_name: e.target.value.toUpperCase().trim(),
                   });
                   setErrors({ ...errors, section_name: "" });
                 }}
@@ -451,7 +451,7 @@ const Sections = () => {
                 placeholder="Section Capacity"
                 value={data.section_capacity}
                 onChange={(e) => {
-                  setData({ ...data, section_capacity: e.target.value });
+                  setData({ ...data, section_capacity: e.target.value.trim() });
                   setErrors({ ...errors, section_capacity: "" });
                 }}
                 className={`${
@@ -502,7 +502,7 @@ const Sections = () => {
                 placeholder="ex:  Web and Mobile Applications"
                 value={data.section_tags}
                 onChange={(e) =>
-                  setData({ ...data, section_tags: e.target.value })
+                  setData({ ...data, section_tags: e.target.value.trim() })
                 }
                 className="p-2 h-[6rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none placeholder:text-sm placeholder:text-center"
               ></textarea>

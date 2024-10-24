@@ -255,7 +255,7 @@ const Rooms = () => {
                 placeholder="ex: RM101"
                 value={data.room_name}
                 onChange={(e) => {
-                  setData({ ...data, room_name: e.target.value });
+                  setData({ ...data, room_name: e.target.value.trim() });
                   setErrors({ ...errors, room_name: "" });
                 }}
                 className={`${
@@ -300,7 +300,7 @@ const Rooms = () => {
                 placeholder="ex: Pancho Hall"
                 value={data.room_building}
                 onChange={(e) => {
-                  setData({ ...data, room_building: e.target.value });
+                  setData({ ...data, room_building: e.target.value.trim() });
                   setErrors({ ...errors, room_building: "" });
                 }}
                 className={`${

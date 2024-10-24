@@ -306,7 +306,7 @@ const Instructors = () => {
                 placeholder="Email"
                 value={data.email}
                 onChange={(e) => {
-                  setData({ ...data, email: e.target.value });
+                  setData({ ...data, email: e.target.value.trim() });
                   setErrors({ ...errors, email: "" });
                 }}
                 className={`${
@@ -330,7 +330,7 @@ const Instructors = () => {
                 placeholder="First Name"
                 value={data.first_name}
                 onChange={(e) => {
-                  setData({ ...data, first_name: e.target.value });
+                  setData({ ...data, first_name: e.target.value.trim() });
                   setErrors({ ...errors, first_name: "" });
                 }}
                 className={`${
@@ -349,7 +349,7 @@ const Instructors = () => {
                 placeholder="Middle Name"
                 value={data.middle_name}
                 onChange={(e) =>
-                  setData({ ...data, middle_name: e.target.value })
+                  setData({ ...data, middle_name: e.target.value.trim() })
                 }
                 className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
@@ -370,7 +370,7 @@ const Instructors = () => {
                 placeholder="Last Name"
                 value={data.last_name}
                 onChange={(e) => {
-                  setData({ ...data, last_name: e.target.value });
+                  setData({ ...data, last_name: e.target.value.trim() });
                   setErrors({ ...errors, last_name: "" });
                 }}
                 className={`${
@@ -448,7 +448,9 @@ const Instructors = () => {
                 id="tags"
                 placeholder="ex:  Web and Mobile Applications"
                 value={data.tags}
-                onChange={(e) => setData({ ...data, tags: e.target.value })}
+                onChange={(e) =>
+                  setData({ ...data, tags: e.target.value.trim() })
+                }
                 className="p-2 h-[6rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none placeholder:text-sm placeholder:text-center"
               ></textarea>
             </div>
