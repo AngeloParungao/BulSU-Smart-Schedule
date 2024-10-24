@@ -49,26 +49,28 @@ function App() {
 
 const NetworkChecker = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Get the current location
-  const [lastLocation, setLastLocation] = useState(location.pathname); // Store the last known page
+  const location = useLocation();
+  const [lastLocation, setLastLocation] = useState(() => localStorage.getItem('lastLocation') || location.pathname);
 
   useEffect(() => {
-    // Update the last known location when the user navigates
+    // Save the current location in `localStorage` when online and the user navigates
     if (navigator.onLine) {
       setLastLocation(location.pathname);
+      localStorage.setItem('lastLocation', location.pathname); // Save to `localStorage`
     }
 
     const handleOnline = () => {
       console.log('You are back online');
-      // Navigate back to the last known page when online
+      const savedLocation = localStorage.getItem('lastLocation') || '/home'; // Default to home if no saved location
       if (location.pathname === '/offline') {
-        navigate(lastLocation);
+        navigate(savedLocation); // Navigate to the saved location
       }
     };
 
     const handleOffline = () => {
       console.log('You are offline');
-      // Store the current location and navigate to the offline page
+      // Store the current location before navigating to the offline page
+      localStorage.setItem('lastLocation', location.pathname); // Save to `localStorage`
       setLastLocation(location.pathname);
       navigate('/offline');
     };
@@ -80,9 +82,10 @@ const NetworkChecker = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [navigate, location, lastLocation]);
+  }, [navigate, location]);
 
-  return null; // This component doesn't render anything
+  return null;
 };
+
 
 export default App;
