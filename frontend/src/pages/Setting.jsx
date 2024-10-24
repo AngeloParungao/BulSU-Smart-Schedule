@@ -300,7 +300,7 @@ function Settings() {
                 Collaborators
               </h3>
               <div className="flex flex-col w-full gap-4 py-2">
-                <div className="flex flex-col gap-3 w-full h-[20rem]">
+                <div className="flex flex-col gap-3 w-full h-[20rem] overflow-y-auto scrollbar">
                   {collaborators.length === 0 ? (
                     <div className="flex justify-center items-center px-3">
                       <p className="text-gray-500 text-sm p-4 italic">
