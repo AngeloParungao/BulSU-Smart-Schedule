@@ -8,6 +8,7 @@ import { exportToCSV } from "../utils/exportToCSV";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAdd,
+  faMinus,
   faPenToSquare,
   faSearch,
 } from "@fortawesome/free-solid-svg-icons";
@@ -341,7 +342,11 @@ const Sections = () => {
             <div className="flex gap-4">
               <div className="flex items-center">
                 <button
-                  className="flex justify-center items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
+                  className={`${
+                    addGroup
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "bg-blue-500 hover:bg-blue-600"
+                  } flex justify-center items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg`}
                   onClick={() => {
                     setAddGroup(!addGroup);
                     if (!addGroup) {
@@ -350,8 +355,15 @@ const Sections = () => {
                   }}
                   type="button"
                 >
-                  <FontAwesomeIcon icon={faAdd} />
-                  Group
+                  {addGroup ? (
+                    <>
+                      <FontAwesomeIcon icon={faMinus} /> Hide
+                    </>
+                  ) : (
+                    <>
+                      <FontAwesomeIcon icon={faAdd} /> Group
+                    </>
+                  )}
                 </button>
               </div>
               {addGroup && (

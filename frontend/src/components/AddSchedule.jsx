@@ -1125,11 +1125,13 @@ const AddSchedule = ({
                     <option value="">All</option>
                     {Array.from(
                       new Set(subjects.map((subject) => subject.year_level))
-                    ).map((year, index) => (
-                      <option key={index} value={year}>
-                        {year}
-                      </option>
-                    ))}
+                    )
+                      .sort()
+                      .map((year, index) => (
+                        <option key={index} value={year}>
+                          {year}
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>

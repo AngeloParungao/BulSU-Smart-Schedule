@@ -66,6 +66,10 @@ function ActivityLog() {
         return "#ffffcc";
       case "Delete":
         return "#ffcccc";
+      case "Archived":
+        return "#cccccc";
+      case "Restored":
+        return "#ccffcc";
       default:
         return "white";
     }
@@ -107,6 +111,10 @@ function ActivityLog() {
         }
       case "Delete":
         return `${log.details} ${log.type} has been deleted`;
+      case "Archived":
+        return `${log.details} ${log.type} has been archived`;
+      case "Restored":
+        return `${log.details} ${log.type} has been restored`;
       default:
         return log.details;
     }
