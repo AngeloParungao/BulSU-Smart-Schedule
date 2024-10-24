@@ -42,6 +42,7 @@ function Settings() {
             const collab = response.data.filter(
               (u) =>
                 u.department_code === currentDepartment &&
+                u.status === "active" &&
                 u.user_id !== currentUser
             );
             setCollaborators(collab);
@@ -347,6 +348,7 @@ function Settings() {
           onRequestClose={() => {
             updatePage();
           }}
+          refresh={fetchData}
         />
         <PasswordPrompt
           isOpen={showPasswordPrompt}
