@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
+import SignOutConfirmation from "./SignOutConfirmation";
 import logo from "../assets/logo_white_no_bg 2.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -23,6 +24,7 @@ function Sidebar() {
   const role = atob(localStorage.getItem("userRole"));
   const [user, setUsers] = useState([]);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showSignOutConfirmation, setShowSignOutConfirmation] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,17 +37,6 @@ function Sidebar() {
         console.error("Failed to fetch users:", err);
       });
   }, [url]);
-
-  const logout = () => {
-    toast.success("Logging Out");
-    setTimeout(() => {
-      localStorage.removeItem("userID");
-      localStorage.removeItem("userDept");
-      localStorage.removeItem("userRole");
-      navigate("/");
-      window.location.reload();
-    }, 2000);
-  };
 
   return (
     <div
@@ -161,10 +152,16 @@ function Sidebar() {
       <div className="flex flex-col items-center text-white text-lg">
         <button
           className="flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b]"
-          onClick={logout}
+          onClick={() => setShowSignOutConfirmation(!showSignOutConfirmation)}
         >
           <FontAwesomeIcon icon={faRightFromBracket} className="" />
         </button>
+        {showSignOutConfirmation && (
+          <SignOutConfirmation
+            isOpen={showSignOutConfirmation}
+            onRequestClose={() => setShowSignOutConfirmation(false)}
+          />
+        )}
         <div className="flex justify-center items-center w-full h-[4rem]">
           <div className="flex justify-center items-center border-2 border-white rounded-lg w-12 h-12">
             {user.find((user) => user.user_id === currentUser) ? (
