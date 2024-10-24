@@ -314,6 +314,7 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
         foundRoomCollisionTime = {
           start_time: schedule.start_time,
           end_time: schedule.end_time,
+          section_name: schedule.section_name,
           department: schedule.department_code,
         };
         return true;
@@ -368,6 +369,8 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
         ? {
             start_time: foundRoomCollisionTime.start_time,
             end_time: foundRoomCollisionTime.end_time,
+            section: foundRoomCollisionTime.section_name,
+            department: foundRoomCollisionTime.department,
           }
         : null,
       subject_error: exceedsLimits,
@@ -390,6 +393,7 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
       data.day === ""
     ) {
       toast.error("Please fill in all the required fields.");
+      setIsSubmitting(false);
       return;
     } else if (
       errors.time_error ||
@@ -402,6 +406,7 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
       errors.course_error
     ) {
       toast.error("There are errors in the form. Please fix them.");
+      setIsSubmitting(false);
       return;
     }
 
@@ -909,7 +914,9 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
                         />
                         {`Room is occupied by ${
                           errors.room_collision_time.department
-                        } department at
+                        } department section ${errors.room_collision_time.section.slice(
+                          -2
+                        )} at
                     ${
                       parseInt(
                         errors.room_collision_time.start_time.slice(0, 2)
@@ -977,6 +984,7 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
                         setData({ ...data, day: e.target.value })
                       }
                     >
+                      <option value="">Select Day</option>
                       <option value="Monday">Monday</option>
                       <option value="Tuesday">Tuesday</option>
                       <option value="Wednesday">Wednesday</option>
@@ -1245,21 +1253,29 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
                   currentSubjectPage * itemsPerPage,
                   (currentSubjectPage + 1) * itemsPerPage
                 )
-                .map((subject) => (
-                  <li
-                    key={subject.id}
-                    onClick={() =>
-                      setData({ ...data, subject: subject.subject_name })
-                    }
-                    className={`${
-                      data.subject === subject.subject_name
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-100"
-                    } p-2 rounded-md cursor-pointer hover:bg-gray-300 hover:text-black text-sm`}
-                  >
-                    {subject.subject_name}
-                  </li>
-                ))}
+                .map((subject) => {
+                  const hasTwoMeetings =
+                    schedules.filter(
+                      (schedule) => schedule.subject === subject.subject_name
+                    ).length >= 2;
+                  return (
+                    <li
+                      key={subject.id}
+                      onClick={() =>
+                        setData({ ...data, subject: subject.subject_name })
+                      }
+                      className={`${
+                        data.subject === subject.subject_name
+                          ? "bg-green-500 text-white"
+                          : hasTwoMeetings
+                          ? "bg-gray-300"
+                          : "bg-gray-100"
+                      } p-2 rounded-md cursor-pointer hover:bg-gray-300 hover:text-black text-sm`}
+                    >
+                      {subject.subject_name}
+                    </li>
+                  );
+                })}
             </ul>
             <ReactPaginate
               previousLabel={

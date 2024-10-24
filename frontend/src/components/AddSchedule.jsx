@@ -323,6 +323,7 @@ const AddSchedule = ({
         ? {
             start_time: hasRoomConflict.start_time,
             end_time: hasRoomConflict.end_time,
+            section: hasRoomConflict.section_name,
             department: hasRoomConflict.department_code,
           }
         : null,
@@ -345,6 +346,7 @@ const AddSchedule = ({
       data.day === ""
     ) {
       toast.error("Please fill in all the required fields.");
+      setIsSubmitting(false);
       return;
     } else if (
       errors.time_error ||
@@ -357,6 +359,7 @@ const AddSchedule = ({
       errors.course_error
     ) {
       toast.error("There are errors in the form. Please fix them.");
+      setIsSubmitting(false);
       return;
     } else {
       try {
@@ -819,7 +822,9 @@ const AddSchedule = ({
                         />
                         {`Room is occupied by ${
                           errors.room_collision_time.department
-                        } department at
+                        } department section ${errors.room_collision_time.section.slice(
+                          -2
+                        )} at
                     ${
                       parseInt(
                         errors.room_collision_time.start_time.slice(0, 2)
@@ -887,6 +892,7 @@ const AddSchedule = ({
                         setData({ ...data, day: e.target.value })
                       }
                     >
+                      <option value="">Select Day</option>
                       <option value="Monday">Monday</option>
                       <option value="Tuesday">Tuesday</option>
                       <option value="Wednesday">Wednesday</option>
@@ -1155,21 +1161,29 @@ const AddSchedule = ({
                   currentSubjectPage * itemsPerPage,
                   (currentSubjectPage + 1) * itemsPerPage
                 )
-                .map((subject) => (
-                  <li
-                    key={subject.id}
-                    onClick={() =>
-                      setData({ ...data, subject: subject.subject_name })
-                    }
-                    className={`${
-                      data.subject === subject.subject_name
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-100"
-                    } p-2 rounded-md cursor-pointer hover:bg-gray-300 hover:text-black text-sm`}
-                  >
-                    {subject.subject_name}
-                  </li>
-                ))}
+                .map((subject) => {
+                  const hasTwoMeetings =
+                    schedules.filter(
+                      (schedule) => schedule.subject === subject.subject_name
+                    ).length >= 2;
+                  return (
+                    <li
+                      key={subject.id}
+                      onClick={() =>
+                        setData({ ...data, subject: subject.subject_name })
+                      }
+                      className={`${
+                        data.subject === subject.subject_name
+                          ? "bg-green-500 text-white"
+                          : hasTwoMeetings
+                          ? "bg-gray-300"
+                          : "bg-gray-100"
+                      } p-2 rounded-md cursor-pointer hover:bg-gray-300 hover:text-black text-sm`}
+                    >
+                      {subject.subject_name}
+                    </li>
+                  );
+                })}
             </ul>
             <ReactPaginate
               previousLabel={
