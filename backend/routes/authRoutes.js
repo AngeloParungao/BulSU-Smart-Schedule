@@ -35,7 +35,8 @@ router.post('/login', (req, res) => {
                         message: 'Login successful',
                         user_id: user.user_id,
                         department_code: user.department_code,
-                        role: user.role
+                        role: user.role,
+                        status: user.status
                     });
                 } else {
                     console.log("Login Failed:", user); // Log failed login
