@@ -340,7 +340,7 @@ const Subjects = () => {
                 placeholder="Subject Name"
                 value={data.subject_name}
                 onChange={(e) => {
-                  setData({ ...data, subject_name: e.target.value.trim() });
+                  setData({ ...data, subject_name: e.target.value });
                   setErrors({ ...errors, subject_name: "" });
                 }}
                 className={`${
@@ -364,7 +364,7 @@ const Subjects = () => {
                 placeholder="Subject Code"
                 value={data.subject_code}
                 onChange={(e) => {
-                  setData({ ...data, subject_code: e.target.value.trim() });
+                  setData({ ...data, subject_code: e.target.value });
                   setErrors({ ...errors, subject_code: "" });
                 }}
                 className={`${
@@ -445,7 +445,7 @@ const Subjects = () => {
                   id="subject_unit"
                   value={data.subject_units}
                   onChange={(e) => {
-                    setData({ ...data, subject_units: e.target.value.trim() });
+                    setData({ ...data, subject_units: e.target.value });
                     setErrors({ ...errors, subject_units: "" });
                   }}
                   className={`${
@@ -534,7 +534,7 @@ const Subjects = () => {
                 placeholder="ex:  Web and Mobile Applications"
                 value={data.subject_tags}
                 onChange={(e) =>
-                  setData({ ...data, subject_tags: e.target.value.trim() })
+                  setData({ ...data, subject_tags: e.target.value })
                 }
                 className="p-2 h-[6rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none placeholder:text-sm placeholder:text-center"
               ></textarea>

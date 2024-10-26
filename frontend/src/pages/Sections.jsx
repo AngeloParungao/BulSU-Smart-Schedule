@@ -332,15 +332,24 @@ const Sections = () => {
                 placeholder="Section Name"
                 value={data.section_name}
                 onChange={(e) => {
+                  // Convert input to uppercase and get the value
+                  let value = e.target.value.toUpperCase();
+
+                  // Only allow uppercase letters, numbers, and spaces
+                  value = value.replace(/[^A-Z0-9 ]/g, ""); // Removes any special character
+
+                  // Add a space before a number if it follows a letter
+                  value = value.replace(/([A-Z])(\d)/g, "$1 $2");
+
                   setData({
                     ...data,
-                    section_name: e.target.value.toUpperCase().trim(),
+                    section_name: value.trim(), // Trim leading and trailing spaces if any
                   });
                   setErrors({ ...errors, section_name: "" });
                 }}
                 className={`${
                   errors.section_name ? "border-red-500" : ""
-                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
               />
             </div>
             <div className="flex gap-4">
@@ -506,7 +515,7 @@ const Sections = () => {
                 placeholder="ex:  Web and Mobile Applications"
                 value={data.section_tags}
                 onChange={(e) =>
-                  setData({ ...data, section_tags: e.target.value.trim() })
+                  setData({ ...data, section_tags: e.target.value })
                 }
                 className="p-2 h-[6rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none placeholder:text-sm placeholder:text-center"
               ></textarea>

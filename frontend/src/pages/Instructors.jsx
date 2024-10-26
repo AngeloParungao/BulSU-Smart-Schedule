@@ -334,7 +334,7 @@ const Instructors = () => {
                 placeholder="First Name"
                 value={data.first_name}
                 onChange={(e) => {
-                  setData({ ...data, first_name: e.target.value.trim() });
+                  setData({ ...data, first_name: e.target.value });
                   setErrors({ ...errors, first_name: "" });
                 }}
                 className={`${
@@ -353,7 +353,7 @@ const Instructors = () => {
                 placeholder="Middle Name"
                 value={data.middle_name}
                 onChange={(e) =>
-                  setData({ ...data, middle_name: e.target.value.trim() })
+                  setData({ ...data, middle_name: e.target.value })
                 }
                 className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
@@ -374,7 +374,7 @@ const Instructors = () => {
                 placeholder="Last Name"
                 value={data.last_name}
                 onChange={(e) => {
-                  setData({ ...data, last_name: e.target.value.trim() });
+                  setData({ ...data, last_name: e.target.value });
                   setErrors({ ...errors, last_name: "" });
                 }}
                 className={`${
@@ -452,9 +452,7 @@ const Instructors = () => {
                 id="tags"
                 placeholder="ex:  Web and Mobile Applications"
                 value={data.tags}
-                onChange={(e) =>
-                  setData({ ...data, tags: e.target.value.trim() })
-                }
+                onChange={(e) => setData({ ...data, tags: e.target.value })}
                 className="p-2 h-[6rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none placeholder:text-sm placeholder:text-center"
               ></textarea>
             </div>
