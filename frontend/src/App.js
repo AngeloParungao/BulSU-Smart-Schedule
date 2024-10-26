@@ -53,21 +53,18 @@ const NetworkChecker = () => {
   const [lastLocation, setLastLocation] = useState(() => localStorage.getItem('lastLocation') || '/home');
 
   useEffect(() => {
-    // Save the current location in `localStorage` when online and the user navigates
+    // Check if the user is online on initial render
     if (navigator.onLine) {
-      localStorage.setItem('lastLocation', location.pathname);
-      setLastLocation(location.pathname);
-    }
-
-    // Check online status on component mount and navigate back if online
-    if (navigator.onLine && location.pathname === '/offline') {
       const savedLocation = localStorage.getItem('lastLocation') || '/home';
-      navigate(savedLocation);
+      if (location.pathname === '/offline') {
+        navigate(savedLocation);
+      }
     }
 
     const handleOnline = () => {
       console.log('You are back online');
       const savedLocation = localStorage.getItem('lastLocation') || '/home';
+      // Only navigate if currently on offline page
       if (location.pathname === '/offline') {
         navigate(savedLocation);
       }
@@ -75,10 +72,16 @@ const NetworkChecker = () => {
 
     const handleOffline = () => {
       console.log('You are offline');
+      // Store the current location before navigating to the offline page
       localStorage.setItem('lastLocation', location.pathname);
       setLastLocation(location.pathname);
       navigate('/offline');
     };
+
+    // Store the last location whenever online and navigating
+    if (navigator.onLine) {
+      localStorage.setItem('lastLocation', location.pathname);
+    }
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -91,6 +94,7 @@ const NetworkChecker = () => {
 
   return null;
 };
+
 
 
 
