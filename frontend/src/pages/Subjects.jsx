@@ -101,7 +101,7 @@ const Subjects = () => {
 
     const matchesLabels =
       selectedLabels === "All" ||
-      subject.subject_tags.toLowerCase().includes(selectedLabels);
+      subject.subject_tags.toLowerCase().includes(selectedLabels.toLowerCase());
 
     const matchesYear =
       selectedYear === "All" || subject.year_level === selectedYear;
