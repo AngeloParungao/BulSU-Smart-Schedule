@@ -9,7 +9,7 @@ import Report from "../components/Report";
 function DraftSchedules() {
   const url = process.env.REACT_APP_URL;
   const currentDepartment = atob(localStorage.getItem("userDept"));
-  const [category, setCategory] = useState("section");
+  const [category, setCategory] = useState("room");
   const [semester, setSemester] = useState("");
   const [academicYear, setAcademicYear] = useState("");
   const [schedules, setSchedules] = useState([]);
@@ -66,13 +66,16 @@ function DraftSchedules() {
         setSelectedSection(sectionRes.data[0].section_name.toString());
         setSelectedGroup(sectionRes.data[0].section_group.toString());
       }
+
+      if (roomRes.data.length > 0) {
+        setSelectedRoom(roomRes.data[0].room_name.toString());
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to fetch data");
     }
   };
 
-  //TODO: fix layout of pdf
   const generatePDF = async () => {
     const scheduleContainer = document.querySelector("#scheduleTable");
     if (!scheduleContainer) return toast.error("No schedule found to print.");
@@ -101,58 +104,70 @@ function DraftSchedules() {
       const pdf = new jsPDF("p", "mm", "a4");
       const imgData = canvas.toDataURL("image/png");
       const imgWidth = 210; // A4 width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgHeight = 150; // A4 height in mm
 
       let heightLeft = imgHeight,
         pageHeight = 297; // A4 height in mm
 
-      // Adding title, room, semester, etc.
+      // Add title and details on the first page
       pdf
         .setFontSize(18)
         .text(
-          "FACULTY SCHEDULE",
-          pdf.internal.pageSize.getWidth() / 2 - 40,
-          20
+          `${
+            category === "section"
+              ? "SECTION"
+              : category === "instructor"
+              ? "INSTRUCTOR"
+              : "ROOM"
+          } SCHEDULE`,
+          pdf.internal.pageSize.getWidth() / 2,
+          20,
+          {
+            align: "center",
+          }
         );
       pdf
         .setFontSize(14)
         .text(
           "Republic of the Philippines",
-          pdf.internal.pageSize.getWidth() / 2 - 55,
-          30
+          pdf.internal.pageSize.getWidth() / 2,
+          30,
+          { align: "center" }
         );
       pdf
         .setFontSize(14)
         .text(
           "Bulacan State University, Malolos City, Bulacan",
-          pdf.internal.pageSize.getWidth() / 2 - 75,
-          36
+          pdf.internal.pageSize.getWidth() / 2,
+          36,
+          { align: "center" }
         );
       pdf
         .setFontSize(14)
         .text(
-          "Academic Year: 2nd SEMESTER 2023-2024",
-          pdf.internal.pageSize.getWidth() / 2 - 60,
-          42
+          `Academic Year: ${semester} ${academicYear}`,
+          pdf.internal.pageSize.getWidth() / 2,
+          42,
+          { align: "center" }
         );
       pdf
         .setFontSize(14)
-        .text("Room: 124", pdf.internal.pageSize.getWidth() / 2 - 35, 48);
-
-      pdf.addImage(imgData, "PNG", 0, 40, imgWidth, imgHeight);
-
-      while (heightLeft > pageHeight) {
-        pdf.addPage();
-        pdf.addImage(
-          imgData,
-          "PNG",
-          0,
-          heightLeft - imgHeight,
-          imgWidth,
-          imgHeight
+        .text(
+          `${
+            category === "section"
+              ? "Section: " + selectedSection
+              : category === "instructor"
+              ? "Instructor: " + selectedInstructor
+              : "Room: " + selectedRoom
+          }`,
+          pdf.internal.pageSize.getWidth() / 2,
+          48,
+          {
+            align: "center",
+          }
         );
-        heightLeft -= pageHeight;
-      }
+
+      pdf.addImage(imgData, "PNG", 0, 80, imgWidth, imgHeight);
 
       pdf.save("schedule.pdf");
     } catch (error) {
@@ -165,6 +180,7 @@ function DraftSchedules() {
     }
   };
 
+  //TODO: fix same image for first 2 pages
   const generateAllPDFs = async () => {
     const scheduleContainer = document.querySelector("#scheduleTable");
     if (!scheduleContainer) return toast.error("No schedule found to print.");
@@ -186,11 +202,12 @@ function DraftSchedules() {
       const pdf = new jsPDF("p", "mm", "a4"); // Create a single PDF document
       let isFirstPage = true;
 
-      const addPage = async (title, subTitle) => {
-        // Update the content of the cloned element
-        const contentToClone = document
-          .querySelector("#scheduleTable")
-          .cloneNode(true);
+      const addPage = async (name) => {
+        // Update the content of the cloned element based on the current section/instructor
+        clone.innerHTML = scheduleContainer.innerHTML; // Reset clone to original content
+
+        // Update the specific section/instructor in the clone
+        const contentToClone = clone.cloneNode(true);
         contentToClone
           .querySelectorAll(".time")
           .forEach((el) => (el.style.color = "black"));
@@ -198,43 +215,91 @@ function DraftSchedules() {
         // Replace the content in the clone with the correct section/instructor
         clone.innerHTML = contentToClone.innerHTML;
 
-        const canvas = await html2canvas(clone, { scale: 2, useCORS: true });
+        const canvas = await html2canvas(clone, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: null,
+        });
         const imgData = canvas.toDataURL("image/png");
         const imgWidth = 210; // A4 width in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        let heightLeft = imgHeight,
-          pageHeight = 297; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Adjust imgHeight based on actual canvas height
 
         if (!isFirstPage) pdf.addPage();
         isFirstPage = false;
 
-        pdf.setFontSize(18).text(title, 14, 20);
-        pdf.setFontSize(14).text(subTitle, 14, 30);
-        pdf.addImage(imgData, "PNG", 0, 40, imgWidth, imgHeight);
-
-        while (heightLeft > pageHeight) {
-          pdf.addPage();
-          pdf.addImage(
-            imgData,
-            "PNG",
-            0,
-            heightLeft - imgHeight,
-            imgWidth,
-            imgHeight
+        // Add title and details on the first page
+        pdf
+          .setFontSize(18)
+          .text(
+            `${
+              category === "section"
+                ? "SECTION"
+                : category === "instructor"
+                ? "INSTRUCTOR"
+                : "ROOM"
+            } SCHEDULE`,
+            pdf.internal.pageSize.getWidth() / 2,
+            20,
+            { align: "center" }
           );
-          heightLeft -= pageHeight;
-        }
+        pdf
+          .setFontSize(14)
+          .text(
+            "Republic of the Philippines",
+            pdf.internal.pageSize.getWidth() / 2,
+            30,
+            { align: "center" }
+          );
+        pdf
+          .setFontSize(14)
+          .text(
+            "Bulacan State University, Malolos City, Bulacan",
+            pdf.internal.pageSize.getWidth() / 2,
+            36,
+            { align: "center" }
+          );
+        pdf
+          .setFontSize(14)
+          .text(
+            `Academic Year: ${semester} ${academicYear}`,
+            pdf.internal.pageSize.getWidth() / 2,
+            42,
+            { align: "center" }
+          );
+        pdf
+          .setFontSize(14)
+          .text(
+            `${
+              category === "section"
+                ? "Section: "
+                : category === "instructor"
+                ? "Instructor: "
+                : "Room: "
+            } ${name}`,
+            pdf.internal.pageSize.getWidth() / 2,
+            48,
+            { align: "center" }
+          );
+
+        // Add the image to the PDF
+        pdf.addImage(imgData, "PNG", 0, 80, imgWidth, imgHeight); // Start image below title
       };
 
       // Add instructor schedules to the PDF
       if (category === "instructor") {
-        for (const instructor of instructors) {
-          const selectedInstructor = `${instructor.firstname} ${instructor.lastname}`;
-          // Set the content for the specific instructor
-          setSelectedInstructor(selectedInstructor); // Ensure this updates the displayed schedule
-          await addPage("Schedule for:", `Instructor: ${selectedInstructor}`);
+        const instructor = [
+          ...new Set(
+            instructors.map(
+              ({ first_name, middle_name, last_name }) =>
+                `${first_name} ${middle_name} ${last_name}`
+            )
+          ),
+        ];
+        for (const name of instructor) {
+          setSelectedInstructor(name);
+          await addPage(name);
         }
-      } else {
+      } else if (category === "section") {
         // Add section group schedules to the PDF
         const sectionGroups = [
           ...new Set(
@@ -246,13 +311,18 @@ function DraftSchedules() {
         ];
         for (const sectionGroup of sectionGroups) {
           const [sectionName, group] = sectionGroup.split("-");
-          // Set the content for the specific section
           setSelectedSection(sectionName);
           setSelectedGroup(group);
-          await addPage(
-            "Schedule for:",
-            `Section: ${sectionName}, Group: ${group}`
-          );
+          await addPage(`${sectionName} - ${group}`);
+        }
+      } else if (category === "room") {
+        // Add room schedules to the PDF
+        const roomsArray = [
+          ...new Set(rooms.map(({ room_name }) => room_name)),
+        ];
+        for (const room of roomsArray) {
+          setSelectedRoom(room);
+          await addPage(room);
         }
       }
 
