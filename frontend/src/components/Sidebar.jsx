@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
 import SignOutConfirmation from "./SignOutConfirmation";
-import logo from "../assets/logo_white_no_bg 2.png";
+import logo from "../assets/FINAL LOGO.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -66,8 +66,8 @@ function Sidebar() {
           />
         )}
       </div>
-      <div className="side-logo">
-        <img src={logo} alt="" />
+      <div className="flex justify-center items-center h-[5rem]">
+        <img src={logo} alt="" className="w-[4rem]" />
       </div>
       <div className="flex flex-col items-center text-white text-lg">
         <NavLink

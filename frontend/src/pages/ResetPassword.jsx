@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import logo from "../assets/smartsched_logo.png";
+import logo from "../assets/FINAL LOGO.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
 import toast, { Toaster } from "react-hot-toast";
@@ -66,8 +66,8 @@ const ResetPassword = () => {
       <Toaster position="bottom-right" reverseOrder={false} />
       <div className="flex justify-center items-center h-[70%] lg:w-3/5 md:w-3/4 w-[90%] bg-white rounded-xl shadow-md">
         <div className="w-1/2 h-full hidden lg:flex flex-col justify-center items-center bg-[#F7F7F7] rounded-l-3xl p-12">
-          <img src={logo} alt="SmartSched Logo" className="h-22 w-auto" />
-          <span className="font-bold text-2xl text-green-900 text-center">
+          <img src={logo} alt="SmartSched Logo" className="h-48 w-auto" />
+          <span className="font-bold text-2xl text-green-900 text-center mt-14">
             BulSU SmartSchedule
           </span>
           <p className="text-sm text-gray-400 text-center">
