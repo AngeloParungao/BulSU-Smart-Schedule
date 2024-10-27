@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const path = require('path');
 const authRoutes = require('./routes/authRoutes');
 const usersRoutes = require('./routes/usersRoutes');
 const schedulesRoutes = require('./routes/schedulesRoutes');
@@ -26,6 +27,8 @@ app.use('/api/rooms', roomsRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/departments', departmentsRoutes);
 
+// Serve static files from the "public" directory
+app.use('/images', express.static(path.join(__dirname, 'assets')));
 
 const PORT = process.env.MYSQLPORT;
 app.listen(PORT, () => {
