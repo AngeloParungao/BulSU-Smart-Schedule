@@ -295,12 +295,19 @@ const AddSchedule = ({
     const totalDuration = calculateTotalDuration(subjectSchedules);
     const newScheduleDuration = newEndInMinutes - newStartInMinutes;
 
+    // Check limits for minor subjects
+    const subject = subjects.find((sub) => sub.subject_name === data.subject);
+    const isMinor = subject && subject.subject_type === "Minor";
+
+    const exceedsMinorLimit =
+      isMinor && totalDuration + newScheduleDuration > 180; // 180 minutes = 3 hours
+
     const exceedsLimits =
       totalDuration + newScheduleDuration > 5 * 60 ||
       subjectSchedules.length >= 2;
 
     const alreadyExists = subjectSchedules.some(
-      (schedule) => schedule.class_type === data.course_type
+      (schedule) => schedule.class_type === data.course_type && !isMinor
     );
 
     setErrors({
@@ -327,7 +334,7 @@ const AddSchedule = ({
             department: hasRoomConflict.department_code,
           }
         : null,
-      subject_error: exceedsLimits,
+      subject_error: exceedsLimits || exceedsMinorLimit,
       course_error: alreadyExists,
     });
   };
@@ -1164,7 +1171,10 @@ const AddSchedule = ({
                 .map((subject) => {
                   const hasTwoMeetings =
                     schedules.filter(
-                      (schedule) => schedule.subject === subject.subject_name
+                      (schedule) =>
+                        schedule.subject === subject.subject_name &&
+                        schedule.section_name === section &&
+                        schedule.section_group === group
                     ).length >= 2;
                   return (
                     <li

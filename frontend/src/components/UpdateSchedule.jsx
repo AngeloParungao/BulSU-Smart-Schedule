@@ -261,9 +261,25 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
     let foundInstructorCollisionTime = null;
     let foundRoomCollisionTime = null;
 
+    //Get schedule id of alternate group
+    let al = null;
+    if (isMinor) {
+      schedules.forEach((schedule) => {
+        if (
+          schedule.section_name === item.section_name &&
+          schedule.section_group === alternateGroup
+        ) {
+          al = schedule.schedule_id;
+        }
+      });
+    }
     // Time conflict check for section
     const hasSectionConflict = schedules.some((schedule) => {
-      if (schedule.schedule_id === item.schedule_id) return false;
+      if (
+        schedule.schedule_id === item.schedule_id ||
+        schedule.schedule_id === al
+      )
+        return false; // Skip current schedule
 
       const inCurrentGroup =
         schedule.section_group === item.section_group &&
@@ -276,20 +292,26 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
         schedule.section_name === item.section_name &&
         schedule.day === data.day;
 
+      // Only check conflicts if in the current or alternate group
       if ((inCurrentGroup || inAlternateGroup) && isTimeConflict(schedule)) {
         foundSectionCollisionTime = {
           start_time: schedule.start_time,
           end_time: schedule.end_time,
         };
-        return true;
+        return true; // Conflict found
       }
-      return false;
+      return false; // No conflict
     });
 
     // Instructor availability check
     const hasInstructorConflict = schedules.some((schedule) => {
       if (
         schedule.schedule_id !== item.schedule_id &&
+        !(
+          isMinor &&
+          schedule.section_name === item.section_name &&
+          schedule.section_group === alternateGroup
+        ) &&
         schedule.instructor === data.instructor &&
         schedule.day === data.day &&
         isTimeConflict(schedule)
@@ -307,6 +329,11 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
     const hasRoomConflict = schedules.some((schedule) => {
       if (
         schedule.schedule_id !== item.schedule_id &&
+        !(
+          isMinor &&
+          schedule.section_name === item.section_name &&
+          schedule.section_group === alternateGroup
+        ) &&
         schedule.room === data.room &&
         schedule.day === data.day &&
         isTimeConflict(schedule)
@@ -344,9 +371,14 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
       totalHours + (newEndInMinutes - newStartInMinutes) / 60 > 5 ||
       numberOfMeetings >= 2;
 
+    // Check limits for minor subjects only 3 hours
+    const exceedsMinorLimit = isMinor
+      ? totalHours + (newEndInMinutes - newStartInMinutes) / 60 > 3
+      : false;
+
     // Course type conflict check
     const alreadyExists = subjectSectionSchedules.some(
-      (schedule) => schedule.class_type === data.course_type
+      (schedule) => schedule.class_type === data.course_type && !isMinor
     );
 
     setErrors({
@@ -373,7 +405,7 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
             department: foundRoomCollisionTime.department,
           }
         : null,
-      subject_error: exceedsLimits,
+      subject_error: exceedsLimits || exceedsMinorLimit,
       course_error: alreadyExists,
     });
   };
@@ -1256,7 +1288,10 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
                 .map((subject) => {
                   const hasTwoMeetings =
                     schedules.filter(
-                      (schedule) => schedule.subject === subject.subject_name
+                      (schedule) =>
+                        schedule.subject === subject.subject_name &&
+                        schedule.section_name === item.section_name &&
+                        schedule.section_group === item.section_group
                     ).length >= 2;
                   return (
                     <li
