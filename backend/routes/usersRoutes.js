@@ -24,9 +24,26 @@ router.post('/adding', async (req, res) => {
             });
         });
 
-        const subject = "Welcome to Our Platform";
-        const html = `<p>Hello ${last_name}, ${first_name} ${middle_name}</p><p>Your profile has been created successfully.</p><p>Credentials for Logging in to your account are as follows:</p><p>Email: ${email}</p><p>Password: ${password}</p>`;
-
+        const subject = "Your Smart Schedule Account is Ready!";
+        const html = `
+            <div style="font-family: Arial, sans-serif; font-size: 0.8rem; line-height: 1rem;">
+                <img src="${process.env.EMAIL_LOGO}" alt="Smart Schedule Logo" style="width: 100px; height: auto; margin-bottom: 1rem;"/>
+                <p style="margin-bottom: 1rem;">Dear ${last_name}, ${first_name} ${middle_name},</p>
+                <p style="margin-bottom: 1rem;">Your Smart Schedule account has been successfully created.</p>
+                <p style="margin-bottom: 1rem;">Your login credentials:</p>
+                <ul style="list-style-type: disc; margin-bottom: 1rem;">
+                    <li style="margin-bottom: 0.5rem;">Email: ${email}</li>
+                    <li style="margin-bottom: 0.5rem;">Password: ${password}</li>
+                </ul>
+                <p style="margin-bottom: 1rem;">Thank you for choosing Smart Schedule.</p>
+                <p style="margin-bottom: 1rem;">Need Assistance? If you have any questions or encounter any issues, please don't hesitate to contact Smart Schedule Admin.</p>
+                <p style="margin-bottom: 1rem;">${process.env.EMAIL_USER}</p>
+                <p style="margin-bottom: 1rem;">Thank you,</p>
+                <p style="margin-bottom: 1rem;">Administrator</p>
+                <p style="margin-bottom: 1rem;">Best regards,</p>
+                <p>Smart Schedule Team</p>
+            </div>
+        `;
         await sendEmail(email, subject, html);
 
         res.status(200).json({ message: 'User added successfully and email sent.' });
