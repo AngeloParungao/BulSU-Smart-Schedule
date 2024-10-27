@@ -85,7 +85,7 @@ function Home() {
           )}
         </div>
         <div className="flex flex-col justify-center items-center h-[calc(100%-4.5rem)] w-full">
-          <div className="flex flex-wrap lg:flex-nowrap justify-around items-center h-1/2 w-full lg:p-0 p-8">
+          <div className="flex flex-wrap lg:flex-nowrap justify-center items-center lg:h-1/2 w-full gap-4 lg:p-0 p-8">
             <div className="flex flex-col items-center bg-white rounded-xl lg:w-[12rem] lg:h-[10rem] w-[6rem] h-[6rem] border">
               <div className="flex flex-col justify-center items-center p-2 lg:px-8 border-b">
                 <span className="lg:text-lg text-xs font-medium">Schedule</span>
@@ -201,7 +201,7 @@ function Home() {
               </div>
             ) : null}
           </div>
-          <div className="flex flex-wrap lg:flex-nowrap justify-around items-center h-1/2 w-full lg:p-0 p-8">
+          <div className="flex flex-wrap lg:flex-nowrap justify-center items-center lg:h-1/2 w-full gap-4 lg:p-0 p-8">
             <div
               className="relative overflow-hidden flex justify-center items-center lg:h-[15rem] lg:w-[15rem] h-[8rem] w-[8rem] rounded-2xl bg-blue-500 hover:bg-blue-600 text-white p-4 shadow-md shadow-gray-600 hover:cursor-pointer"
               onClick={() => {
