@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Login, Home, DraftSchedules, Scheduling, Departments, Instructors, Sections, Subjects, Rooms, ActivityLog, Setting, Users, ResetPassword } from './pages/Pages';
 import OfflinePage from './pages/OfflinePage'; // Import your OfflinePage
@@ -22,6 +23,7 @@ function App() {
   return (
     <Router>
       <NetworkChecker />
+      <StatusChecker />
       <Routes>
         {/* Public route for Login */}
         <Route path="/" element={<Login />} />
@@ -96,6 +98,39 @@ const NetworkChecker = () => {
 };
 
 
+const StatusChecker = () => {const url = process.env.REACT_APP_URL;
+  const currentUser = atob(localStorage.getItem("userID")) || "";
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!currentUser) return;
+
+      try {
+        const userID = JSON.parse(currentUser);
+        const { data } = await axios.get(`${url}api/users/fetch`);
+        
+        const user = data.find(user => user.user_id === userID);
+        if (user) {
+          if (user.status === "active") {
+            navigate("/home");
+          } else if (user.status === "archived") {
+            localStorage.removeItem("userID");
+            localStorage.removeItem("userDept");
+            localStorage.removeItem("userRole");
+            navigate("/");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchUser();
+  }, [currentUser, url]);
+
+  return null;
+};
 
 
 export default App;
