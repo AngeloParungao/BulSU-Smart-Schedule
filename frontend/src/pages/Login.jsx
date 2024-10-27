@@ -9,7 +9,6 @@ import { RotatingLines } from "react-loader-spinner";
 
 function Login() {
   const url = process.env.REACT_APP_URL;
-  const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -18,28 +17,6 @@ function Login() {
     email: "",
     password: "",
   });
-
-  useEffect(() => {
-    // Check if user is already logged in
-    try {
-      let response = axios.get(`${url}api/users/fetch`);
-      response.then((res) => {
-        res.data.forEach((user) => {
-          if (user.user_id === currentUser && user.status === "active") {
-            navigate("/home");
-            return;
-          }
-          if (user.user_id === currentUser && user.status === "archived") {
-            navigate("/");
-            return;
-          }
-        });
-      });
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      return;
-    }
-  }, []);
 
   const handleForgotPassword = async () => {
     if (credentials.email === "") {
