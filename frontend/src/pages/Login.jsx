@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import logo from "../assets/FINAL LOGO.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons";
 import toast, { Toaster } from "react-hot-toast";
 import { RotatingLines } from "react-loader-spinner";
+import logo from "../assets/FINAL LOGO.png";
+import TermsAndConditions from "../components/TermsAndConditions";
+import PrivacyPolicy from "../components/PrivacyPolicy";
 
 function Login() {
   const url = process.env.REACT_APP_URL;
+  const [showTermsAndConditions, setShowTermsAndConditions] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -119,94 +123,127 @@ function Login() {
             Your one-stop scheduling app for Bulacan State University
           </p>
         </div>
-        <form
-          onSubmit={handleSubmit}
-          className="lg:w-1/2 w-full p-12 flex flex-col justify-center items-center gap-5"
-        >
-          <div className="self-start flex items-center">
-            <img
-              src={logo}
-              alt="SmartSched Logo"
-              className="block lg:hidden h-20 w-auto ml-[-2rem]"
-            />
-            <span className="text-2xl font-bold text-black">LOGIN</span>
-          </div>
-          <div className="flex flex-col gap-2 w-full">
-            {errors.email && (
-              <p className="text-red-500 text-xs">{errors.email}</p>
-            )}
-            <div
-              className={`${
-                errors.email ? "border-red-500" : ""
-              } flex items-center border border-gray-300 rounded-lg p-2 px-3 w-full focus-within:border-green-700`}
-            >
-              <FontAwesomeIcon
-                icon={faEnvelope}
-                className="text-gray-300 mr-3"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={credentials.email}
-                onChange={(e) => {
-                  setCredentials({ ...credentials, email: e.target.value });
-                  setErrors({ ...errors, email: "" });
-                }}
-                aria-label="Email"
-                name="email"
-                autoComplete="email"
-                className="w-full outline-none text-sm text-black focus:text-green-700 placeholder:text-gray-300 placeholder:text-sm"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-2 w-full">
-            {errors.password && (
-              <p className="text-red-500 text-xs">{errors.password}</p>
-            )}
-            <div
-              className={`${
-                errors.password ? "border-red-500" : ""
-              } flex items-center border border-gray-300 rounded-lg p-2 px-3 w-full focus-within:border-green-700`}
-            >
-              <FontAwesomeIcon icon={faLock} className="text-gray-300 mr-3" />
-              <input
-                type="password"
-                placeholder="Password"
-                value={credentials.password}
-                onChange={(e) => {
-                  setCredentials({ ...credentials, password: e.target.value });
-                  setErrors({ ...errors, password: "" });
-                }}
-                aria-label="Password"
-                name="password"
-                className="w-full outline-none text-sm text-black focus:text-green-700 placeholder:text-gray-300 placeholder:text-sm"
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex justify-center items-center bg-green-700 text-white p-2 rounded-md hover:bg-green-800 w-full"
+        <div className="flex flex-col w-full lg:w-1/2 h-full">
+          <form
+            onSubmit={handleSubmit}
+            className="w-full h-full p-10 flex flex-col justify-center items-center gap-5"
           >
-            {loading ? (
-              <RotatingLines
-                height={20}
-                width={20}
-                color="white"
-                strokeWidth="4"
+            <div className="self-start flex items-center">
+              <img
+                src={logo}
+                alt="SmartSched Logo"
+                className="block lg:hidden h-12 w-auto mr-2"
               />
-            ) : (
-              "LOGIN"
+              <span className="text-2xl font-bold text-black">LOGIN</span>
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              {errors.email && (
+                <p className="text-red-500 text-xs">{errors.email}</p>
+              )}
+              <div
+                className={`${
+                  errors.email ? "border-red-500" : ""
+                } flex items-center border border-gray-300 rounded-lg p-2 px-3 w-full focus-within:border-green-700`}
+              >
+                <FontAwesomeIcon
+                  icon={faEnvelope}
+                  className="text-gray-300 mr-3"
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={credentials.email}
+                  onChange={(e) => {
+                    setCredentials({ ...credentials, email: e.target.value });
+                    setErrors({ ...errors, email: "" });
+                  }}
+                  aria-label="Email"
+                  name="email"
+                  autoComplete="email"
+                  className="w-full outline-none text-sm text-black focus:text-green-700 placeholder:text-gray-300 placeholder:text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              {errors.password && (
+                <p className="text-red-500 text-xs">{errors.password}</p>
+              )}
+              <div
+                className={`${
+                  errors.password ? "border-red-500" : ""
+                } flex items-center border border-gray-300 rounded-lg p-2 px-3 w-full focus-within:border-green-700`}
+              >
+                <FontAwesomeIcon icon={faLock} className="text-gray-300 mr-3" />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={credentials.password}
+                  onChange={(e) => {
+                    setCredentials({
+                      ...credentials,
+                      password: e.target.value,
+                    });
+                    setErrors({ ...errors, password: "" });
+                  }}
+                  aria-label="Password"
+                  name="password"
+                  className="w-full outline-none text-sm text-black focus:text-green-700 placeholder:text-gray-300 placeholder:text-sm"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex justify-center items-center bg-green-700 text-white p-2 rounded-md hover:bg-green-800 w-full"
+            >
+              {loading ? (
+                <RotatingLines
+                  height={20}
+                  width={20}
+                  color="white"
+                  strokeWidth="4"
+                />
+              ) : (
+                "LOGIN"
+              )}
+            </button>
+            <button
+              type="button"
+              className="text-sm text-gray-400 hover:text-gray-500"
+              onClick={handleForgotPassword}
+            >
+              forgot password?
+            </button>
+          </form>
+          <div className="flex justify-center gap-4 w-full pb-4 self-end">
+            <button
+              type="button"
+              className="text-xs text-gray-300 underline hover:text-gray-500"
+              onClick={() => setShowTermsAndConditions(true)}
+            >
+              Terms and Conditions
+            </button>
+            {showTermsAndConditions && (
+              <TermsAndConditions
+                isOpen={showTermsAndConditions}
+                onRequestClose={() => setShowTermsAndConditions(false)}
+              />
             )}
-          </button>
-          <button
-            type="button"
-            className="text-sm text-gray-400 mt-2 hover:text-gray-500"
-            onClick={handleForgotPassword}
-          >
-            forgot password?
-          </button>
-        </form>
+            <button
+              type="button"
+              className="text-xs text-gray-300 underline hover:text-gray-500"
+              onClick={() => setShowPrivacyPolicy(true)}
+            >
+              Privacy Policy
+            </button>
+            {showPrivacyPolicy && (
+              <PrivacyPolicy
+                isOpen={showPrivacyPolicy}
+                onRequestClose={() => setShowPrivacyPolicy(false)}
+              />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
