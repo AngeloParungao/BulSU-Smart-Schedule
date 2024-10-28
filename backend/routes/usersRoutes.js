@@ -27,7 +27,7 @@ router.post('/adding', async (req, res) => {
         const subject = "Your Smart Schedule Account is Ready!";
         const html = `
             <div style="font-family: Arial, sans-serif; font-size: 0.8rem; line-height: 1rem;">
-                <img src="${process.env.EMAIL_LOGO}" alt="Smart Schedule Logo" style="width: 100px; height: auto; margin-bottom: 1rem;"/>
+                <img src="${process.env.EMAIL_LOGO}" alt="Smart Schedule Logo" style="width: 300px; height: auto; margin-bottom: 1rem;"/>
                 <p style="margin-bottom: 1rem;">Dear ${last_name}, ${first_name} ${middle_name},</p>
                 <p style="margin-bottom: 1rem;">Your Smart Schedule account has been successfully created.</p>
                 <p style="margin-bottom: 1rem;">Your login credentials:</p>
