@@ -89,7 +89,9 @@ const Subjects = () => {
       subject.subject_semester.toString().includes(search) ||
       subject.subject_type.toLowerCase().includes(search.toLowerCase()) ||
       subject.subject_units.toString().includes(search) ||
-      subject.subject_tags.toLowerCase().includes(search.toLowerCase()) ||
+      (subject.subject_tags || "")
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
       subject.department_code.toLowerCase().includes(search.toLowerCase());
 
     const matchesType =
@@ -101,7 +103,11 @@ const Subjects = () => {
 
     const matchesLabels =
       selectedLabels === "All" ||
-      subject.subject_tags.toLowerCase().includes(selectedLabels.toLowerCase());
+      (selectedLabels === "" &&
+        (!subject.subject_tags || subject.subject_tags.trim() === "")) || // Only match empty tags for "No Labels"
+      (selectedLabels &&
+        subject.subject_tags &&
+        subject.subject_tags.includes(selectedLabels)); // Match specific label
 
     const matchesYear =
       selectedYear === "All" || subject.year_level === selectedYear;
@@ -113,6 +119,10 @@ const Subjects = () => {
     const matchesDepartment =
       selectedDepartment === "All" ||
       subject.department_code === selectedDepartment;
+
+    console.log("Filtering for selectedLabels:", selectedLabels);
+    console.log("Subject tags:", subject.subject_tags);
+    console.log("matchesLabels result:", matchesLabels);
 
     return (
       matchesSearch &&
@@ -628,13 +638,16 @@ const Subjects = () => {
                       onChange={(e) => setSelectedLabels(e.target.value)}
                     >
                       <option value="All">All</option>
+                      <option value="">No Labels</option>
                       {Array.from(
                         new Set(subjects.map((subject) => subject.subject_tags))
-                      ).map((label, index) => (
-                        <option key={index} value={label}>
-                          {label}
-                        </option>
-                      ))}
+                      )
+                        .filter(Boolean)
+                        .map((label, index) => (
+                          <option key={index} value={label}>
+                            {label}
+                          </option>
+                        ))}
                     </select>
                   </div>
                 </div>
