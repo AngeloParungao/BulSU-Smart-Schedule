@@ -18,6 +18,7 @@ function Home() {
   const currentRole = atob(localStorage.getItem("userRole"));
   const [users, setUsers] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [sections, setSections] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -34,6 +35,7 @@ function Home() {
       const [
         userRes,
         scheduleRes,
+        departmentRes,
         instructorRes,
         sectionRes,
         subjectRes,
@@ -41,6 +43,7 @@ function Home() {
       ] = await Promise.all([
         axios.get(`${url}api/users/fetch`),
         axios.get(`${url}api/schedule/fetch`),
+        axios.get(`${url}api/departments/fetch`),
         axios.get(`${url}api/instructors/fetch?dept_code=${currentDepartment}`),
         axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
         axios.get(`${url}api/subjects/fetch?dept_code=${currentDepartment}`),
@@ -60,6 +63,7 @@ function Home() {
         );
       }
       setSchedules(scheduleRes.data);
+      setDepartments(departmentRes.data);
       setInstructors(instructorRes.data);
       setSections(sectionRes.data);
       setSubjects(subjectRes.data);
@@ -84,11 +88,13 @@ function Home() {
             <span className="md:text-4xl text-3xl font-medium">Dashboard</span>
           )}
         </div>
-        <div className="flex flex-col justify-center items-center h-[calc(100%-4.5rem)] w-full">
-          <div className="flex flex-wrap lg:flex-nowrap justify-center items-center lg:h-1/2 w-full gap-4 lg:p-0 p-8">
-            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[12rem] lg:h-[10rem] w-[6rem] h-[6rem] border">
-              <div className="flex flex-col justify-center items-center p-2 lg:px-8 border-b">
-                <span className="lg:text-lg text-xs font-medium">Schedule</span>
+        <div className="flex flex-col justify-center items-center gap-10 h-[calc(100%-4.5rem)] w-full">
+          <div className="flex flex-wrap lg:flex-nowrap justify-center items-center w-full gap-4 lg:p-0 p-8">
+            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[10rem] lg:h-[8rem] w-[6rem] h-[6rem] border">
+              <div className="flex flex-col justify-center items-center p-2 lg:px-4 border-b">
+                <span className="lg:text-[0.9rem] text-xs font-medium">
+                  Schedule
+                </span>
               </div>
               <div className="flex justify-center items-center h-full">
                 <span
@@ -104,9 +110,9 @@ function Home() {
                 </span>
               </div>
             </div>
-            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[12rem] lg:h-[10rem] w-[6rem] h-[6rem] border">
-              <div className="flex flex-col justify-center items-center p-2 lg:px-8 border-b">
-                <span className="lg:text-lg text-xs font-medium">
+            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[10rem] lg:h-[8rem] w-[6rem] h-[6rem] border">
+              <div className="flex flex-col justify-center items-center p-2 lg:px-4 border-b">
+                <span className="lg:text-[0.9rem] text-xs font-medium">
                   {role === "Administrator" ? "Users" : "Collaborators"}
                 </span>
               </div>
@@ -124,9 +130,31 @@ function Home() {
                 </span>
               </div>
             </div>
-            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[12rem] lg:h-[10rem] w-[6rem] h-[6rem] border">
-              <div className="flex flex-col justify-center items-center p-2 lg:px-8 border-b">
-                <span className="lg:text-lg text-xs font-medium">
+            {currentRole === "Administrator" && (
+              <div className="flex flex-col items-center bg-white rounded-xl lg:w-[10rem] lg:h-[8rem] w-[6rem] h-[6rem] border">
+                <div className="flex flex-col justify-center items-center p-2 lg:px-4 border-b">
+                  <span className="lg:text-[0.9rem] text-xs font-medium">
+                    Departments
+                  </span>
+                </div>
+                <div className="flex justify-center items-center h-full">
+                  <span
+                    className={`lg:text-5xl text-2xl font-bold ${
+                      departments.length < 10
+                        ? "text-red-500"
+                        : departments.length < 30
+                        ? "text-yellow-500"
+                        : "text-green-500"
+                    }`}
+                  >
+                    {departments.length}
+                  </span>
+                </div>
+              </div>
+            )}
+            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[10rem] lg:h-[8rem] w-[6rem] h-[6rem] border">
+              <div className="flex flex-col justify-center items-center p-2 lg:px-4 border-b">
+                <span className="lg:text-[0.9rem] text-xs font-medium">
                   Instructors
                 </span>
               </div>
@@ -144,9 +172,11 @@ function Home() {
                 </span>
               </div>
             </div>
-            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[12rem] lg:h-[10rem] w-[6rem] h-[6rem] border">
-              <div className="flex flex-col justify-center items-center p-2 lg:px-8 border-b">
-                <span className="lg:text-lg text-xs font-medium">Sections</span>
+            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[10rem] lg:h-[8rem] w-[6rem] h-[6rem] border">
+              <div className="flex flex-col justify-center items-center p-2 lg:px-4 border-b">
+                <span className="lg:text-[0.9rem] text-xs font-medium">
+                  Sections
+                </span>
               </div>
               <div className="flex justify-center items-center h-full">
                 <span
@@ -162,9 +192,11 @@ function Home() {
                 </span>
               </div>
             </div>
-            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[12rem] lg:h-[10rem] w-[6rem] h-[6rem] border">
-              <div className="flex flex-col justify-center items-center p-2 lg:px-8 border-b">
-                <span className="lg:text-lg text-xs font-medium">Subjects</span>
+            <div className="flex flex-col items-center bg-white rounded-xl lg:w-[10rem] lg:h-[8rem] w-[6rem] h-[6rem] border">
+              <div className="flex flex-col justify-center items-center p-2 lg:px-4 border-b">
+                <span className="lg:text-[0.9rem] text-xs font-medium">
+                  Subjects
+                </span>
               </div>
               <div className="flex justify-center items-center h-full">
                 <span
@@ -181,9 +213,11 @@ function Home() {
               </div>
             </div>
             {currentRole === "Administrator" ? (
-              <div className="flex flex-col items-center bg-white rounded-xl lg:w-[12rem] lg:h-[10rem] w-[6rem] h-[6rem] border">
-                <div className="flex flex-col justify-center items-center p-2 lg:px-8 border-b">
-                  <span className="lg:text-lg text-xs font-medium">Rooms</span>
+              <div className="flex flex-col items-center bg-white rounded-xl lg:w-[10rem] lg:h-[8rem] w-[6rem] h-[6rem] border">
+                <div className="flex flex-col justify-center items-center p-2 lg:px-4 border-b">
+                  <span className="lg:text-[0.9rem] text-xs font-medium">
+                    Rooms
+                  </span>
                 </div>
                 <div className="flex justify-center items-center h-full">
                   <span
@@ -201,7 +235,7 @@ function Home() {
               </div>
             ) : null}
           </div>
-          <div className="flex flex-wrap lg:flex-nowrap justify-center items-center lg:h-1/2 w-full gap-4 lg:p-0 p-8">
+          <div className="flex flex-wrap lg:flex-nowrap justify-center items-center w-full gap-4 lg:p-0 p-8">
             <div
               className="relative overflow-hidden flex justify-center items-center lg:h-[15rem] lg:w-[15rem] h-[8rem] w-[8rem] rounded-2xl bg-blue-500 hover:bg-blue-600 text-white p-4 shadow-md shadow-gray-600 hover:cursor-pointer"
               onClick={() => {
