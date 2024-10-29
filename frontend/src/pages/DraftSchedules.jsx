@@ -20,6 +20,7 @@ function DraftSchedules() {
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
+  const [selectedBuilding, setSelectedBuilding] = useState("");
   const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
@@ -68,6 +69,7 @@ function DraftSchedules() {
       }
 
       if (roomRes.data.length > 0) {
+        setSelectedBuilding(roomRes.data[0].room_building.toString());
         setSelectedRoom(roomRes.data[0].room_name.toString());
       }
     } catch (error) {
@@ -571,32 +573,68 @@ function DraftSchedules() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-4">
-                <label
-                  htmlFor="room"
-                  className="font-semibold text-sm text-[var(--text-color)]"
-                >
-                  Room:
-                </label>
-                <select
-                  name="room"
-                  id="room"
-                  value={selectedRoom}
-                  onChange={(e) => setSelectedRoom(e.target.value)}
-                  className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-                >
-                  {rooms.length === 0 ? (
-                    <option value="Room">Room</option>
-                  ) : (
-                    [...new Set(rooms.map((r) => r.room_name))].map(
-                      (room, index) => (
-                        <option key={index} value={room}>
-                          {room}
-                        </option>
+              <div className="flex md:flex-row flex-col gap-2 md:gap-6">
+                <div className="flex items-center gap-4">
+                  <label
+                    htmlFor="room"
+                    className="font-semibold text-sm text-[var(--text-color)]"
+                  >
+                    Building:
+                  </label>
+                  <select
+                    name="building"
+                    id="building"
+                    value={selectedBuilding}
+                    onChange={(e) => {
+                      setSelectedBuilding(e.target.value);
+                      setSelectedRoom(
+                        rooms.filter(
+                          (r) => r.room_building === e.target.value
+                        )[0]?.room_name
+                      );
+                    }}
+                    className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                  >
+                    {rooms.length === 0 ? (
+                      <option value="Building">Building</option>
+                    ) : (
+                      [...new Set(rooms.map((r) => r.room_building))].map(
+                        (building, index) => (
+                          <option key={index} value={building}>
+                            {building}
+                          </option>
+                        )
                       )
-                    )
-                  )}
-                </select>
+                    )}
+                  </select>
+                </div>
+                <div className="flex items-center gap-4">
+                  <label
+                    htmlFor="room"
+                    className="font-semibold text-sm text-[var(--text-color)]"
+                  >
+                    Room:
+                  </label>
+                  <select
+                    name="room"
+                    id="room"
+                    value={selectedRoom}
+                    onChange={(e) => setSelectedRoom(e.target.value)}
+                    className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                  >
+                    {rooms.length === 0 ? (
+                      <option value="Room">Room</option>
+                    ) : (
+                      rooms
+                        .filter((r) => r.room_building === selectedBuilding)
+                        .map((room, index) => (
+                          <option key={index} value={room.room_name}>
+                            {room.room_name}
+                          </option>
+                        ))
+                    )}
+                  </select>
+                </div>
               </div>
             )}
             <div className="flex md:flex-row flex-col md:gap-4 gap-2">
