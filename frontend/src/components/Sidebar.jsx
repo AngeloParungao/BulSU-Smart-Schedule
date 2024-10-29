@@ -11,7 +11,7 @@ import {
   faHome,
   faNoteSticky,
   faCalendar,
-  faBell,
+  faBook,
   faGear,
   faUsers,
   faTable,
@@ -48,7 +48,7 @@ function Sidebar() {
       <div
         className={`${
           showSidebar
-            ? "left-[5rem] bg-[#343B46] w-[4rem] h-[4rem] rounded-r-3xl"
+            ? "left-[5rem] bg-[#343B46] w-[4rem] h-[4.5rem] rounded-r-3xl"
             : ""
         } absolute flex justify-center items-center w-[4rem] h-[4.5rem] top-0 left-0 block lg:hidden transition-all duration-300`}
       >
@@ -67,50 +67,54 @@ function Sidebar() {
         )}
       </div>
       <div className="flex justify-center items-center h-[5rem]">
-        <img src={logo} alt="" className="w-[4rem]" />
+        <img src={logo} alt="" className="w-[3rem]" />
       </div>
       <div className="flex flex-col items-center text-white text-lg">
         <NavLink
           to="/home"
           className={({ isActive }) =>
-            `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+            `flex flex-col justify-center items-center w-full h-[4.5rem] gap-2 hover:bg-[#2c323b] hover:text-white ${
               isActive ? "bg-white text-[#343B46]" : ""
             }`
           }
         >
           <FontAwesomeIcon icon={faHome} />
+          <span className="text-xs">Home</span>
         </NavLink>
         <NavLink
           to="/draft-schedules"
           className={({ isActive }) =>
-            `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+            `flex flex-col justify-center items-center w-full h-[4.5rem] hover:bg-[#2c323b] hover:text-white ${
               isActive ? "bg-white text-[#343B46]" : ""
             }`
           }
         >
           <FontAwesomeIcon icon={faNoteSticky} />
+          <span className="text-[0.6rem]">Draft Schedules</span>
         </NavLink>
         {role === "Administrator" ? (
           <>
             <NavLink
               to="/users"
               className={({ isActive }) =>
-                `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+                `flex flex-col justify-center items-center w-full h-[4.5rem] gap-2 hover:bg-[#2c323b] hover:text-white ${
                   isActive ? "bg-white text-[#343B46]" : ""
                 }`
               }
             >
               <FontAwesomeIcon icon={faUsers} />
+              <span className="text-xs">Users</span>
             </NavLink>
             <NavLink
               to="/departments"
               className={({ isActive }) =>
-                `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+                `flex flex-col justify-center items-center w-full h-[4.5rem] hover:bg-[#2c323b] hover:text-white ${
                   isActive ? "bg-white text-[#343B46]" : ""
                 }`
               }
             >
               <FontAwesomeIcon icon={faTable} />
+              <span className="text-[0.6rem]">Departments</span>
             </NavLink>
           </>
         ) : (
@@ -118,40 +122,43 @@ function Sidebar() {
             <NavLink
               to="/scheduling"
               className={({ isActive }) =>
-                `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+                `flex flex-col justify-center items-center w-full h-[4.5rem] gap-2 hover:bg-[#2c323b] hover:text-white ${
                   isActive ? "bg-white text-[#343B46]" : ""
                 }`
               }
             >
               <FontAwesomeIcon icon={faCalendar} />
+              <span className="text-xs">Schedule</span>
             </NavLink>
           </>
         )}
         <NavLink
           to="/activity-logs"
           className={({ isActive }) =>
-            `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+            `flex flex-col justify-center items-center w-full h-[4.5rem] gap-2 hover:bg-[#2c323b] hover:text-white ${
               isActive ? "bg-white text-[#343B46]" : ""
             }`
           }
         >
-          <FontAwesomeIcon icon={faBell} />
+          <FontAwesomeIcon icon={faBook} />
+          <span className="text-xs">Activity</span>
         </NavLink>
         <NavLink
           to="/settings"
           className={({ isActive }) =>
-            `flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b] hover:text-white ${
+            `flex flex-col justify-center items-center w-full h-[4.5rem] gap-2 hover:bg-[#2c323b] hover:text-white ${
               isActive ? "bg-white text-[#343B46]" : ""
             }`
           }
         >
           <FontAwesomeIcon icon={faGear} />
+          <span className="text-xs">Settings</span>
         </NavLink>
       </div>
 
       <div className="flex flex-col items-center text-white text-lg">
         <button
-          className="flex justify-center items-center w-full h-[4rem] hover:bg-[#2c323b]"
+          className="flex justify-center items-center w-full h-[3rem] hover:bg-[#2c323b]"
           onClick={() => setShowSignOutConfirmation(!showSignOutConfirmation)}
         >
           <FontAwesomeIcon icon={faRightFromBracket} className="" />
@@ -162,7 +169,7 @@ function Sidebar() {
             onRequestClose={() => setShowSignOutConfirmation(false)}
           />
         )}
-        <div className="flex justify-center items-center w-full h-[4rem]">
+        <div className="flex justify-center items-center w-full h-[4.5rem]">
           <div className="flex justify-center items-center border-2 border-white rounded-lg w-12 h-12">
             {user.find((user) => user.user_id === currentUser) ? (
               <span className="uppercase text-3xl font-bold" key={user.user_id}>
