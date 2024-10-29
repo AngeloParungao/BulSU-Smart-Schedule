@@ -1307,7 +1307,7 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
                           : "bg-gray-100"
                       } p-2 rounded-md cursor-pointer hover:bg-gray-300 hover:text-black text-sm`}
                     >
-                      {subject.subject_name}
+                      {`${subject.subject_code} - ${subject.subject_name}`}
                     </li>
                   );
                 })}

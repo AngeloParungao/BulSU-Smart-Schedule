@@ -206,13 +206,17 @@ const Users = () => {
                 onChange={(e) => setSearch(e.target.value)} // Update search term on input change
               />
               <button
-                className="ml-4 text-sm text-red-300 hover:text-red-500"
+                className={`ml-4 text-sm ${
+                  showArchive
+                    ? "text-blue-300 hover:text-blue-500"
+                    : "text-red-300 hover:text-red-500"
+                }`}
                 onClick={() => {
                   setShowArchive(!showArchive);
                   setSelectedUsers([]);
                 }}
               >
-                see archive
+                {showArchive ? "hide archived" : "show archive"}
               </button>
             </div>
             <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
