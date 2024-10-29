@@ -14,6 +14,7 @@ const PrivacyPolicy = ({ isOpen, onRequestClose }) => {
       justifyContent: "center",
       alignItems: "center",
       zIndex: 1000,
+      height: "100dvh",
     },
     content: {
       width: "80%",
