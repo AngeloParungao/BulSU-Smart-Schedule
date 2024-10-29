@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import PasswordPrompt from "../components/PasswordPrompt";
+import DeleteConfirmation from "../components/DeleteConfirmation";
 import { exportToCSV } from "../utils/exportToCSV";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
@@ -16,6 +17,7 @@ const Instructors = () => {
   const [search, setSearch] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [instructorIdToUpdate, setInstructorIdToUpdate] = useState("");
@@ -138,6 +140,7 @@ const Instructors = () => {
       return;
     }
     // Prompt the user to confirm the deletion
+    setShowConfirmDelete(false);
     setShowPasswordPrompt(true);
   };
 
@@ -274,6 +277,15 @@ const Instructors = () => {
         toast.error(`Error ${isUpdating ? "updating" : "adding"} instructor.`);
       }
     }
+  };
+
+  const getInstructorFullName = () => {
+    const instructor = instructors.find(
+      ({ instructor_id }) => instructor_id === selectedInstructors[0]
+    );
+    return instructor
+      ? `${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`
+      : undefined;
   };
 
   return (
@@ -541,15 +553,34 @@ const Instructors = () => {
                 </button>
                 <button
                   className="text-white md:text-[0.8rem] text-[0.6rem] bg-red-500 py-2 px-4 rounded-full hover:bg-red-600 transition-all"
-                  onClick={handleDelete}
+                  onClick={() => setShowConfirmDelete(true)}
                 >
                   Remove
                 </button>
-                <PasswordPrompt
-                  isOpen={showPasswordPrompt}
-                  onRequestClose={() => setShowPasswordPrompt(false)}
-                  onSubmit={handlePasswordSubmit}
-                />
+                {showConfirmDelete && (
+                  <DeleteConfirmation
+                    isOpen={showConfirmDelete}
+                    onRequestClose={() => setShowConfirmDelete(false)}
+                    category={
+                      selectedInstructors.length === 1
+                        ? "Instructor"
+                        : "Instructors"
+                    }
+                    data={
+                      selectedInstructors.length === 1
+                        ? getInstructorFullName()
+                        : selectedInstructors
+                    }
+                    confirm={handleDelete}
+                  />
+                )}
+                {showPasswordPrompt && (
+                  <PasswordPrompt
+                    isOpen={showPasswordPrompt}
+                    onRequestClose={() => setShowPasswordPrompt(false)}
+                    onSubmit={handlePasswordSubmit}
+                  />
+                )}
               </div>
             </div>
             <div className="scrollbar max-h-[30.5rem] w-full overflow-y-auto text-black bg-white border border-gray-400 rounded-lg p-[0.4rem]">

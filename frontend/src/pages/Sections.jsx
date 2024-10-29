@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import PasswordPrompt from "../components/PasswordPrompt";
+import DeleteConfirmation from "../components/DeleteConfirmation";
 import { exportToCSV } from "../utils/exportToCSV";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -22,6 +23,7 @@ const Sections = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [addGroup, setAddGroup] = useState(false);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [sections, setSections] = useState([]);
   const [sectionIdToUpdate, setSectionIdToUpdate] = useState("");
@@ -157,6 +159,7 @@ const Sections = () => {
       return;
     }
     // Prompt the user to confirm the deletion
+    setShowConfirmDelete(false);
     setShowPasswordPrompt(true);
   };
 
@@ -294,6 +297,13 @@ const Sections = () => {
         toast.error(`Error ${isUpdating ? "updating" : "adding"} section.`);
       }
     }
+  };
+
+  const getSectionName = () => {
+    const section = sections.find(
+      (section) => section.section_id === selectedSections[0]
+    );
+    return section ? `${section.section_name} - ${section.section_group}` : "";
   };
 
   return (
@@ -626,15 +636,32 @@ const Sections = () => {
                 </button>
                 <button
                   className="text-white md:text-[0.8rem] text-[0.6rem] bg-red-500 py-2 px-4 rounded-full hover:bg-red-600 transition-all"
-                  onClick={handleDelete}
+                  onClick={() => setShowConfirmDelete(true)}
                 >
                   Remove
                 </button>
-                <PasswordPrompt
-                  isOpen={showPasswordPrompt}
-                  onRequestClose={() => setShowPasswordPrompt(false)}
-                  onSubmit={handlePasswordSubmit}
-                />
+                {showConfirmDelete && (
+                  <DeleteConfirmation
+                    isOpen={showConfirmDelete}
+                    onRequestClose={() => setShowConfirmDelete(false)}
+                    category={
+                      selectedSections.length === 1 ? "Section" : "Sections"
+                    }
+                    data={
+                      selectedSections.length === 1
+                        ? getSectionName()
+                        : selectedSections
+                    }
+                    confirm={handleDelete}
+                  />
+                )}
+                {showPasswordPrompt && (
+                  <PasswordPrompt
+                    isOpen={showPasswordPrompt}
+                    onRequestClose={() => setShowPasswordPrompt(false)}
+                    onSubmit={handlePasswordSubmit}
+                  />
+                )}
               </div>
             </div>
             <div className="scrollbar max-h-[30.5rem] w-full overflow-y-auto text-black bg-white border border-gray-400 rounded-lg p-[0.4rem]">
