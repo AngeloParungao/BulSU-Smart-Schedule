@@ -111,7 +111,7 @@ function Login() {
   };
 
   return (
-    <div className="bg-bulsu bg-no-repeat bg-cover h-screen flex justify-center items-center h-[100dvh]">
+    <div className="bg-bulsu bg-no-repeat bg-cover flex justify-center items-center h-[100dvh]">
       <Toaster position="bottom-right" reverseOrder={false} />
       <div className="flex justify-center items-center h-[70%] lg:w-3/5 md:w-3/4 w-[90%] bg-white rounded-xl shadow-md">
         <div className="w-1/2 h-full hidden lg:flex flex-col justify-center items-center bg-[#F7F7F7] rounded-l-3xl p-12">
