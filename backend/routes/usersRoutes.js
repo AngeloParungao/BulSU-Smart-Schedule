@@ -40,8 +40,6 @@ router.post('/adding', async (req, res) => {
                 <p style="margin-bottom: 1rem;">${process.env.EMAIL_USER}</p>
                 <p style="margin-bottom: 1rem;">Thank you,</p>
                 <p style="margin-bottom: 1rem;">Administrator</p>
-                <p style="margin-bottom: 1rem;">Best regards,</p>
-                <p>Smart Schedule Team</p>
             </div>
         `;
         await sendEmail(email, subject, html);
