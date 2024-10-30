@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import PasswordPrompt from "./PasswordPrompt";
+import DeleteConfirmation from "./DeleteConfirmation";
 import { toast } from "react-hot-toast";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -10,6 +11,7 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const url = process.env.REACT_APP_URL;
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedSchedules, setSelectedSchedules] = useState([]);
   const daysOrder = [
     "Monday",
@@ -64,6 +66,7 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
       return;
     }
     // Prompt the user to confirm the deletion
+    setShowDeleteConfirmation(false);
     setShowPasswordPrompt(true);
   };
 
@@ -111,6 +114,15 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
     } finally {
       setShowPasswordPrompt(false);
     }
+  };
+
+  const getSchedule = () => {
+    const schedule = sortedSchedules.find(
+      (schedule) => schedule.schedule_id === selectedSchedules[0]
+    );
+    return schedule
+      ? `${schedule.day} ${schedule.start_time} - ${schedule.end_time}`
+      : null;
   };
 
   return (
@@ -198,17 +210,30 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
           <div className="flex justify-end">
             <button
               className="bg-red-500 text-white text-sm px-4 py-2 rounded hover:bg-red-600"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteConfirmation(true)}
             >
               Delete
             </button>
           </div>
         </div>
-        <PasswordPrompt
-          isOpen={showPasswordPrompt}
-          onRequestClose={() => setShowPasswordPrompt(false)}
-          onSubmit={handlePasswordSubmit}
-        />
+        {showDeleteConfirmation && (
+          <DeleteConfirmation
+            isOpen={showDeleteConfirmation}
+            onRequestClose={() => setShowDeleteConfirmation(false)}
+            category={selectedSchedules.length === 1 ? "Schedule" : "Schedules"}
+            data={
+              selectedSchedules.length === 1 ? getSchedule() : selectedSchedules
+            }
+            confirm={handleDelete}
+          />
+        )}
+        {showPasswordPrompt && (
+          <PasswordPrompt
+            isOpen={showPasswordPrompt}
+            onRequestClose={() => setShowPasswordPrompt(false)}
+            onSubmit={handlePasswordSubmit}
+          />
+        )}
       </div>
     </div>
   );
