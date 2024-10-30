@@ -56,6 +56,8 @@ const DeleteConfirmation = ({
           <p className="text-md text-gray-700">
             {Array.isArray(data)
               ? `Delete ${data.length} ${category}`
+              : category === "Schedule"
+              ? `You're going to delete the schedule for "${data}"`
               : `You're going to delete "${data}"`}
             . Are you sure?
           </p>
