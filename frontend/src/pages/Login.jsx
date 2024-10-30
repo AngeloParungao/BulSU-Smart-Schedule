@@ -113,7 +113,7 @@ function Login() {
   return (
     <div className="bg-bulsu bg-no-repeat bg-cover flex justify-center items-center h-[100dvh]">
       <Toaster position="bottom-right" reverseOrder={false} />
-      <div className="flex justify-center items-center h-[70%] lg:w-3/5 md:w-3/4 w-[90%] bg-white rounded-xl shadow-md">
+      <div className="flex justify-center items-center h-[70%] landscape:lg:h-[70%] landscape:h-[90%] landscape:lg:w-3/5 md:w-3/4 w-[90%] landscape:w-[90%] lg:w-3/5 bg-white rounded-xl shadow-md">
         <div className="w-1/2 h-full hidden lg:flex flex-col justify-center items-center bg-[#F7F7F7] rounded-l-3xl p-12">
           <img src={logo} alt="SmartSched Logo" className="h-48 w-auto" />
           <span className="font-bold text-2xl text-green-900 text-center mt-14">
@@ -126,7 +126,7 @@ function Login() {
         <div className="flex flex-col w-full lg:w-1/2 h-full">
           <form
             onSubmit={handleSubmit}
-            className="w-full h-full p-10 flex flex-col justify-center items-center gap-5"
+            className="w-full h-full p-10 landscape:lg:p-10 landscape:p-4 flex flex-col justify-center items-center gap-5 landscape:lg:gap-5 landscape:gap-4"
           >
             <div className="self-start flex items-center">
               <img
