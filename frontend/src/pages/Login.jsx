@@ -128,13 +128,18 @@ function Login() {
             onSubmit={handleSubmit}
             className="w-full h-full p-10 landscape:lg:p-10 landscape:p-4 flex flex-col justify-center items-center gap-5 landscape:lg:gap-5 landscape:gap-4"
           >
-            <div className="self-start flex items-center">
+            <div className="flex items-center">
               <img
                 src={logo}
                 alt="SmartSched Logo"
-                className="block lg:hidden h-12 w-auto mr-2"
+                className="block lg:hidden h-10 w-auto mr-2"
               />
-              <span className="text-2xl font-bold text-black">LOGIN</span>
+              <span className="lg:block hidden text-2xl font-bold text-black">
+                LOGIN
+              </span>
+              <span className="lg:hidden block md:text-xl text-sm font-semibold text-black">
+                BulSU Smart Schedule
+              </span>
             </div>
             <div className="flex flex-col gap-2 w-full">
               {errors.email && (
