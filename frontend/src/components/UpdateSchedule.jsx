@@ -563,6 +563,7 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
   //------instructors-------//
   const [selectedTag, setSelectedTag] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedBuilding, setSelectedBuilding] = useState("");
   const [searchInstructorQuery, setSearchInstructorQuery] = useState("");
   const [searchSubjectQuery, setSearchSubjectQuery] = useState("");
   const [searchRoomQuery, setSearchRoomQuery] = useState("");
@@ -600,7 +601,11 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
       room.room_name.toLowerCase().includes(searchRoomQuery.toLowerCase()) ||
       room.room_type.toLowerCase().includes(searchRoomQuery.toLowerCase()) ||
       room.room_building.toLowerCase().includes(searchRoomQuery.toLowerCase());
-    return matchesSearch;
+
+    const matchesBuilding =
+      selectedBuilding === "" || room.room_building === selectedBuilding;
+
+    return matchesSearch && matchesBuilding;
   });
 
   const customStyles = {
@@ -1329,13 +1334,38 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
           </div>
           <div className="flex flex-col justify-between items-center h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
             <div className="w-full">
-              <span className="text-md">
-                <FontAwesomeIcon
-                  icon={faDoorOpen}
-                  className="text-gray-600 text-sm mr-2"
-                />
-                Rooms
-              </span>
+              <div className="flex justify-between items-center">
+                <span className="text-md">
+                  <FontAwesomeIcon
+                    icon={faDoorOpen}
+                    className="text-gray-600 text-sm mr-2"
+                  />
+                  Rooms
+                </span>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="building" className="text-sm">
+                    Building:
+                  </label>
+                  <select
+                    name="building"
+                    id="building"
+                    value={selectedBuilding}
+                    onChange={(e) => setSelectedBuilding(e.target.value)}
+                    className="w-16 px-2 rounded-sm"
+                  >
+                    <option value="">All</option>
+                    {Array.from(
+                      new Set(rooms.map((room) => room.room_building))
+                    )
+                      .sort()
+                      .map((building, index) => (
+                        <option key={index} value={building}>
+                          {building}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
               <div className="flex items-center p-[0.5rem] px-4 gap-2 border border-gray-300 rounded-lg focus-within:border-green-500">
                 <FontAwesomeIcon
                   icon={faSearch}
