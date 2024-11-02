@@ -62,16 +62,25 @@ router.delete('/delete', (req, res) => {
 // Update Instructor
 router.put('/update/:id', (req, res) => {
     const instructorId = req.params.id;
-    const { email, first_name, middle_name, last_name, work_type, tags,department_code } = req.body;
+    const { email, first_name, middle_name, last_name, work_type, tags, department_code, old_full_name } = req.body;
 
     const sql = "UPDATE instructors SET email = ?, first_name = ?, middle_name = ?, last_name = ?, work_type = ?, tags = ?, department_code = ? WHERE instructor_id = ?";
 
+    console.log(old_full_name);
     db.query(sql, [email, first_name, middle_name, last_name, work_type, tags, department_code, instructorId], (err, result) => {
         if (err) {
             console.error('Error updating instructor:', err);
             return res.status(500).json({ error: 'Failed to update instructor' });
         }
-        res.status(200).json({ message: 'Instructor updated successfully' });
+
+        const sql2 = "UPDATE schedules SET instructor = ? WHERE instructor = ?";
+        db.query(sql2, [first_name + ' ' + middle_name + ' ' + last_name, old_full_name], (err, result) => {
+            if (err) {
+                console.error('Error updating schedules:', err);
+                return res.status(500).json({ error: 'Failed to update schedules' });
+            }
+            res.status(200).json({ message: 'Instructor updated successfully' });
+        });
     });
 });
 
