@@ -3,6 +3,8 @@ import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import UserForm from "../components/UserForm";
 import PasswordPrompt from "../components/PasswordPrompt";
+import ChangeStatusConfirmation from "../components/ChangeStatusConfirmation copy";
+import DeleteConfirmation from "../components/DeleteConfirmation";
 import { exportToCSV } from "../utils/exportToCSV";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
@@ -13,6 +15,8 @@ const Users = () => {
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [showChangeStatus, setShowChangeStatus] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -79,36 +83,45 @@ const Users = () => {
     }
   };
 
-  const changeStatus = async (action) => {
+  const changeStatus = async () => {
     // Check if there are any selected users
     if (selectedUsers.length === 0) {
       toast.error("Please select at least one user");
       return;
     }
-    // Handle different confirmation messages based on the state
-    let confirmationMessage = "";
-    if (action === "delete") {
-      confirmationMessage =
-        "Are you sure you want to permanently delete the selected user(s)?";
-      setOnDelete(true);
-    } else if (action === "archive") {
-      confirmationMessage =
-        "Are you sure you want to archive the selected user(s)?";
-      setOnDelete(false);
-    } else if (action === "restore") {
-      confirmationMessage =
-        "Are you sure you want to restore the selected user(s)?";
-      setOnDelete(false);
-    }
+    setShowChangeStatus(false);
 
-    // Show confirmation dialog
-    const confirmed = window.confirm(confirmationMessage);
+    try {
+      await axios.put(`${url}api/users/update`, {
+        user_ids: selectedUsers, // Use directly if already an array
+        status: showArchive ? "active" : "archived",
+      });
 
-    // If user confirms, proceed with password prompt
-    if (confirmed) {
-      // Show the password prompt to validate the action
-      setShowPasswordPrompt(true);
+      await axios.post(`${url}api/activity/adding`, {
+        user_id: currentUser,
+        department_code: currentDepartment,
+        action: showArchive ? "Restored" : "Archived",
+        details: `${selectedUsers.length}`,
+        type: "user",
+      });
+
+      toast.success("User status updated successfully!");
+      setSelectedUsers([]);
+      fetchUsers();
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      toast.error("Failed to update user status."); // Notify the user of the failure
     }
+  };
+
+  const handleDelete = () => {
+    // Check if there are any selected users
+    if (selectedUsers.length === 0) {
+      toast.error("Please select at least one user");
+      return;
+    }
+    setShowConfirmDelete(false);
+    setShowPasswordPrompt(true);
   };
 
   const handlePasswordSubmit = async (password) => {
@@ -121,51 +134,27 @@ const Users = () => {
 
       // Check if the password is correct (isMatch: true)
       if (response.data.isMatch) {
-        if (onDelete) {
-          try {
-            await axios.delete(`${url}api/users/delete`, {
-              data: { user_ids: selectedUsers }, // Ensure it's passed as the data payload
-            });
+        try {
+          await axios.delete(`${url}api/users/delete`, {
+            data: { user_ids: selectedUsers }, // Ensure it's passed as the data payload
+          });
 
-            // Log the deletion activity
-            await axios.post(`${url}api/activity/adding`, {
-              user_id: currentUser,
-              department_code: currentDepartment,
-              action: "Delete",
-              details: `${selectedUsers.length}`,
-              type: "user",
-            });
+          // Log the deletion activity
+          await axios.post(`${url}api/activity/adding`, {
+            user_id: currentUser,
+            department_code: currentDepartment,
+            action: "Delete",
+            details: `${selectedUsers.length}`,
+            type: "user",
+          });
 
-            toast.success("User/s deleted successfully!");
-            setSelectedUsers([]);
-            setOnDelete(false);
-            fetchUsers();
-          } catch (error) {
-            console.error("Error deleting user:", error);
-            toast.error("Failed to delete user/s."); // Notify the user of the failure
-          }
-        } else {
-          try {
-            await axios.put(`${url}api/users/update`, {
-              user_ids: selectedUsers, // Use directly if already an array
-              status: showArchive ? "active" : "archived",
-            });
-
-            await axios.post(`${url}api/activity/adding`, {
-              user_id: currentUser,
-              department_code: currentDepartment,
-              action: showArchive ? "Restored" : "Archived",
-              details: `${selectedUsers.length}`,
-              type: "user",
-            });
-
-            toast.success("User status updated successfully!");
-            setSelectedUsers([]);
-            fetchUsers();
-          } catch (error) {
-            console.error("Error updating user status:", error);
-            toast.error("Failed to update user status."); // Notify the user of the failure
-          }
+          toast.success("User/s deleted successfully!");
+          setSelectedUsers([]);
+          setOnDelete(false);
+          fetchUsers();
+        } catch (error) {
+          console.error("Error deleting user:", error);
+          toast.error("Failed to delete user/s."); // Notify the user of the failure
         }
       }
     } catch (error) {
@@ -178,6 +167,13 @@ const Users = () => {
     } finally {
       setShowPasswordPrompt(false);
     }
+  };
+
+  const getUserName = () => {
+    const user = users.find((user) => user.user_id === selectedUsers[0]);
+    return user
+      ? `${user.first_name} ${user.middle_name} ${user.last_name}`
+      : null;
   };
 
   return (
@@ -237,9 +233,7 @@ const Users = () => {
                     : "bg-red-400 hover:bg-red-500"
                 } text-white text-xs font-semibold w-[7rem] py-[0.6rem] rounded-lg`}
                 onClick={() => {
-                  showArchive
-                    ? changeStatus("restore")
-                    : changeStatus("archive");
+                  setShowChangeStatus(true);
                 }}
               >
                 {showArchive ? "Restore Account" : "Archive Account"}
@@ -248,17 +242,44 @@ const Users = () => {
                 <button
                   className="bg-red-400 hover:bg-red-500 text-white text-xs font-semibold w-[9rem] py-[0.6rem] px-[0.2rem] rounded-lg"
                   onClick={() => {
-                    changeStatus("delete");
+                    setOnDelete(true);
+                    setShowConfirmDelete(true);
                   }}
                 >
                   Delete Permanently
                 </button>
               )}
-              <PasswordPrompt
-                isOpen={showPasswordPrompt}
-                onRequestClose={() => setShowPasswordPrompt(false)}
-                onSubmit={handlePasswordSubmit}
-              />
+              {showChangeStatus && (
+                <ChangeStatusConfirmation
+                  isOpen={showChangeStatus}
+                  onRequestClose={() => setShowChangeStatus(false)}
+                  category={`${showArchive ? "Restore" : "Archive"} ${
+                    selectedUsers.length === 1 ? "User" : "Users"
+                  }`}
+                  data={
+                    selectedUsers.length === 1 ? getUserName() : selectedUsers
+                  }
+                  confirm={changeStatus}
+                />
+              )}
+              {showConfirmDelete && (
+                <DeleteConfirmation
+                  isOpen={showConfirmDelete}
+                  onRequestClose={() => setShowConfirmDelete(false)}
+                  category={selectedUsers.length === 1 ? "User" : "Users"}
+                  data={
+                    selectedUsers.length === 1 ? getUserName() : selectedUsers
+                  }
+                  confirm={handleDelete}
+                />
+              )}
+              {showPasswordPrompt && (
+                <PasswordPrompt
+                  isOpen={showPasswordPrompt}
+                  onRequestClose={() => setShowPasswordPrompt(false)}
+                  onSubmit={handlePasswordSubmit}
+                />
+              )}
             </div>
           </div>
           <div className="scrollbar h-full w-full overflow-y-auto text-black bg-white border border-gray-400 rounded-lg p-[0.4rem]">
