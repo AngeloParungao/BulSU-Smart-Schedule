@@ -164,10 +164,9 @@ const Departments = () => {
     const validateErrors = {};
     const departmentExists = departments.some(
       (department) =>
-        (department.department.toLowerCase() ===
-          data.department.toLowerCase() ||
-          department.department_code.toLowerCase() ===
-            data.department_code.toLowerCase()) &&
+        department.department.toLowerCase() === data.department.toLowerCase() &&
+        department.department_code.toLowerCase() ===
+          data.department_code.toLowerCase() &&
         (!isUpdating || department.department_code !== departmentCodeToUpdate)
     );
 
