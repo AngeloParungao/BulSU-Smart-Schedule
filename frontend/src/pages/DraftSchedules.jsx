@@ -510,14 +510,18 @@ function DraftSchedules() {
                   onChange={(e) => setSelectedInstructor(e.target.value)}
                   className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                 >
-                  {instructors.map((instructor, index) => (
-                    <option
-                      key={index}
-                      value={`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
-                    >
-                      {`${instructor.first_name} ${instructor.last_name}`}
-                    </option>
-                  ))}
+                  {instructors.length === 0 ? (
+                    <option value="Instructor">Instructor</option>
+                  ) : (
+                    instructors.map((instructor, index) => (
+                      <option
+                        key={index}
+                        value={`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
+                      >
+                        {`${instructor.first_name} ${instructor.last_name}`}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
             ) : category === "section" ? (
