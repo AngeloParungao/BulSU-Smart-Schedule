@@ -39,8 +39,6 @@ const DeleteConfirmation = ({
     },
   };
 
-  console.log(data);
-
   return (
     <Modal
       isOpen={isOpen}
