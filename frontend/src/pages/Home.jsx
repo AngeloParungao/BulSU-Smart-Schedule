@@ -98,19 +98,34 @@ function Home() {
               </div>
               <div className="flex justify-center items-center h-full">
                 <span
-                  className={`lg:text-5xl text-2xl font-bold ${
-                    schedules.length < 10
-                      ? "text-red-500"
-                      : schedules.length < 30
-                      ? "text-yellow-500"
-                      : "text-green-500"
-                  }`}
+                  className={`
+                    lg:text-5xl text-2xl font-bold
+                    ${
+                      (currentDepartment === "ADMIN"
+                        ? schedules
+                        : schedules.filter(
+                            (s) => s.department_code === currentDepartment
+                          )
+                      ).length < 10
+                        ? "text-red-500"
+                        : (currentDepartment === "ADMIN"
+                            ? schedules
+                            : schedules.filter(
+                                (s) => s.department_code === currentDepartment
+                              )
+                          ).length < 30
+                        ? "text-yellow-500"
+                        : "text-green-500"
+                    }`}
                 >
-                  {currentDepartment === "ADMIN"
-                    ? schedules.length
-                    : schedules.filter(
-                        (s) => s.department_code === currentDepartment
-                      ).length}
+                  {
+                    (currentDepartment === "ADMIN"
+                      ? schedules
+                      : schedules.filter(
+                          (s) => s.department_code === currentDepartment
+                        )
+                    ).length
+                  }
                 </span>
               </div>
             </div>
