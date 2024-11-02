@@ -106,7 +106,11 @@ function Home() {
                       : "text-green-500"
                   }`}
                 >
-                  {schedules.length}
+                  {currentDepartment === "ADMIN"
+                    ? schedules.length
+                    : schedules.filter(
+                        (s) => s.department_code === currentDepartment
+                      ).length}
                 </span>
               </div>
             </div>
