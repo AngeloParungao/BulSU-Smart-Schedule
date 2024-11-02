@@ -108,13 +108,13 @@ function Sidebar() {
             <NavLink
               to="/departments"
               className={({ isActive }) =>
-                `flex flex-col justify-center items-center w-full h-[4.5rem] hover:bg-[#2c323b] hover:text-white ${
+                `flex flex-col justify-center items-center w-full h-[4.5rem] gap-2 hover:bg-[#2c323b] hover:text-white ${
                   isActive ? "bg-white text-[#343B46]" : ""
                 }`
               }
             >
               <FontAwesomeIcon icon={faTable} />
-              <span className="text-[0.6rem]">Departments</span>
+              <span className="text-xs">Data</span>
             </NavLink>
           </>
         ) : (
