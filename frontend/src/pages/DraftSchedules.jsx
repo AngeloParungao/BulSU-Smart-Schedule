@@ -56,12 +56,12 @@ function DraftSchedules() {
 
       setSchedules(scheduleRes.data);
       setSections(sectionRes.data);
+      setRooms(roomRes.data);
       setInstructors(
         instructorRes.data.sort((a, b) =>
           a.first_name.localeCompare(b.first_name)
         )
       );
-      setRooms(roomRes.data);
 
       if (scheduleRes.data.length > 0) {
         setSchedules(
@@ -69,7 +69,10 @@ function DraftSchedules() {
             a.instructor.localeCompare(b.instructor)
           )
         );
-        setSelectedInstructor(scheduleRes.data[0].instructor.toString());
+      }
+
+      if (instructorRes.data.length > 0) {
+        setSelectedInstructor(instructorRes.data[0].instructor_id.toString());
       }
 
       if (sectionRes.data.length > 0) {
