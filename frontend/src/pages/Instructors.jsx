@@ -33,6 +33,7 @@ const Instructors = () => {
     work_type: "",
     tags: "",
     department_code: currentRole === "Administrator" ? "" : currentDepartment,
+    old_full_name: "",
   });
 
   useEffect(() => {
@@ -73,6 +74,7 @@ const Instructors = () => {
       department_code: currentRole === "Administrator" ? "" : currentDepartment,
       work_type: "",
       tags: "",
+      old_full_name: "",
     });
     setIsUpdating(false);
   };
@@ -131,6 +133,12 @@ const Instructors = () => {
       department_code: instructor.department_code,
       work_type: instructor.work_type,
       tags: instructor.tags,
+      old_full_name:
+        instructor.first_name +
+        " " +
+        instructor.middle_name +
+        " " +
+        instructor.last_name,
     });
   };
 
