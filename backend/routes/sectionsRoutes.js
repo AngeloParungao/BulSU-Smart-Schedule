@@ -60,7 +60,7 @@ router.delete('/delete', (req, res) => {
 
 router.put('/update/:id', (req, res) => {
     const sectionId = req.params.id;
-    const { section_name, section_group, year_level, section_capacity, section_tags, department_code } = req.body;
+    const { section_name, section_group, year_level, section_capacity, section_tags, department_code, old_section_name, old_section_group } = req.body;
 
     const sql = "UPDATE sections SET section_name = ?, section_group = ?, year_level = ?, section_capacity = ?, section_tags = ?, department_code = ? WHERE section_id = ?";
 
@@ -69,7 +69,15 @@ router.put('/update/:id', (req, res) => {
             console.error('Error updating sectionId:', err);
             return res.status(500).json({ error: 'Failed to update sectionId' });
         }
-        res.status(200).json({ message: 'Section updated successfully' });
+
+        const sql2 = "UPDATE schedules SET section_name = ? WHERE section_name = ? AND section_group = ?";
+        db.query(sql2, [section_name, old_section_name, old_section_group], (err, result) => {
+            if (err) {
+                console.error('Error updating schedules:', err);
+                return res.status(500).json({ error: 'Failed to update schedules' });
+            }
+            res.status(200).json({ message: 'Section updated successfully' });
+        });
     });
 });
 

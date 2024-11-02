@@ -59,7 +59,7 @@ router.delete('/delete', (req, res) => {
 
 router.put('/update/:id', (req, res) => {
     const subjectId = req.params.id;
-    const { subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags , department_code } = req.body;
+    const { subject_name , subject_code, year_level, subject_semester, subject_type , subject_units , subject_tags , department_code, old_subject_name } = req.body;
 
     const sql = "UPDATE subjects SET subject_name = ?, subject_code = ?, year_level = ?, subject_semester = ?, subject_type = ?, subject_units = ?, subject_tags = ?, department_code = ? WHERE subject_id = ?";
 
@@ -68,7 +68,15 @@ router.put('/update/:id', (req, res) => {
             console.error('Error updating subjectId:', err);
             return res.status(500).json({ error: 'Failed to update subjectId' });
         }
-        res.status(200).json({ message: 'Subject updated successfully' });
+        
+        const sql2 = "UPDATE schedules SET subject = ? WHERE subject = ?";
+        db.query(sql2, [subject_name, old_subject_name], (err, result) => {
+            if (err) {
+                console.error('Error updating schedules:', err);
+                return res.status(500).json({ error: 'Failed to update schedules' });
+            }
+            res.status(200).json({ message: 'Subject updated successfully' });
+        });
     });
 });
 

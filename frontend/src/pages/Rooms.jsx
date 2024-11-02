@@ -26,6 +26,8 @@ const Rooms = () => {
     room_name: "",
     room_type: "",
     room_building: "",
+    old_room_name: "",
+    old_room_building: "",
   });
 
   useEffect(() => {
@@ -50,6 +52,8 @@ const Rooms = () => {
       room_name: "",
       room_type: "",
       room_building: "",
+      old_room_name: "",
+      old_room_building: "",
     });
     setIsUpdating(false);
   };
@@ -91,6 +95,8 @@ const Rooms = () => {
       room_name: room.room_name,
       room_type: room.room_type,
       room_building: room.room_building,
+      old_room_name: room.room_name,
+      old_room_building: room.room_building,
     });
   };
 

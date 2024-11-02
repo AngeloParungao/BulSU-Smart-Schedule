@@ -52,7 +52,7 @@ router.delete('/delete', (req, res) => {
 
 router.put('/update/:id', (req, res) => {
     const roomId = req.params.id;
-    const { room_type, room_name, room_building } = req.body;
+    const { room_type, room_name, room_building, old_room_name, old_room_building } = req.body;
 
     const sql = "UPDATE rooms SET room_type = ?, room_name = ?, room_building = ? WHERE room_id = ?";
 
@@ -61,7 +61,15 @@ router.put('/update/:id', (req, res) => {
             console.error('Error updating room:', err);
             return res.status(500).json({ error: 'Failed to update room' });
         }
-        res.status(200).json({ message: 'Rooms updated successfully' });
+
+        const sql2 = "UPDATE schedules SET room = ?, room_building = ? WHERE room = ? AND room_building = ?";
+        db.query(sql2, [room_name, room_building, old_room_name, old_room_building], (err, result) => {
+            if (err) {
+                console.error('Error updating schedules:', err);
+                return res.status(500).json({ error: 'Failed to update schedules' });
+            }
+            res.status(200).json({ message: 'Room updated successfully' });
+        });
     });
 });
 

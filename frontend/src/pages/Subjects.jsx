@@ -38,6 +38,7 @@ const Subjects = () => {
     subject_units: "",
     subject_tags: "",
     department_code: currentRole === "Administrator" ? "" : currentDepartment,
+    old_subject_name: "",
   });
 
   useEffect(() => {
@@ -79,6 +80,7 @@ const Subjects = () => {
       subject_units: "",
       subject_tags: "",
       department_code: currentRole === "Administrator" ? "" : currentDepartment,
+      old_subject_name: "",
     });
     setIsUpdating(false);
   };
@@ -122,10 +124,6 @@ const Subjects = () => {
       selectedDepartment === "All" ||
       subject.department_code === selectedDepartment;
 
-    console.log("Filtering for selectedLabels:", selectedLabels);
-    console.log("Subject tags:", subject.subject_tags);
-    console.log("matchesLabels result:", matchesLabels);
-
     return (
       matchesSearch &&
       matchesType &&
@@ -166,6 +164,7 @@ const Subjects = () => {
       subject_units: subject.subject_units,
       subject_tags: subject.subject_tags,
       department_code: subject.department_code,
+      old_subject_name: subject.subject_name,
     });
   };
 

@@ -39,6 +39,8 @@ const Sections = () => {
     section_capacity: "",
     section_tags: "",
     department_code: currentRole === "Administrator" ? "" : currentDepartment,
+    old_section_name: "",
+    old_section_group: "",
   });
 
   useEffect(() => {
@@ -78,6 +80,8 @@ const Sections = () => {
       section_capacity: "",
       department_code: currentRole === "Administrator" ? "" : currentDepartment,
       section_tags: "",
+      old_section_name: "",
+      old_section_group: "",
     });
     setAddGroup(false);
     setIsUpdating(false);
@@ -150,6 +154,8 @@ const Sections = () => {
       section_capacity: section.section_capacity,
       department_code: section.department_code,
       section_tags: section.section_tags,
+      old_section_name: section.section_name,
+      old_section_group: section.section_group,
     });
   };
 
