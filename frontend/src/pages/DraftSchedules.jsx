@@ -56,10 +56,19 @@ function DraftSchedules() {
 
       setSchedules(scheduleRes.data);
       setSections(sectionRes.data);
-      setInstructors(instructorRes.data);
+      setInstructors(
+        instructorRes.data.sort((a, b) =>
+          a.first_name.localeCompare(b.first_name)
+        )
+      );
       setRooms(roomRes.data);
 
       if (scheduleRes.data.length > 0) {
+        setSchedules(
+          scheduleRes.data.sort((a, b) =>
+            a.instructor.localeCompare(b.instructor)
+          )
+        );
         setSelectedInstructor(scheduleRes.data[0].instructor.toString());
       }
 
@@ -406,9 +415,7 @@ function DraftSchedules() {
       </div>
       <div className="w-full h-screen absolute lg:relative">
         <div className="flex justify-between items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)]">
-          <span className="md:text-4xl text-2xl font-medium">
-            Draft Schedules
-          </span>
+          <span className="md:text-4xl text-2xl font-medium">Schedules</span>
           <button
             className="mr-4 text-white md:text-[0.8rem] text-[0.6rem] bg-green-500 py-2 px-4 rounded-full hover:bg-green-600 transition-all"
             onClick={() => setShowReportModal(true)}
