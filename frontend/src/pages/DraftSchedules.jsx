@@ -72,7 +72,13 @@ function DraftSchedules() {
       }
 
       if (instructorRes.data.length > 0) {
-        setSelectedInstructor(instructorRes.data[0].instructor_id.toString());
+        setSelectedInstructor(
+          instructorRes.data[0].first_name.toString() +
+            " " +
+            instructorRes.data[0].middle_name.toString() +
+            " " +
+            instructorRes.data[0].last_name.toString()
+        );
       }
 
       if (sectionRes.data.length > 0) {
@@ -513,18 +519,15 @@ function DraftSchedules() {
                   onChange={(e) => setSelectedInstructor(e.target.value)}
                   className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                 >
-                  {instructors.length === 0 ? (
-                    <option value="Instructor">Instructor</option>
-                  ) : (
-                    instructors.map((instructor, index) => (
-                      <option
-                        key={index}
-                        value={`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
-                      >
-                        {`${instructor.first_name} ${instructor.last_name}`}
-                      </option>
-                    ))
-                  )}
+                  <option value="Instructor">Instructor</option>
+                  {instructors.map((instructor, index) => (
+                    <option
+                      key={index}
+                      value={`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
+                    >
+                      {`${instructor.first_name} ${instructor.last_name}`}
+                    </option>
+                  ))}
                 </select>
               </div>
             ) : category === "section" ? (
@@ -543,17 +546,14 @@ function DraftSchedules() {
                     onChange={(e) => setSelectedSection(e.target.value)}
                     className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                   >
-                    {sections.length === 0 ? (
-                      <option value="Section">Section</option>
-                    ) : (
-                      [...new Set(sections.map((s) => s.section_name))]
-                        .sort() // Sort section names alphabetically
-                        .map((section, index) => (
-                          <option key={index} value={section}>
-                            {section}
-                          </option>
-                        ))
-                    )}
+                    <option value="Section">Section</option>
+                    {[...new Set(sections.map((s) => s.section_name))]
+                      .sort() // Sort section names alphabetically
+                      .map((section, index) => (
+                        <option key={index} value={section}>
+                          {section}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 {sections
@@ -573,6 +573,7 @@ function DraftSchedules() {
                       onChange={(e) => setSelectedGroup(e.target.value)}
                       className="w-[6rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                     >
+                      <option value="Group">Group</option>
                       {sections
                         .filter(
                           (section) => section.section_name === selectedSection
@@ -609,15 +610,12 @@ function DraftSchedules() {
                     }}
                     className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                   >
-                    {rooms.length === 0 ? (
-                      <option value="Building">Building</option>
-                    ) : (
-                      [...new Set(rooms.map((r) => r.room_building))].map(
-                        (building, index) => (
-                          <option key={index} value={building}>
-                            {building}
-                          </option>
-                        )
+                    <option value="Building">Building</option>
+                    {[...new Set(rooms.map((r) => r.room_building))].map(
+                      (building, index) => (
+                        <option key={index} value={building}>
+                          {building}
+                        </option>
                       )
                     )}
                   </select>
@@ -636,17 +634,14 @@ function DraftSchedules() {
                     onChange={(e) => setSelectedRoom(e.target.value)}
                     className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                   >
-                    {rooms.length === 0 ? (
-                      <option value="Room">Room</option>
-                    ) : (
-                      rooms
-                        .filter((r) => r.room_building === selectedBuilding)
-                        .map((room, index) => (
-                          <option key={index} value={room.room_name}>
-                            {room.room_name}
-                          </option>
-                        ))
-                    )}
+                    <option value="Room">Room</option>
+                    {rooms
+                      .filter((r) => r.room_building === selectedBuilding)
+                      .map((room, index) => (
+                        <option key={index} value={room.room_name}>
+                          {room.room_name}
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>
