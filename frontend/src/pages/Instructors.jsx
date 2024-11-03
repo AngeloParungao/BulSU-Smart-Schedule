@@ -454,6 +454,7 @@ const Instructors = () => {
                     } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
                   >
                     <option value="">Department</option>
+                    <option value="GENERAL">GENERAL</option>
                     {departments.map((department, index) => (
                       <option key={index} value={department.code}>
                         {department.department_code}
