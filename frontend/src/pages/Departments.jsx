@@ -22,8 +22,9 @@ const Departments = () => {
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
-    department: "",
+    program_code: "",
     department_code: "",
+    department: "",
     department_head: "",
   });
 
@@ -46,8 +47,9 @@ const Departments = () => {
 
   const resetForm = () => {
     setData({
-      department: "",
+      program_code: "",
       department_code: "",
+      department: "",
       department_head: "",
     });
     setIsUpdating(false);
@@ -85,8 +87,11 @@ const Departments = () => {
     setIsUpdating(true);
     setDepartmentCodeToUpdate(department.department_code);
     setData({
+      program_code: department.department_code.split(" ")[0],
+      department_code: department.department_code
+        .replace(/[()]/g, "")
+        .split(" ")[1],
       department: department.department,
-      department_code: department.department_code,
       department_head: department.department_head,
     });
   };
@@ -165,19 +170,23 @@ const Departments = () => {
     const departmentExists = departments.some(
       (department) =>
         department.department.toLowerCase() === data.department.toLowerCase() &&
-        department.department_code.toLowerCase() ===
-          data.department_code.toLowerCase() &&
+        department.department_code ===
+          data.program_code + " (" + data.department_code + ")" &&
         (!isUpdating || department.department_code !== departmentCodeToUpdate)
     );
 
     if (departmentExists) {
-      validateErrors.department = "Department Already Exists!";
+      validateErrors.program_code = "Department Already Exists!";
+      validateErrors.department_code = "Department Already Exists!";
     }
-    if (!data.department) {
-      validateErrors.department = "Department Name is required!";
+    if (!data.program_code) {
+      validateErrors.program_code = "Program Code is required!";
     }
     if (!data.department_code) {
       validateErrors.department_code = "Department Code is required!";
+    }
+    if (!data.department) {
+      validateErrors.department = "Department Name is required!";
     }
     if (!data.department_head) {
       validateErrors.department_head = "Department Head is required!";
@@ -198,7 +207,7 @@ const Departments = () => {
             user_id: currentUser,
             department_code: currentDepartment,
             action: "Update",
-            details: `${data.department} - ${data.department_code}`,
+            details: `${data.department_code}`,
             type: "department",
           });
 
@@ -210,7 +219,7 @@ const Departments = () => {
             user_id: currentUser,
             department_code: currentDepartment,
             action: "Add",
-            details: `${data.department} - ${data.department_code}`,
+            details: `${data.department_code}`,
             type: "department",
           });
 
@@ -258,25 +267,28 @@ const Departments = () => {
             </h2>
             <div className="flex flex-col gap-[0.2rem]">
               <div className="flex items-center gap-2">
-                <label htmlFor="department" className="text-sm text-black">
-                  Department Name:
+                <label htmlFor="program_code" className="text-sm text-black">
+                  Program Code:
                 </label>
-                {errors.department && (
-                  <p className="text-red-500 text-xs">{errors.department}</p>
+                {errors.program_code && (
+                  <p className="text-red-500 text-xs">{errors.program_code}</p>
                 )}
               </div>
               <input
                 type="text"
-                name="department"
-                id="department"
-                placeholder="Department Name"
-                value={data.department}
+                name="program_code"
+                id="program_code"
+                placeholder="Program Code"
+                value={data.program_code}
                 onChange={(e) => {
-                  setData({ ...data, department: e.target.value });
-                  setErrors({ ...errors, department: "" });
+                  setData({
+                    ...data,
+                    program_code: e.target.value.toUpperCase(),
+                  });
+                  setErrors({ ...errors, program_code: "" });
                 }}
                 className={`${
-                  errors.department ? "border-red-500" : ""
+                  errors.program_code ? "border-red-500" : ""
                 } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
@@ -298,11 +310,38 @@ const Departments = () => {
                 placeholder="Department Code"
                 value={data.department_code}
                 onChange={(e) => {
-                  setData({ ...data, department_code: e.target.value });
+                  setData({
+                    ...data,
+                    department_code: e.target.value.toUpperCase(),
+                  });
                   setErrors({ ...errors, department_code: "" });
                 }}
                 className={`${
                   errors.department_code ? "border-red-500" : ""
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
+              />
+            </div>
+            <div className="flex flex-col gap-[0.2rem]">
+              <div className="flex items-center gap-2">
+                <label htmlFor="department" className="text-sm text-black">
+                  Department Name:
+                </label>
+                {errors.department && (
+                  <p className="text-red-500 text-xs">{errors.department}</p>
+                )}
+              </div>
+              <input
+                type="text"
+                name="department"
+                id="department"
+                placeholder="Department Name"
+                value={data.department}
+                onChange={(e) => {
+                  setData({ ...data, department: e.target.value });
+                  setErrors({ ...errors, department: "" });
+                }}
+                className={`${
+                  errors.department ? "border-red-500" : ""
                 } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
