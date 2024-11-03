@@ -24,7 +24,7 @@ router.get('/fetch', (req, res) => {
     if (dept_code === 'ADMIN') {
         sql = "SELECT * FROM instructors";
     } else {
-        sql = "SELECT * FROM instructors WHERE department_code = ?";
+        sql = "SELECT * FROM instructors WHERE department_code = ? OR department_code = 'GENERAL'";
     }
 
     db.query(sql, dept_code !== 'ADMIN' ? [dept_code] : [], (err, results) => {
