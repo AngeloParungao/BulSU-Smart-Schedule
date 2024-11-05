@@ -53,18 +53,18 @@ const SignOutConfirmation = ({ isOpen, onRequestClose }) => {
       style={customStyles}
       appElement={document.getElementById("root")}
     >
-      <div className="bg-white rounded-lg p-4">
+      <div className="flex flex-col items-center bg-white rounded-full p-2 py-4 gap-4">
         <h2 className="text-lg">Are you sure you want to sign out?</h2>
-        <div className="mt-4 flex justify-end">
+        <div className="flex justify-center w-full gap-2">
           <button
             onClick={logout}
-            className="bg-red-500 hover:bg-red-700 text-white text-sm font-bold py-2 px-4 rounded"
+            className="bg-red-500 hover:bg-red-700 text-white text-sm font-bold py-2 px-4 rounded-full w-full"
           >
             Sign out
           </button>
           <button
             onClick={onRequestClose}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-bold py-2 px-4 rounded ml-2"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-bold py-2 px-4 rounded-full w-full"
           >
             Cancel
           </button>
