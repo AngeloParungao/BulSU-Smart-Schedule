@@ -46,7 +46,7 @@ const ChangeStatusConfirmation = ({
       appElement={document.getElementById("root")}
     >
       <div className="flex flex-col items-center gap-6">
-        <div className="text-2xl text-red-500 h-12 w-12 flex items-center justify-center bg-red-100 rounded-full">
+        <div className="text-2xl text-orange-500 h-12 w-12 flex items-center justify-center bg-orange-100 rounded-full">
           <FontAwesomeIcon icon={faWarning} />
         </div>
         <div className="flex flex-col items-center gap-2 text-center">
@@ -62,7 +62,7 @@ const ChangeStatusConfirmation = ({
         </div>
         <div className="flex w-full gap-2">
           <button
-            className="bg-red-500 text-white w-full p-2 rounded-full hover:bg-red-600"
+            className="bg-orange-500 text-white w-full p-2 rounded-full hover:bg-orange-600"
             onClick={confirm}
           >
             {category === "Restore User" ? "Restore" : "Archive"}
