@@ -310,6 +310,23 @@ const AddSchedule = ({
       (schedule) => schedule.class_type === data.course_type && !isMinor
     );
 
+    // Check if the instructor is a part-timer and limit to 9 hours (540 minutes)
+    const instructorSchedules = schedules.filter(
+      (schedule) =>
+        schedule.instructor === data.instructor && schedule.day === data.day
+    );
+
+    const instructorTotalHours = calculateTotalDuration(instructorSchedules);
+    const instructor = instructors.find(
+      (inst) =>
+        inst.first_name + " " + inst.middle_name + " " + inst.last_name ===
+        data.instructor
+    );
+    const isPartTimer = instructor && instructor.work_type === "Part-timer";
+
+    const exceedsPartTimeLimit =
+      isPartTimer && instructorTotalHours + newScheduleDuration > 540; // 540 minutes = 9 hours
+
     setErrors({
       time_error: !!hasSectionConflict,
       section_collision_time: hasSectionConflict
@@ -336,6 +353,7 @@ const AddSchedule = ({
         : null,
       subject_error: exceedsLimits || exceedsMinorLimit,
       course_error: alreadyExists,
+      part_time_error: exceedsPartTimeLimit,
     });
   };
 
@@ -363,7 +381,8 @@ const AddSchedule = ({
       errors.room_error ||
       errors.room_collision_time ||
       errors.subject_error ||
-      errors.course_error
+      errors.course_error ||
+      errors.part_time_error
     ) {
       toast.error("There are errors in the form. Please fix them.");
       setIsSubmitting(false);
@@ -612,6 +631,15 @@ const AddSchedule = ({
                       showErrors.instructor ? "block" : "hidden"
                     } lg:block lg:w-1/2 w-full`}
                   >
+                    {errors.part_time_error && (
+                      <p className="text-[0.8rem] flex items-center px-2 py-[0.35rem] rounded-md border border-red-400">
+                        <FontAwesomeIcon
+                          icon={faWarning}
+                          className="text-orange-500 text-lg mr-2"
+                        />
+                        Part timer instructor exceeds working hours
+                      </p>
+                    )}
                     {errors.instructor_error && (
                       <p className="text-[0.8rem] flex items-center px-2 py-[0.35rem] rounded-md border border-red-400">
                         <FontAwesomeIcon

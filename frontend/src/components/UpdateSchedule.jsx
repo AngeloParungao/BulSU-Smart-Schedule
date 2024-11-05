@@ -366,7 +366,6 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
     }, 0);
 
     const numberOfMeetings = subjectSectionSchedules.length;
-
     const exceedsLimits =
       totalHours + (newEndInMinutes - newStartInMinutes) / 60 > 5 ||
       numberOfMeetings >= 2;
@@ -380,6 +379,33 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
     const alreadyExists = subjectSectionSchedules.some(
       (schedule) => schedule.class_type === data.course_type && !isMinor
     );
+
+    const instructor = instructors.find(
+      (inst) =>
+        inst.first_name + " " + inst.middle_name + " " + inst.last_name ===
+        data.instructor
+    );
+    const isPartTimer = instructor && instructor.work_type === "Part-timer";
+
+    const instructorSchedulesForDay = schedules.filter(
+      (schedule) =>
+        schedule.instructor === data.instructor &&
+        schedule.day === data.day &&
+        schedule.schedule_id !== item.schedule_id
+    );
+
+    const instructorDailyHours = instructorSchedulesForDay.reduce(
+      (sum, schedule) => {
+        const start = timeToMinutes(schedule.start_time);
+        const end = timeToMinutes(schedule.end_time);
+        return sum + (end - start) / 60;
+      },
+      0
+    );
+
+    const newScheduleDuration = (newEndInMinutes - newStartInMinutes) / 60;
+    const exceedsPartTimeLimit =
+      isPartTimer && instructorDailyHours + newScheduleDuration > 9; // 9 hours limit for part-time instructors
 
     setErrors({
       time_error: hasSectionConflict,
@@ -407,6 +433,7 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
         : null,
       subject_error: exceedsLimits || exceedsMinorLimit,
       course_error: alreadyExists,
+      part_time_error: exceedsPartTimeLimit,
     });
   };
 
@@ -435,7 +462,8 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
       errors.room_error ||
       errors.room_collision_time ||
       errors.subject_error ||
-      errors.course_error
+      errors.course_error ||
+      errors.part_time_error
     ) {
       toast.error("There are errors in the form. Please fix them.");
       setIsSubmitting(false);
@@ -729,6 +757,15 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
                       showErrors.instructor ? "block" : "hidden"
                     } lg:block lg:w-1/2 w-full`}
                   >
+                    {errors.part_time_error && (
+                      <p className="text-[0.8rem] flex items-center px-2 py-[0.35rem] rounded-md border border-red-400">
+                        <FontAwesomeIcon
+                          icon={faWarning}
+                          className="text-orange-500 text-lg mr-2"
+                        />
+                        Part timer instructor exceeds working hours
+                      </p>
+                    )}
                     {errors.instructor_error && (
                       <p className="text-[0.8rem] flex items-center px-2 py-[0.35rem] rounded-md border border-red-400">
                         <FontAwesomeIcon
