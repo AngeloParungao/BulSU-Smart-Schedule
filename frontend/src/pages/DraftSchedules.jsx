@@ -100,44 +100,41 @@ function DraftSchedules() {
     const scheduleContainer = document.querySelector("#scheduleTable");
     if (!scheduleContainer) return toast.error("No schedule found to print.");
 
-    // Clone the scheduleContainer to avoid changing the original
     const clone = scheduleContainer.cloneNode(true);
     document.body.appendChild(clone);
 
-    // Apply styles to force large-screen styles
-    clone.style.width = "1200px"; // Set width to a fixed large size
-    clone.style.fontSize = "16px"; // Force larger font size
-    clone.style.lineHeight = "1.5"; // Adjust line height if needed
-    clone.style.position = "absolute"; // Position it off-screen
-    clone.style.left = "-9999px"; // Move it out of view
-    clone.style.height = "auto"; // Allow height to adjust based on content
-    clone.style.margin = "0"; // Remove any margin if needed
+    clone.style.width = "1200px";
+    clone.style.fontSize = "16px";
+    clone.style.lineHeight = "1.5";
+    clone.style.position = "absolute";
+    clone.style.left = "-9999px";
+    clone.style.height = "auto";
+    clone.style.margin = "0";
 
-    // If you have specific elements that need larger styles, target them as well
     const timeElements = clone.querySelectorAll(".time");
     timeElements.forEach((el) => {
-      el.style.color = "black"; // Set time color to black
-      el.style.fontSize = "12px"; // Ensure font size is large enough
+      el.style.color = "black";
+      el.style.fontSize = "12px";
     });
     const dayElements = clone.querySelectorAll(".timetable th");
     dayElements.forEach((el) => {
-      el.style.fontSize = "12px"; // Ensure font size is large enough
+      el.style.fontSize = "12px";
     });
     const subjectElements = clone.querySelectorAll(".subject-name");
     subjectElements.forEach((el) => {
-      el.style.fontSize = "12px"; // Ensure font size is large enough
+      el.style.fontSize = "12px";
     });
     const instructorElements = clone.querySelectorAll(".instructor-name");
     instructorElements.forEach((el) => {
-      el.style.fontSize = "10px"; // Ensure font size is large enough
+      el.style.fontSize = "10px";
     });
     const roomElements = clone.querySelectorAll(".room-name");
     roomElements.forEach((el) => {
-      el.style.fontSize = "10px"; // Ensure font size is large enough
+      el.style.fontSize = "10px";
     });
     const sectionElements = clone.querySelectorAll(".section-name");
     sectionElements.forEach((el) => {
-      el.style.fontSize = "10px"; // Ensure font size is large enough
+      el.style.fontSize = "10px";
     });
 
     try {
@@ -148,13 +145,9 @@ function DraftSchedules() {
       });
       const pdf = new jsPDF("p", "mm", "a4");
       const imgData = canvas.toDataURL("image/png");
-      const imgWidth = 210; // A4 width in mm
-      const imgHeight = 150; // Adjust as needed for your layout
+      const imgWidth = 210;
+      const imgHeight = 150;
 
-      let heightLeft = imgHeight,
-        pageHeight = 297; // A4 height in mm
-
-      // Add title and details on the first page
       pdf
         .setFontSize(18)
         .text(
@@ -167,9 +160,7 @@ function DraftSchedules() {
           } SCHEDULE`,
           pdf.internal.pageSize.getWidth() / 2,
           20,
-          {
-            align: "center",
-          }
+          { align: "center" }
         );
       pdf
         .setFontSize(14)
@@ -207,9 +198,7 @@ function DraftSchedules() {
           }`,
           pdf.internal.pageSize.getWidth() / 2,
           48,
-          {
-            align: "center",
-          }
+          { align: "center" }
         );
 
       pdf.addImage(imgData, "PNG", 0, 80, imgWidth, imgHeight);
@@ -218,13 +207,11 @@ function DraftSchedules() {
       console.error("Error generating PDF:", error);
       toast.error("Failed to generate PDF");
     } finally {
-      // Clean up the cloned table and reset styles
       document.body.removeChild(clone);
       timeElements.forEach((el) => (el.style.color = ""));
     }
   };
 
-  //TODO: fix layout
   const generateAllPDFs = async () => {
     const scheduleContainer = document.querySelector("#scheduleTable");
     if (!scheduleContainer) {
@@ -236,23 +223,55 @@ function DraftSchedules() {
       let isFirstPage = true;
 
       const addPage = async (name) => {
-        // Ensure state is updated before capturing
-        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait briefly for DOM updates
+        const clone = scheduleContainer.cloneNode(true);
+        document.body.appendChild(clone);
 
-        // Capture the current visible schedule
-        const canvas = await html2canvas(scheduleContainer, {
+        clone.style.width = "1200px";
+        clone.style.fontSize = "16px";
+        clone.style.lineHeight = "1.5";
+        clone.style.position = "absolute";
+        clone.style.left = "-9999px";
+        clone.style.height = "auto";
+        clone.style.margin = "0";
+
+        const timeElements = clone.querySelectorAll(".time");
+        timeElements.forEach((el) => {
+          el.style.color = "black";
+          el.style.fontSize = "12px";
+        });
+        const dayElements = clone.querySelectorAll(".timetable th");
+        dayElements.forEach((el) => {
+          el.style.fontSize = "12px";
+        });
+        const subjectElements = clone.querySelectorAll(".subject-name");
+        subjectElements.forEach((el) => {
+          el.style.fontSize = "12px";
+        });
+        const instructorElements = clone.querySelectorAll(".instructor-name");
+        instructorElements.forEach((el) => {
+          el.style.fontSize = "10px";
+        });
+        const roomElements = clone.querySelectorAll(".room-name");
+        roomElements.forEach((el) => {
+          el.style.fontSize = "10px";
+        });
+        const sectionElements = clone.querySelectorAll(".section-name");
+        sectionElements.forEach((el) => {
+          el.style.fontSize = "10px";
+        });
+
+        const canvas = await html2canvas(clone, {
           scale: 2,
           useCORS: true,
           backgroundColor: null,
         });
         const imgData = canvas.toDataURL("image/png");
-        const imgWidth = 210; // A4 width in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Adjust height based on aspect ratio
+        const imgWidth = 210;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
         if (!isFirstPage) pdf.addPage();
         isFirstPage = false;
 
-        // Add title and details on the first page
         pdf
           .setFontSize(18)
           .text(
@@ -306,8 +325,9 @@ function DraftSchedules() {
             { align: "center" }
           );
 
-        // Add the image to the PDF
-        pdf.addImage(imgData, "PNG", 0, 80, imgWidth, imgHeight); // Start image below title
+        pdf.addImage(imgData, "PNG", 0, 80, imgWidth, imgHeight);
+        document.body.removeChild(clone);
+        timeElements.forEach((el) => (el.style.color = ""));
       };
 
       const addSchedules = async () => {
@@ -322,6 +342,7 @@ function DraftSchedules() {
           ];
           for (const name of instructorsList) {
             setSelectedInstructor(name);
+            await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
             await addPage(name);
           }
         } else if (category === "section") {
@@ -337,6 +358,7 @@ function DraftSchedules() {
             const [sectionName, group] = sectionGroup.split("-");
             setSelectedSection(sectionName);
             setSelectedGroup(group);
+            await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
             await addPage(`${sectionName} - ${group}`);
           }
         } else if (category === "room") {
@@ -345,13 +367,14 @@ function DraftSchedules() {
           ];
           for (const room of roomsArray) {
             setSelectedRoom(room);
+            await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
             await addPage(room);
           }
         }
       };
 
-      await addSchedules(); // Call the function to add schedules
-      pdf.save("all_schedules.pdf"); // Save the combined PDF
+      await addSchedules();
+      pdf.save("all_schedules.pdf");
     } catch (error) {
       console.error("Error generating all PDFs:", error);
       toast.error("Failed to generate all PDFs");
