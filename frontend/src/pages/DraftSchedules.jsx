@@ -365,22 +365,19 @@ function DraftSchedules() {
           pdf.save("section-schedules.pdf");
         } else if (category === "room") {
           const buildingsArray = [
-            ...new Set(rooms.map(({ room_building }) => room_building)),
+            ...new Set(
+              rooms.map(
+                ({ room_building, room_name }) =>
+                  `${room_building}-${room_name}`
+              )
+            ),
           ];
           for (const building of buildingsArray) {
-            setSelectedBuilding(building);
-            const roomsArray = [
-              ...new Set(
-                rooms
-                  .filter((r) => r.room_building === building)
-                  .map(({ room_name }) => room_name)
-              ),
-            ];
-            for (const room of roomsArray) {
-              setSelectedRoom(room);
-              await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
-              await addPage(room);
-            }
+            const [buildingName, roomName] = building.split("-");
+            setSelectedBuilding(buildingName);
+            setSelectedRoom(roomName);
+            await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
+            await addPage(`${buildingName} - ${roomName}`);
           }
           pdf.save("room-schedules.pdf");
         }
