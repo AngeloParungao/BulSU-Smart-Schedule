@@ -9,7 +9,7 @@ import Report from "../components/Report";
 function DraftSchedules() {
   const url = process.env.REACT_APP_URL;
   const currentDepartment = atob(localStorage.getItem("userDept"));
-  const [category, setCategory] = useState("room");
+  const [category, setCategory] = useState("instructor");
   const [semester, setSemester] = useState("");
   const [academicYear, setAcademicYear] = useState("");
   const [schedules, setSchedules] = useState([]);
