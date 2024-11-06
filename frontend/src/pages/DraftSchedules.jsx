@@ -345,6 +345,7 @@ function DraftSchedules() {
             await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
             await addPage(name);
           }
+          pdf.save("instructor-schedules.pdf");
         } else if (category === "section") {
           const sectionGroups = [
             ...new Set(
@@ -361,6 +362,7 @@ function DraftSchedules() {
             await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
             await addPage(`${sectionName} - ${group}`);
           }
+          pdf.save("section-schedules.pdf");
         } else if (category === "room") {
           const buildingsArray = [
             ...new Set(rooms.map(({ room_building }) => room_building)),
@@ -380,11 +382,11 @@ function DraftSchedules() {
               await addPage(room);
             }
           }
+          pdf.save("room-schedules.pdf");
         }
       };
 
       await addSchedules();
-      pdf.save("all_schedules.pdf");
     } catch (error) {
       console.error("Error generating all PDFs:", error);
       toast.error("Failed to generate all PDFs");
