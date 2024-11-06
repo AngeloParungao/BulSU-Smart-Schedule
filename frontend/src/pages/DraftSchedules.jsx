@@ -181,7 +181,7 @@ function DraftSchedules() {
       pdf
         .setFontSize(14)
         .text(
-          `Academic Year: ${semester} ${academicYear}`,
+          `Academic Year: ${semester} semester ${academicYear}`,
           pdf.internal.pageSize.getWidth() / 2,
           42,
           { align: "center" }
@@ -191,7 +191,7 @@ function DraftSchedules() {
         .text(
           `${
             category === "section"
-              ? "Section: " + selectedSection
+              ? "Section: " + selectedSection + ` - ${selectedGroup}`
               : category === "instructor"
               ? "Instructor: " + selectedInstructor
               : "Room: " + selectedRoom
@@ -306,7 +306,7 @@ function DraftSchedules() {
         pdf
           .setFontSize(14)
           .text(
-            `Academic Year: ${semester} ${academicYear}`,
+            `Academic Year: ${semester} semester ${academicYear}`,
             pdf.internal.pageSize.getWidth() / 2,
             42,
             { align: "center" }
@@ -368,7 +368,9 @@ function DraftSchedules() {
               setSelectedSection(sectionName);
               setSelectedGroup(group);
               await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
-              await addPage(`${sectionName} - ${group}`);
+              await addPage(
+                `${sectionName} ${group === "" ? "" : `- ${group}`}`
+              );
             }
           }
           pdf.save("section-schedules.pdf");
