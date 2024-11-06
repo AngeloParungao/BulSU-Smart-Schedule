@@ -362,13 +362,23 @@ function DraftSchedules() {
             await addPage(`${sectionName} - ${group}`);
           }
         } else if (category === "room") {
-          const roomsArray = [
-            ...new Set(rooms.map(({ room_name }) => room_name)),
+          const buildingsArray = [
+            ...new Set(rooms.map(({ room_building }) => room_building)),
           ];
-          for (const room of roomsArray) {
-            setSelectedRoom(room);
-            await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
-            await addPage(room);
+          for (const building of buildingsArray) {
+            setSelectedBuilding(building);
+            const roomsArray = [
+              ...new Set(
+                rooms
+                  .filter((r) => r.room_building === building)
+                  .map(({ room_name }) => room_name)
+              ),
+            ];
+            for (const room of roomsArray) {
+              setSelectedRoom(room);
+              await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
+              await addPage(room);
+            }
           }
         }
       };
