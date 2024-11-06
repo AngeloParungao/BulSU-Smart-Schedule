@@ -261,10 +261,11 @@ function DraftSchedules() {
         });
 
         const canvas = await html2canvas(clone, {
-          scale: 2,
+          scale: 1, // Lower scale to reduce load
           useCORS: true,
           backgroundColor: null,
         });
+
         const imgData = canvas.toDataURL("image/png");
         const imgWidth = 210;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -326,11 +327,13 @@ function DraftSchedules() {
           );
 
         pdf.addImage(imgData, "PNG", 0, 80, imgWidth, imgHeight);
-        document.body.removeChild(clone);
-        timeElements.forEach((el) => (el.style.color = ""));
+
+        document.body.removeChild(clone); // Remove the clone after rendering
       };
 
       const addSchedules = async () => {
+        const batchSize = 10; // Process 10 items at a time
+
         if (category === "instructor") {
           const instructorsList = [
             ...new Set(
@@ -340,10 +343,13 @@ function DraftSchedules() {
               )
             ),
           ];
-          for (const name of instructorsList) {
-            setSelectedInstructor(name);
-            await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
-            await addPage(name);
+          for (let i = 0; i < instructorsList.length; i += batchSize) {
+            const batch = instructorsList.slice(i, i + batchSize);
+            for (const name of batch) {
+              setSelectedInstructor(name);
+              await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
+              await addPage(name);
+            }
           }
           pdf.save("instructor-schedules.pdf");
         } else if (category === "section") {
@@ -355,12 +361,15 @@ function DraftSchedules() {
               )
             ),
           ];
-          for (const sectionGroup of sectionGroups) {
-            const [sectionName, group] = sectionGroup.split("-");
-            setSelectedSection(sectionName);
-            setSelectedGroup(group);
-            await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
-            await addPage(`${sectionName} - ${group}`);
+          for (let i = 0; i < sectionGroups.length; i += batchSize) {
+            const batch = sectionGroups.slice(i, i + batchSize);
+            for (const sectionGroup of batch) {
+              const [sectionName, group] = sectionGroup.split("-");
+              setSelectedSection(sectionName);
+              setSelectedGroup(group);
+              await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
+              await addPage(`${sectionName} - ${group}`);
+            }
           }
           pdf.save("section-schedules.pdf");
         } else if (category === "room") {
@@ -372,12 +381,15 @@ function DraftSchedules() {
               )
             ),
           ];
-          for (const building of buildingsArray) {
-            const [buildingName, roomName] = building.split("-");
-            setSelectedBuilding(buildingName);
-            setSelectedRoom(roomName);
-            await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
-            await addPage(`${buildingName} - ${roomName}`);
+          for (let i = 0; i < buildingsArray.length; i += batchSize) {
+            const batch = buildingsArray.slice(i, i + batchSize);
+            for (const building of batch) {
+              const [buildingName, roomName] = building.split("-");
+              setSelectedBuilding(buildingName);
+              setSelectedRoom(roomName);
+              await new Promise((resolve) => setTimeout(resolve, 100)); // Allow time for update
+              await addPage(`${buildingName} - ${roomName}`);
+            }
           }
           pdf.save("room-schedules.pdf");
         }
