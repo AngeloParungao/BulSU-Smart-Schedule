@@ -16,6 +16,8 @@ const Scheduling = () => {
   const [sections, setSections] = useState([]);
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showListModal, setShowListModal] = useState(false);
@@ -42,19 +44,25 @@ const Scheduling = () => {
       ]);
 
       if (month >= 1 && month <= 5) {
+        setSelectedSemester(() =>
+          selectedSemester ? selectedSemester : "2nd"
+        );
         setSchedules(
           scheduleRes.data.filter(
             (item) =>
-              item.semester === "2nd" &&
-              item.academic_year === `${year - 1}-${year}`
+              item.academic_year === `${year - 1}-${year}` &&
+              (item.semester === "1st" || item.semester === "2nd")
           )
         );
       } else if (month >= 6 && month <= 12) {
+        setSelectedSemester(() =>
+          selectedSemester ? selectedSemester : "1st"
+        );
         setSchedules(
           scheduleRes.data.filter(
             (item) =>
-              item.semester === "1st" &&
-              item.academic_year === `${year}-${year + 1}`
+              item.academic_year === `${year}-${year + 1}` &&
+              (item.semester === "1st" || item.semester === "2nd")
           )
         );
       }
@@ -218,6 +226,26 @@ const Scheduling = () => {
                 </select>
               </div>
             )}
+            <div className="flex items-center gap-4 ">
+              <label
+                htmlFor="semester"
+                className="font-semibold text-sm text-[var(--text-color)]"
+              >
+                Semester:
+              </label>
+              <select
+                name="sester:"
+                id="sester:"
+                value={selectedSemester}
+                onChange={(e) => {
+                  setSelectedSemester(e.target.value);
+                }}
+                className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+              >
+                <option value="1st">1st Semester</option>
+                <option value="2nd">2nd Semester</option>
+              </select>
+            </div>
           </div>
           <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
             <button
@@ -293,7 +321,8 @@ const Scheduling = () => {
                           item.start_time === time.startTime &&
                           item.day === day &&
                           item.section_name === selectedSection &&
-                          item.section_group === selectedGroup
+                          item.section_group === selectedGroup &&
+                          item.semester === selectedSemester
                       );
 
                       // Calculate rowSpan if there's a schedule item
@@ -371,6 +400,7 @@ const Scheduling = () => {
           onClose={() => setShowAddModal(false)}
           section={selectedSection}
           group={selectedGroup}
+          semester={selectedSemester}
           onRefreshSchedules={refreshData}
         />
       )}
@@ -380,7 +410,8 @@ const Scheduling = () => {
           schedules={schedules.filter(
             (schedule) =>
               schedule.section_name === selectedSection &&
-              schedule.section_group === selectedGroup
+              schedule.section_group === selectedGroup &&
+              schedule.semester === selectedSemester
           )}
           onUpdateSchedule={handleEditItemClick}
         />
@@ -390,6 +421,7 @@ const Scheduling = () => {
           isOpen={showUpdateModal}
           onClose={() => setShowUpdateModal(false)}
           item={itemToEdit}
+          semester={selectedSemester}
           onRefreshSchedules={refreshData}
         />
       )}
@@ -399,7 +431,8 @@ const Scheduling = () => {
           schedule={schedules.filter(
             (schedule) =>
               schedule.section_name === selectedSection &&
-              schedule.section_group === selectedGroup
+              schedule.section_group === selectedGroup &&
+              schedule.semester === selectedSemester
           )}
           onRefreshSchedules={refreshData}
         />
