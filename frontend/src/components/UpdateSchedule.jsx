@@ -16,7 +16,13 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
-const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
+const UpdateSchedule = ({
+  isOpen,
+  onClose,
+  item,
+  semester,
+  onRefreshSchedules,
+}) => {
   const url = process.env.REACT_APP_URL;
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const currentDepartment = atob(localStorage.getItem("userDept"));
@@ -97,15 +103,16 @@ const UpdateSchedule = ({ isOpen, onClose, item, onRefreshSchedules }) => {
           axios.get(`${url}api/rooms/fetch`),
         ]);
 
-      if (month >= 1 && month <= 5) {
+      if (semester === "2nd") {
         setSchedules(
           scheduleRes.data.filter(
             (item) =>
               item.semester === "2nd" &&
-              item.academic_year === `${year - 1}-${year}`
+              (item.academic_year === `${year - 1}-${year}` ||
+                item.academic_year === `${year}-${year + 1}`)
           )
         );
-      } else if (month >= 6 && month <= 12) {
+      } else {
         setSchedules(
           scheduleRes.data.filter(
             (item) =>

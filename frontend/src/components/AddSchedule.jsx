@@ -21,6 +21,7 @@ const AddSchedule = ({
   onClose,
   section,
   group,
+  semester,
   onRefreshSchedules,
 }) => {
   const url = process.env.REACT_APP_URL;
@@ -60,6 +61,7 @@ const AddSchedule = ({
     section,
     group,
     department_code: currentDepartment,
+    semester: semester,
   });
 
   // Pagination state for instructors, subjects, and rooms
@@ -107,15 +109,16 @@ const AddSchedule = ({
           axios.get(`${url}api/rooms/fetch`),
         ]);
 
-      if (month >= 1 && month <= 5) {
+      if (semester === "2nd") {
         setSchedules(
           scheduleRes.data.filter(
             (item) =>
               item.semester === "2nd" &&
-              item.academic_year === `${year - 1}-${year}`
+              (item.academic_year === `${year - 1}-${year}` ||
+                item.academic_year === `${year}-${year + 1}`)
           )
         );
-      } else if (month >= 6 && month <= 12) {
+      } else {
         setSchedules(
           scheduleRes.data.filter(
             (item) =>
