@@ -3,26 +3,22 @@ const db = require('../config/database');
 const router = express.Router();
 
 router.post('/adding', (req, res) => {
-    const { instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code } = req.body;
-    let semester = "";
+    const { instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code, semester } = req.body;
     let academic_year = "";
     const date = new Date();
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
 
-    // condition for checking if the date is january to may then set the semester to 2nd semester
-    if (month >= 1 && month <= 5) {
-        semester = "2nd";
-    } else {
-        semester = "1st";
-    }
     // get the year of the academic year
-    if (month >= 1 && month <= 5) {
-        academic_year = `${year - 1}-${year}`;
-    } else {
+    if(month >= 6 && month <= 12 && semester === "2nd") {
         academic_year = `${year}-${year + 1}`;
+    } else if(month >= 6 && month <= 12 && semester === "1st") {
+        academic_year = `${year}-${year + 1}`;
+    } else if(month >= 1 && month <= 5 && semester === "2nd") {
+        academic_year = `${year - 1}-${year}`;
+    } else if(month >= 1 && month <= 5 && semester === "1st") {
+        academic_year = `${year - 1}-${year}`;
     }
-
 
     const sql = `
         INSERT INTO schedules (instructor, subject, section_name, section_group, class_type, room, room_building, background_color, day, start_time, end_time, department_code, semester, academic_year)
