@@ -35,7 +35,11 @@ const Users = () => {
       if (showArchive) {
         setUsers(response.data.filter((user) => user.status === "archived"));
       } else {
-        setUsers(response.data.filter((user) => user.status === "active"));
+        setUsers(
+          response.data.filter(
+            (user) => user.status === "active" && user.role !== "Administrator"
+          )
+        );
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -291,6 +295,7 @@ const Users = () => {
                   <th className="text-xs md:text-[1rem] py-2">Email</th>
                   <th className="text-xs md:text-[1rem] py-2">Department</th>
                   <th className="text-xs md:text-[1rem] py-2">Date Created</th>
+                  <th className="text-xs md:text-[1rem] py-2">Role</th>
                   {showArchive ? null : <th className="md:w-10 w-6"></th>}
                 </tr>
               </thead>
@@ -324,6 +329,9 @@ const Users = () => {
                     </td>
                     <td className="p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
                       {user.created_at}
+                    </td>
+                    <td className="p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
+                      {user.role}
                     </td>
                     {showArchive ? null : (
                       <td className="p-2 md:text-sm text-[0.6rem]">
