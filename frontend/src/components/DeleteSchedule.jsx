@@ -67,7 +67,32 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
     }
     // Prompt the user to confirm the deletion
     setShowDeleteConfirmation(false);
-    setShowPasswordPrompt(true);
+    if (selectedSchedules.length === 1) {
+      try {
+        await axios.delete(`${url}api/schedule/delete/`, {
+          data: { schedule_ids: selectedSchedules },
+        });
+
+        // Log the deletion activity
+        await axios.post(`${url}api/activity/adding`, {
+          user_id: currentUser,
+          department_code: currentDepartment,
+          action: "Delete",
+          details: `${selectedSchedules.length}`,
+          type: "schedule",
+        });
+
+        toast.success("Deleted successfully!");
+        setSelectedSchedules([]);
+        onRefreshSchedules();
+        setTimeout(onClose, 2000);
+      } catch (error) {
+        console.error("Error deleting data:", error);
+        toast.error("Error deleting schedule.");
+      }
+    } else {
+      setShowPasswordPrompt(true);
+    }
   };
 
   const handlePasswordSubmit = async (password) => {
@@ -98,7 +123,7 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
           toast.success("Deleted successfully!");
           setSelectedSchedules([]);
           onRefreshSchedules();
-          setTimeout(onClose, 2000);
+          setTimeout(onClose, 1000);
         } catch (error) {
           console.error("Error deleting data:", error);
           toast.error("Error deleting schedule.");
