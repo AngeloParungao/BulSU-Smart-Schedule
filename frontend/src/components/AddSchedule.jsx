@@ -468,6 +468,7 @@ const AddSchedule = ({
   //------instructors-------//
   const [selectedTag, setSelectedTag] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedType, setSelectedType] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("");
   const [searchInstructorQuery, setSearchInstructorQuery] = useState("");
   const [searchSubjectQuery, setSearchSubjectQuery] = useState("");
@@ -495,9 +496,11 @@ const AddSchedule = ({
         .includes(searchSubjectQuery.toLowerCase());
     const matchesLevel =
       selectedLevel === "" || subject.year_level === selectedLevel;
+    const matchesType =
+      selectedType === "" || subject.subject_type === selectedType;
     const specialized =
       selectedTag === "" || subject.subject_tags === selectedTag;
-    return matchesSearch && matchesLevel && specialized;
+    return matchesSearch && matchesLevel && matchesType && specialized;
   });
 
   //------rooms-------//
@@ -1063,7 +1066,7 @@ const AddSchedule = ({
         <div className="flex lg:flex-row flex-col justify-between lg:gap-8 gap-4 h-1/2 w-full">
           <div className="flex flex-col justify-between items-center h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
             <div className="w-full">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center py-2">
                 <span className="text-md">
                   <FontAwesomeIcon
                     icon={faUser}
@@ -1080,7 +1083,7 @@ const AddSchedule = ({
                     id="specialization"
                     value={selectedTag}
                     onChange={(e) => setSelectedTag(e.target.value)}
-                    className="w-16 px-2 rounded-sm"
+                    className="w-14 px-1 rounded-lg border border-gray-300 focus:border-green-600"
                   >
                     <option value="">All</option>
                     {Array.from(
@@ -1152,7 +1155,7 @@ const AddSchedule = ({
           </div>
           <div className="flex flex-col justify-between items-center h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
             <div className="w-full">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center py-2">
                 <span className="text-md">
                   <FontAwesomeIcon
                     icon={faBook}
@@ -1161,27 +1164,40 @@ const AddSchedule = ({
                   Subjects
                 </span>
                 <div className="flex items-center gap-2">
-                  <label htmlFor="yearLevel" className="text-sm">
-                    Year Level:
-                  </label>
-                  <select
-                    name="yearLevel"
-                    id="yearLevel"
-                    value={selectedLevel}
-                    onChange={(e) => setSelectedLevel(e.target.value)}
-                    className="w-16 px-2 rounded-sm"
-                  >
-                    <option value="">All</option>
-                    {Array.from(
-                      new Set(subjects.map((subject) => subject.year_level))
-                    )
-                      .sort()
-                      .map((year, index) => (
-                        <option key={index} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="yearLevel" className="text-sm">
+                      Year Level:
+                    </label>
+                    <select
+                      name="yearLevel"
+                      id="yearLevel"
+                      value={selectedLevel}
+                      onChange={(e) => setSelectedLevel(e.target.value)}
+                      className="w-14 px-1 rounded-lg border border-gray-300 focus:border-green-600"
+                    >
+                      <option value="">All</option>
+                      <option value="1st Year">1st Year</option>
+                      <option value="2nd Year">2nd Year</option>
+                      <option value="3rd Year">3rd Year</option>
+                      <option value="4th Year">4th Year</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="subject_type" className="text-sm">
+                      Type:
+                    </label>
+                    <select
+                      name="subject_type"
+                      id="subject_type"
+                      value={selectedType}
+                      onChange={(e) => setSelectedType(e.target.value)}
+                      className="w-14 px-1 rounded-lg border border-gray-300 focus:border-green-600"
+                    >
+                      <option value="">All</option>
+                      <option value="Major">Major</option>
+                      <option value="Minor">Minor</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center p-[0.5rem] px-4 gap-2 border border-gray-300 rounded-lg focus-within:border-green-500">
@@ -1248,7 +1264,7 @@ const AddSchedule = ({
           </div>
           <div className="flex flex-col justify-between items-center h-full lg:w-[33.3%] w-full lg:border-none border border-gray-300 rounded-md p-4">
             <div className="w-full">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center py-2">
                 <span className="text-md">
                   <FontAwesomeIcon
                     icon={faDoorOpen}
@@ -1265,7 +1281,7 @@ const AddSchedule = ({
                     id="building"
                     value={selectedBuilding}
                     onChange={(e) => setSelectedBuilding(e.target.value)}
-                    className="w-16 px-2 rounded-sm"
+                    className="w-14 px-1 rounded-lg border border-gray-300 focus:border-green-600"
                   >
                     <option value="">All</option>
                     {Array.from(
