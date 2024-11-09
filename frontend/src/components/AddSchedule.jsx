@@ -57,7 +57,7 @@ const AddSchedule = ({
     day: "",
     start_time: "",
     end_time: "",
-    course_type: "Lecture",
+    course_type: "",
     section,
     group,
     department_code: currentDepartment,
@@ -91,6 +91,16 @@ const AddSchedule = ({
     data.end_time,
     data.course_type,
   ]);
+
+  useEffect(() => {
+    if (
+      data.subject !== "" &&
+      subjects.find((subject) => subject.subject_name === data.subject)
+        ?.subject_type !== "Major"
+    ) {
+      setData({ ...data, course_type: "Lecture" });
+    }
+  }, [data.subject, subjects, setData]);
 
   // Fetch data from the server
   const fetchData = async () => {
@@ -238,11 +248,13 @@ const AddSchedule = ({
   };
 
   const checkRealTimeErrors = () => {
+    // Convert time (hh:mm) to minutes for easy comparison
     const timeToMinutes = (time) =>
       parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
     const newStartInMinutes = timeToMinutes(data.start_time);
     const newEndInMinutes = timeToMinutes(data.end_time);
 
+    // Helper function to check if new schedule conflicts with an existing one
     const isTimeConflict = (schedule) => {
       const scheduleStartInMinutes = timeToMinutes(schedule.start_time);
       const scheduleEndInMinutes = timeToMinutes(schedule.end_time);
@@ -256,6 +268,7 @@ const AddSchedule = ({
       );
     };
 
+    // Check if the schedule conflicts with the section, instructor, or room
     const hasSectionConflict = schedules.find(
       (schedule) =>
         schedule.section_name === section &&
@@ -263,14 +276,12 @@ const AddSchedule = ({
         schedule.day === data.day &&
         isTimeConflict(schedule)
     );
-
     const hasInstructorConflict = schedules.find(
       (schedule) =>
         schedule.instructor === data.instructor &&
         schedule.day === data.day &&
         isTimeConflict(schedule)
     );
-
     const hasRoomConflict = schedules.find(
       (schedule) =>
         schedule.room === data.room &&
@@ -278,6 +289,7 @@ const AddSchedule = ({
         isTimeConflict(schedule)
     );
 
+    // Filter schedules by subject and section for further processing
     const subjectSchedules = schedules.filter(
       (schedule) =>
         schedule.subject === data.subject &&
@@ -285,6 +297,7 @@ const AddSchedule = ({
         schedule.section_group === group
     );
 
+    // Calculate total duration of lecture and laboratory schedules
     const calculateTotalDuration = (schedules) => {
       return schedules.reduce((sum, schedule) => {
         return (
@@ -295,23 +308,36 @@ const AddSchedule = ({
       }, 0);
     };
 
-    const totalDuration = calculateTotalDuration(subjectSchedules);
     const newScheduleDuration = newEndInMinutes - newStartInMinutes;
 
-    // Check limits for minor subjects
+    // Identify if subject is minor or major
     const subject = subjects.find((sub) => sub.subject_name === data.subject);
     const isMinor = subject && subject.subject_type === "Minor";
 
-    const exceedsMinorLimit =
-      isMinor && totalDuration + newScheduleDuration > 180; // 180 minutes = 3 hours
-
-    const exceedsLimits =
-      totalDuration + newScheduleDuration > 5 * 60 ||
-      subjectSchedules.length >= 2;
-
-    const alreadyExists = subjectSchedules.some(
-      (schedule) => schedule.class_type === data.course_type && !isMinor
+    // Calculate existing lecture and laboratory durations for the subject
+    const lectureSchedules = subjectSchedules.filter(
+      (schedule) => schedule.class_type === "Lecture"
     );
+    const laboratorySchedules = subjectSchedules.filter(
+      (schedule) => schedule.class_type === "Laboratory"
+    );
+
+    const totalLectureDuration = calculateTotalDuration(lectureSchedules);
+    const totalLaboratoryDuration = calculateTotalDuration(laboratorySchedules);
+    const totalDuration = totalLectureDuration + totalLaboratoryDuration;
+
+    // Set limits for minor and major subjects
+    const exceedsLectureLimit =
+      !isMinor &&
+      data.course_type === "Lecture" &&
+      totalLectureDuration + newScheduleDuration > 120; // 2 hours for Lecture
+    const exceedsLaboratoryLimit =
+      !isMinor &&
+      data.course_type === "Laboratory" &&
+      totalLaboratoryDuration + newScheduleDuration > 180; // 3 hours for Laboratory
+    const exceedsTotalLimit = isMinor
+      ? totalDuration + newScheduleDuration > 180 // Minor subjects: total limit of 3 hours
+      : totalDuration + newScheduleDuration > 300; // Major subjects: total limit of 5 hours
 
     // Check if the instructor is a part-timer and limit to 9 hours (540 minutes)
     const instructorSchedules = schedules.filter(
@@ -330,6 +356,7 @@ const AddSchedule = ({
     const exceedsPartTimeLimit =
       isPartTimer && instructorTotalHours + newScheduleDuration > 540; // 540 minutes = 9 hours
 
+    // Set errors for each conflict and limit violation
     setErrors({
       time_error: !!hasSectionConflict,
       section_collision_time: hasSectionConflict
@@ -354,8 +381,8 @@ const AddSchedule = ({
             department: hasRoomConflict.department_code,
           }
         : null,
-      subject_error: exceedsLimits || exceedsMinorLimit,
-      course_error: alreadyExists,
+      subject_error: exceedsTotalLimit,
+      course_error: exceedsLectureLimit || exceedsLaboratoryLimit,
       part_time_error: exceedsPartTimeLimit,
     });
   };
@@ -515,6 +542,9 @@ const AddSchedule = ({
 
     return matchesSearch && matchesBuilding;
   });
+
+  const timeToMinutes = (time) =>
+    parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
 
   const customStyles = {
     overlay: {
@@ -793,6 +823,7 @@ const AddSchedule = ({
                           setData({ ...data, course_type: e.target.value })
                         }
                       >
+                        <option value="">Select</option>
                         <option value="Lecture">Lecture</option>
                         <option value="Laboratory">Laboratory</option>
                       </select>
@@ -1221,13 +1252,42 @@ const AddSchedule = ({
                   (currentSubjectPage + 1) * itemsPerPage
                 )
                 .map((subject) => {
-                  const hasTwoMeetings =
-                    schedules.filter(
-                      (schedule) =>
-                        schedule.subject === subject.subject_name &&
-                        schedule.section_name === section &&
-                        schedule.section_group === group
-                    ).length >= 2;
+                  // Debugging - log the subject type to check if it matches
+                  console.log("Subject type:", subject.subject_type); // To debug
+
+                  // Check if the subject is Minor or Major
+                  const isMinor =
+                    subject.subject_type &&
+                    subject.subject_type.trim() === "Minor"; // Ensure it's a strict comparison
+
+                  // Get all the schedules for the subject in the specific section and group
+                  const subjectSectionSchedules = schedules.filter(
+                    (schedule) =>
+                      schedule.subject === subject.subject_name &&
+                      schedule.section_name === section &&
+                      schedule.section_group === group
+                  );
+
+                  // Calculate the total hours for the subject's meetings
+                  const totalHours = subjectSectionSchedules.reduce(
+                    (sum, schedule) => {
+                      const start = timeToMinutes(schedule.start_time);
+                      const end = timeToMinutes(schedule.end_time);
+                      return sum + (end - start) / 60;
+                    },
+                    0
+                  );
+
+                  // Check if the subject is within the allowed hours limit (3 hours for minors, 5 hours for majors)
+                  const isWithinLimit = isMinor
+                    ? totalHours == 3
+                    : totalHours == 5;
+
+                  // Determine the background color based on whether the subject is within the limit or exceeds it
+                  const backgroundColor = isWithinLimit
+                    ? "bg-gray-300" // Background for subjects within the limit
+                    : "bg-gray-100"; // Background for subjects outside the limit
+
                   return (
                     <li
                       key={subject.id}
@@ -1237,9 +1297,7 @@ const AddSchedule = ({
                       className={`${
                         data.subject === subject.subject_name
                           ? "bg-green-500 text-white"
-                          : hasTwoMeetings
-                          ? "bg-gray-300"
-                          : "bg-gray-100"
+                          : backgroundColor
                       } p-2 rounded-md cursor-pointer hover:bg-gray-300 hover:text-black text-sm`}
                     >
                       {`${subject.subject_code} - ${subject.subject_name}`}
