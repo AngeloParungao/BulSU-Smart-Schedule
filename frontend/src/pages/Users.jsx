@@ -57,7 +57,8 @@ const Users = () => {
       user.first_name.toLowerCase().includes(search.toLowerCase()) ||
       user.middle_name.toLowerCase().includes(search.toLowerCase()) ||
       user.last_name.toLowerCase().includes(search.toLowerCase()) ||
-      user.department_code.toLowerCase().includes(search.toLowerCase())
+      user.department_code.toLowerCase().includes(search.toLowerCase()) ||
+      user.role.toLowerCase().includes(search.toLowerCase())
     );
   });
 
