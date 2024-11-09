@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PasswordPrompt from "./PasswordPrompt";
 import DeleteConfirmation from "./DeleteConfirmation";
@@ -10,9 +10,31 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const url = process.env.REACT_APP_URL;
+  const [schedules, setSchedules] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedSchedules, setSelectedSchedules] = useState([]);
+
+  useEffect(() => {
+    try {
+      const fetchSchedules = async () => {
+        const response = await axios.get(`${url}api/schedule/fetch`);
+        setSchedules(response.data);
+      };
+      const fetchSubjects = async () => {
+        const response = await axios.get(
+          `${url}api/subjects/fetch?dept_code=${currentDepartment}`
+        );
+        setSubjects(response.data);
+      };
+      fetchSchedules();
+      fetchSubjects();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }, []);
+
   const daysOrder = [
     "Monday",
     "Tuesday",
@@ -62,9 +84,33 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
 
   const handleDelete = async () => {
     if (!selectedSchedules.length) {
-      toast.error("Please select at least one instructor.");
+      toast.error("Please select at least one schedule.");
       return;
     }
+
+    selectedSchedules.map((schedule) => {
+      const scheduleData = schedules.find((s) => s.schedule_id === schedule);
+      //check every subject if it is minor, if minor include the id of the other group
+      if (scheduleData) {
+        const subjectData = subjects.find(
+          (s) =>
+            s.subject_name === scheduleData.subject &&
+            s.subject_type === "Minor"
+        );
+        if (subjectData) {
+          const otherGroup = schedules.find(
+            (s) =>
+              s.subject === subjectData.subject_name &&
+              s.section_name === scheduleData.section_name &&
+              s.section_group !== scheduleData.section_group
+          );
+          if (otherGroup) {
+            selectedSchedules.push(otherGroup.schedule_id);
+          }
+        }
+      }
+    });
+
     // Prompt the user to confirm the deletion
     setShowDeleteConfirmation(false);
     if (selectedSchedules.length === 1) {
