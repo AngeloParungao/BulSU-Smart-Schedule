@@ -298,8 +298,8 @@ const Users = () => {
                   <th className="text-xs md:text-[1rem] py-2">Name</th>
                   <th className="text-xs md:text-[1rem] py-2">Email</th>
                   <th className="text-xs md:text-[1rem] py-2">Department</th>
-                  <th className="text-xs md:text-[1rem] py-2">Date Created</th>
                   <th className="text-xs md:text-[1rem] py-2">Role</th>
+                  <th className="text-xs md:text-[1rem] py-2">Date Created</th>
                   {showArchive ? null : <th className="md:w-10 w-6"></th>}
                 </tr>
               </thead>
@@ -332,10 +332,10 @@ const Users = () => {
                       {user.department_code}
                     </td>
                     <td className="p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
-                      {user.created_at}
+                      {user.role}
                     </td>
                     <td className="p-2 md:text-sm text-[0.6rem] border-r border-gray-300">
-                      {user.role}
+                      {user.created_at}
                     </td>
                     {showArchive ? null : (
                       <td className="p-2 md:text-sm text-[0.6rem]">
