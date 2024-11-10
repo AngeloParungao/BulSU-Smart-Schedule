@@ -4,15 +4,15 @@ require('dotenv').config();
 const urlDB = `mysql://${process.env.MYSQLUSER}:${process.env.MYSQLPASSWORD}@${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${process.env.MYSQLDATABASE}`
 const MYSQL_PUBLIC_URL = process.env.MYSQL_PUBLIC_URL;
 
-const db = mysql.createConnection(urlDB);
+const db = mysql.createConnection(MYSQL_PUBLIC_URL);
 /*
+
 const db = mysql.createConnection({
     host: process.env.MYSQLHOST,
     user: process.env.MYSQLUSER,
     password: process.env.MYSQLPASSWORD,
     database: process.env.MYSQLDATABASE
 });
-
 
 host: process.env.DB_HOST,
 user: process.env.DB_USER,
