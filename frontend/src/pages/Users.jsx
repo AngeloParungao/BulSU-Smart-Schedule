@@ -240,10 +240,11 @@ const Users = () => {
                   showArchive
                     ? "bg-blue-400 hover:bg-blue-500"
                     : "bg-red-400 hover:bg-red-500"
-                } text-white text-xs font-semibold w-[7rem] py-[0.6rem] rounded-lg`}
+                } text-white text-xs font-semibold w-[7rem] py-[0.6rem] rounded-lg hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
                 onClick={() => {
                   setShowChangeStatus(true);
                 }}
+                disabled={selectedUsers.length === 0}
               >
                 {showArchive ? "Restore Account" : "Archive Account"}
               </button>
@@ -254,6 +255,7 @@ const Users = () => {
                     setOnDelete(true);
                     setShowConfirmDelete(true);
                   }}
+                  disabled={selectedUsers.length === 0}
                 >
                   Delete Permanently
                 </button>
