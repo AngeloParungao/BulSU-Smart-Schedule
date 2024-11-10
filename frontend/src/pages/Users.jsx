@@ -49,6 +49,7 @@ const Users = () => {
   const refreshUser = () => {
     fetchUsers();
     setUserToUpdate(null);
+    setShowAddUser(false);
   };
 
   const filterUsers = users.filter((user) => {
@@ -368,11 +369,7 @@ const Users = () => {
       </div>
       <UserForm
         isOpen={showAddUser}
-        refresh={fetchUsers}
-        onRequestClose={() => {
-          setUserToUpdate(null);
-          setShowAddUser(false);
-        }}
+        onRequestClose={refreshUser}
         user={userToUpdate}
       />
     </div>
