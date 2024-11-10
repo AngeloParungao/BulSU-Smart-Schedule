@@ -46,17 +46,14 @@ router.get('/fetch', (req, res) => {
     });
 });
 
-let lastDeletionYear = null; // Track the last year logs were deleted
-let lastDeletionMonth = null; // Track the last month logs were deleted
+let lastDeletionDate = null; // Track the last date logs were deleted
 
 const deleteLogsAtSemesterStart = () => {
     const date = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
     const currentDate = new Date(date);
-    const currentMonth = currentDate.getMonth() + 1; // Months are 0-based, so add 1
-    const currentYear = currentDate.getFullYear();
 
-    // Check if it's January or August, and ensure logs haven't been deleted for this month and year
-    if ((currentMonth === 1 || currentMonth === 8) && (currentYear !== lastDeletionYear || currentMonth !== lastDeletionMonth)) {
+    // Check if 30 days have passed since the last deletion
+    if (!lastDeletionDate || (currentDate - lastDeletionDate) / (1000 * 60 * 60 * 24) >= 30) {
 
         const sql = "DELETE FROM activity";
 
@@ -65,16 +62,13 @@ const deleteLogsAtSemesterStart = () => {
                 console.error('Error deleting logs:', err);
             } else {
                 console.log(`${result.affectedRows} logs deleted.`);
-                lastDeletionYear = currentYear; // Update the last deletion year
-                lastDeletionMonth = currentMonth; // Update the last deletion month
+                lastDeletionDate = currentDate; // Update the last deletion date
             }
         });
     }
 };
 
-// Run the check daily (every 24 hours)
+// Run the check every 24 hours
 setInterval(deleteLogsAtSemesterStart, 24 * 60 * 60 * 1000); // Run every 24 hours
-
-
 
 module.exports = router;
