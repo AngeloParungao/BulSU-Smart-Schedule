@@ -3,7 +3,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Modal from "react-modal";
 
-const UserForm = ({ isOpen, onRequestClose, user, refresh }) => {
+const UserForm = ({ isOpen, onRequestClose, user }) => {
   const url = process.env.REACT_APP_URL;
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
@@ -163,8 +163,6 @@ const UserForm = ({ isOpen, onRequestClose, user, refresh }) => {
             details: `${data.last_name}, ${data.first_name} ${data.middle_name}`,
             type: "user",
           });
-          refresh();
-          onRequestClose();
           setData({
             email: "",
             first_name: "",
@@ -172,6 +170,7 @@ const UserForm = ({ isOpen, onRequestClose, user, refresh }) => {
             last_name: "",
             department_code: "",
           });
+          onRequestClose();
         }
         setIsSubmitting(false);
       });
