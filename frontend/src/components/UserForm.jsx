@@ -35,6 +35,7 @@ const UserForm = ({ isOpen, onRequestClose, user, refresh }) => {
         status: user.status,
       });
     } else if (!isOpen) {
+      setErrors({});
       setIsUpdating(false);
       setData({
         email: "",
