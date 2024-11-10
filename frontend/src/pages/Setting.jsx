@@ -348,7 +348,6 @@ function Settings() {
           onRequestClose={() => {
             updatePage();
           }}
-          refresh={fetchData}
         />
         <PasswordPrompt
           isOpen={showPasswordPrompt}
