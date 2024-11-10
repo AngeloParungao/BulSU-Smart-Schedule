@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Modal from "react-modal";
 import { toast } from "react-hot-toast";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
@@ -22,6 +23,8 @@ function DraftSchedules() {
   const [selectedRoom, setSelectedRoom] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("");
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showPrintAllConfirmation, setShowPrintAllConfirmation] =
+    useState(false);
 
   useEffect(() => {
     toast.dismiss();
@@ -355,10 +358,12 @@ function DraftSchedules() {
         } else if (category === "section") {
           const sectionGroups = [
             ...new Set(
-              sections.map(
-                ({ section_name, section_group }) =>
-                  `${section_name}-${section_group}`
-              )
+              sections
+                .map(
+                  ({ section_name, section_group }) =>
+                    `${section_name}-${section_group}`
+                )
+                .sort()
             ),
           ];
           for (let i = 0; i < sectionGroups.length; i += batchSize) {
@@ -624,6 +629,7 @@ function DraftSchedules() {
                         .filter(
                           (section) => section.section_name === selectedSection
                         )
+                        .sort()
                         .map((section, index) => (
                           <option key={index} value={section.section_group}>
                             {section.section_group}
@@ -701,10 +707,70 @@ function DraftSchedules() {
               </button>
               <button
                 className="p-2 bg-green-500 md:text-sm text-[0.7rem] text-white rounded-md hover:bg-green-600 transition"
-                onClick={generateAllPDFs}
+                onClick={() => setShowPrintAllConfirmation(true)}
               >
                 Save All as PDF
               </button>
+              {showPrintAllConfirmation && (
+                <Modal
+                  isOpen={showPrintAllConfirmation}
+                  style={{
+                    overlay: {
+                      position: "fixed",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      zIndex: 1000,
+                    },
+                    content: {
+                      width: "25rem",
+                      padding: "1.5rem",
+                      background: "#fff",
+                      borderRadius: "0.5rem",
+                      boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+                      position: "relative",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "1rem",
+                      inset: "auto", // removes the default positioning
+                      fontFamily: '"Poppins", sans-serif',
+                    },
+                  }}
+                >
+                  <div className="flex flex-col items-center text-center gap-4">
+                    <h2 className="text-lg font-semibold">
+                      Confirm to print all schedules?
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      This action might take a while, please stay at this page
+                      until the download is complete.
+                    </p>
+                    <div className="flex w-full gap-2 py-2">
+                      <button
+                        className="p-2 bg-green-500 md:text-sm text-[0.7rem] w-full text-white rounded-md hover:bg-green-600 transition"
+                        onClick={() => {
+                          setShowPrintAllConfirmation(false);
+                          generateAllPDFs();
+                        }}
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        className="p-2 bg-red-500 md:text-sm text-[0.7rem] w-full text-white rounded-md hover:bg-red-600 transition"
+                        onClick={() => setShowPrintAllConfirmation(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </Modal>
+              )}
             </div>
           </div>
         </div>
