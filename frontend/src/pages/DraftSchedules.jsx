@@ -6,6 +6,8 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import Sidebar from "../components/Sidebar";
 import Report from "../components/Report";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 
 function DraftSchedules() {
   const url = process.env.REACT_APP_URL;
@@ -17,11 +19,17 @@ function DraftSchedules() {
   const [sections, setSections] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [rooms, setRooms] = useState([]);
-  const [selectedInstructor, setSelectedInstructor] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState("");
-  const [selectedRoom, setSelectedRoom] = useState("");
-  const [selectedBuilding, setSelectedBuilding] = useState("");
+  const [showInstructorSearch, setShowInstructorSearch] = useState(false);
+  const [showRoomSearch, setShowRoomSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchInstructor, setSearchInstructor] = useState("");
+  const [searchRoom, setSearchRoom] = useState("");
+  const [searchError, setSearchError] = useState({});
+  const [selectedInstructor, setSelectedInstructor] = useState("Instructor");
+  const [selectedSection, setSelectedSection] = useState("Section");
+  const [selectedGroup, setSelectedGroup] = useState("Group");
+  const [selectedRoom, setSelectedRoom] = useState("Room");
+  const [selectedBuilding, setSelectedBuilding] = useState("Building");
   const [showReportModal, setShowReportModal] = useState(false);
   const [showPrintAllConfirmation, setShowPrintAllConfirmation] =
     useState(false);
@@ -100,9 +108,24 @@ function DraftSchedules() {
   };
 
   const generatePDF = async () => {
-    const scheduleContainer = document.querySelector("#scheduleTable");
-    if (!scheduleContainer) return toast.error("No schedule found to print.");
+    if (category === "instructor") {
+      if (selectedInstructor === "Instructor") {
+        toast.error("Please select an instructor");
+        return;
+      }
+    } else if (category === "section") {
+      if (selectedSection === "Section") {
+        toast.error("Please select a section");
+        return;
+      }
+    } else if (category === "room") {
+      if (selectedRoom === "Room" || selectedBuilding === "Building") {
+        toast.error("Please select a room or building");
+        return;
+      }
+    }
 
+    const scheduleContainer = document.querySelector(".timetable");
     const clone = scheduleContainer.cloneNode(true);
     document.body.appendChild(clone);
 
@@ -220,6 +243,12 @@ function DraftSchedules() {
     if (!scheduleContainer) {
       return toast.error("No schedule found to print.");
     }
+
+    setShowInstructorSearch("");
+    setShowRoomSearch("");
+    setSearchTerm("");
+    setSearchInstructor("");
+    setSearchRoom("");
 
     try {
       const pdf = new jsPDF("p", "mm", "a4");
@@ -456,6 +485,7 @@ function DraftSchedules() {
       parseInt(endTime.split(":")[1], 10);
     return (endMinutes - startMinutes) / 30;
   };
+
   const isDarkBackground = (backgroundColor) => {
     // Convert hex to RGB
     let r = parseInt(backgroundColor.slice(1, 3), 16);
@@ -466,6 +496,59 @@ function DraftSchedules() {
     let luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 
     return luminance < 0.5;
+  };
+
+  const handleSearch = () => {
+    if (category === "instructor") {
+      if (searchTerm === "") {
+        setSearchError({
+          error: true,
+          message: "Please enter a search term.",
+        });
+      } else {
+        const result = schedules.some((schedule) =>
+          schedule.instructor.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        if (result) {
+          setSearchError({
+            error: false,
+            message: "",
+          });
+          setSearchInstructor(searchTerm);
+        } else {
+          setSearchError({
+            error: true,
+            message: "Instructor not found.",
+          });
+        }
+      }
+    } else if (category === "room") {
+      if (searchTerm === "") {
+        setSearchError({
+          error: true,
+          message: "Please enter a search term.",
+        });
+      } else {
+        const result = schedules.some(
+          (schedule) =>
+            schedule.room &&
+            schedule.room.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        if (result) {
+          setSearchError({
+            error: false,
+            message: "",
+          });
+          setSearchRoom(searchTerm);
+        } else {
+          setSearchError({
+            error: true,
+            message: "Room not found.",
+          });
+        }
+      }
+    }
   };
 
   return (
@@ -504,7 +587,15 @@ function DraftSchedules() {
                 name="category"
                 id="category"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm("");
+                  setSearchError({});
+                  setShowInstructorSearch(false);
+                  setShowRoomSearch(false);
+                  setSearchInstructor("");
+                  setSearchRoom("");
+                  setCategory(e.target.value);
+                }}
                 className="w-[6rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
               >
                 <option value="instructor">Instructor</option>
@@ -557,29 +648,65 @@ function DraftSchedules() {
           <div className="flex justify-between items-center gap-2 mt-2">
             {category === "instructor" ? (
               <div className="flex items-center gap-4">
-                <label
-                  htmlFor="instructor"
-                  className="font-semibold text-sm text-[var(--text-color)]"
-                >
-                  Select Instructor:
-                </label>
-                <select
-                  name="instructor"
-                  id="instructor"
-                  value={selectedInstructor}
-                  onChange={(e) => setSelectedInstructor(e.target.value)}
-                  className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-                >
-                  <option value="Instructor">Instructor</option>
-                  {instructors.map((instructor, index) => (
-                    <option
-                      key={index}
-                      value={`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
+                <div className="relative flex justify-center items-center">
+                  <FontAwesomeIcon
+                    icon={faSearch}
+                    className="absolute left-3 text-sm text-gray-300 cursor-pointer hover:text-gray-400 transition-all ease-in-out duration-300 "
+                    onClick={() => {
+                      setSelectedInstructor("instructor");
+                      setSearchTerm("");
+                      setSearchInstructor("");
+                      setSearchError({ error: false, message: "" });
+                      setShowInstructorSearch(!showInstructorSearch);
+                    }}
+                  />
+                  <input
+                    className={`${
+                      showInstructorSearch ? "w-[15rem]" : "w-[2.3rem]"
+                    } h-[2.3rem] text-sm border border-gray-300 pl-9 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300 transition-all ease-in-out duration-300`}
+                    type="text"
+                    placeholder="Search"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchError({ error: false, message: "" });
+                      setSearchTerm(e.target.value);
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()} // Handle enter key
+                    disabled={!showInstructorSearch}
+                  />
+                </div>
+                {searchError.error && (
+                  <span className="text-sm text-red-500">
+                    {searchError.message}
+                  </span>
+                )}
+                {showInstructorSearch ? null : (
+                  <>
+                    <label
+                      htmlFor="instructor"
+                      className="font-semibold text-sm text-[var(--text-color)]"
                     >
-                      {`${instructor.first_name} ${instructor.last_name}`}
-                    </option>
-                  ))}
-                </select>
+                      Select Instructor:
+                    </label>
+                    <select
+                      name="instructor"
+                      id="instructor"
+                      value={selectedInstructor}
+                      onChange={(e) => setSelectedInstructor(e.target.value)}
+                      className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                    >
+                      <option value="Instructor">Instructor</option>
+                      {instructors.map((instructor, index) => (
+                        <option
+                          key={index}
+                          value={`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
+                        >
+                          {`${instructor.first_name} ${instructor.last_name}`}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
               </div>
             ) : category === "section" ? (
               <div className="flex md:flex-row flex-col gap-2 md:gap-6">
@@ -642,59 +769,96 @@ function DraftSchedules() {
             ) : (
               <div className="flex md:flex-row flex-col gap-2 md:gap-6">
                 <div className="flex items-center gap-4">
-                  <label
-                    htmlFor="room"
-                    className="font-semibold text-sm text-[var(--text-color)]"
-                  >
-                    Building:
-                  </label>
-                  <select
-                    name="building"
-                    id="building"
-                    value={selectedBuilding}
-                    onChange={(e) => {
-                      setSelectedBuilding(e.target.value);
-                      setSelectedRoom(
-                        rooms.filter(
-                          (r) => r.room_building === e.target.value
-                        )[0]?.room_name
-                      );
-                    }}
-                    className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-                  >
-                    <option value="Building">Building</option>
-                    {[...new Set(rooms.map((r) => r.room_building))].map(
-                      (building, index) => (
-                        <option key={index} value={building}>
-                          {building}
-                        </option>
-                      )
-                    )}
-                  </select>
-                </div>
-                <div className="flex items-center gap-4">
-                  <label
-                    htmlFor="room"
-                    className="font-semibold text-sm text-[var(--text-color)]"
-                  >
-                    Room:
-                  </label>
-                  <select
-                    name="room"
-                    id="room"
-                    value={selectedRoom}
-                    onChange={(e) => setSelectedRoom(e.target.value)}
-                    className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-                  >
-                    <option value="Room">Room</option>
-                    {rooms
-                      .filter((r) => r.room_building === selectedBuilding)
-                      .map((room, index) => (
-                        <option key={index} value={room.room_name}>
-                          {room.room_name}
-                        </option>
-                      ))}
-                  </select>
+                  <div className="relative flex justify-center items-center">
+                    <FontAwesomeIcon
+                      icon={faSearch}
+                      className="absolute left-3 text-sm text-gray-300 cursor-pointer hover:text-gray-400 transition-all ease-in-out duration-300 "
+                      onClick={() => {
+                        setSelectedRoom("Room");
+                        setSelectedBuilding("Building");
+                        setSearchTerm("");
+                        setSearchRoom("");
+                        setSearchError({ error: false, message: "" });
+                        setShowRoomSearch(!showRoomSearch);
+                      }}
+                    />
+                    <input
+                      className={`${
+                        showRoomSearch ? "w-[15rem]" : "w-[2.3rem]"
+                      } h-[2.3rem] text-sm border border-gray-300 pl-9 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300 transition-all ease-in-out duration-300`}
+                      type="text"
+                      placeholder="Search"
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchError({ error: false, message: "" });
+                        setSearchTerm(e.target.value);
+                      }}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()} // Handle enter key
+                      disabled={!showRoomSearch}
+                    />
+                  </div>
+                  {searchError.error && (
+                    <span className="text-sm text-red-500">
+                      {searchError.message}
+                    </span>
+                  )}
+                  {showRoomSearch ? null : (
+                    <div className="flex items-center gap-4">
+                      <label
+                        htmlFor="room"
+                        className="font-semibold text-sm text-[var(--text-color)]"
+                      >
+                        Building:
+                      </label>
+                      <select
+                        name="building"
+                        id="building"
+                        value={selectedBuilding}
+                        onChange={(e) => {
+                          setSelectedBuilding(e.target.value);
+                          setSelectedRoom(
+                            rooms.filter(
+                              (r) => r.room_building === e.target.value
+                            )[0]?.room_name
+                          );
+                        }}
+                        className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                      >
+                        <option value="Building">Building</option>
+                        {[...new Set(rooms.map((r) => r.room_building))].map(
+                          (building, index) => (
+                            <option key={index} value={building}>
+                              {building}
+                            </option>
+                          )
+                        )}
+                      </select>
+                      <div className="flex items-center gap-4">
+                        <label
+                          htmlFor="room"
+                          className="font-semibold text-sm text-[var(--text-color)]"
+                        >
+                          Room:
+                        </label>
+                        <select
+                          name="room"
+                          id="room"
+                          value={selectedRoom}
+                          onChange={(e) => setSelectedRoom(e.target.value)}
+                          className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                        >
+                          <option value="Room">Room</option>
+                          {rooms
+                            .filter((r) => r.room_building === selectedBuilding)
+                            .map((room, index) => (
+                              <option key={index} value={room.room_name}>
+                                {room.room_name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -806,21 +970,45 @@ function DraftSchedules() {
 
                       const scheduleItem = schedules.find((item) => {
                         if (category === "instructor") {
-                          return (
-                            item.start_time === time.startTime &&
-                            item.day === day &&
-                            item.instructor === selectedInstructor &&
-                            item.semester === semester &&
-                            item.academic_year === academicYear
-                          );
+                          if (searchInstructor) {
+                            return (
+                              item.start_time === time.startTime &&
+                              item.day === day &&
+                              item.instructor
+                                .toLowerCase()
+                                .includes(searchInstructor.toLowerCase()) &&
+                              item.semester === semester &&
+                              item.academic_year === academicYear
+                            );
+                          } else {
+                            return (
+                              item.start_time === time.startTime &&
+                              item.day === day &&
+                              item.instructor === selectedInstructor &&
+                              item.semester === semester &&
+                              item.academic_year === academicYear
+                            );
+                          }
                         } else if (category === "room") {
-                          return (
-                            item.start_time === time.startTime &&
-                            item.day === day &&
-                            item.room === selectedRoom &&
-                            item.semester === semester &&
-                            item.academic_year === academicYear
-                          );
+                          if (searchRoom) {
+                            return (
+                              item.start_time === time.startTime &&
+                              item.day === day &&
+                              item.room
+                                .toLowerCase()
+                                .includes(searchRoom.toLowerCase()) &&
+                              item.semester === semester &&
+                              item.academic_year === academicYear
+                            );
+                          } else {
+                            return (
+                              item.start_time === time.startTime &&
+                              item.day === day &&
+                              item.room === selectedRoom &&
+                              item.semester === semester &&
+                              item.academic_year === academicYear
+                            );
+                          }
                         } else {
                           return (
                             item.start_time === time.startTime &&
