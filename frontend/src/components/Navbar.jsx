@@ -32,16 +32,14 @@ function Navbar() {
             Schedule
           </NavLink>
         )}
-        {role === "Administrator" ? (
-          <NavLink
-            to="/instructors"
-            className={({ isActive }) =>
-              isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
-            }
-          >
-            Instructors
-          </NavLink>
-        ) : null}
+        <NavLink
+          to="/instructors"
+          className={({ isActive }) =>
+            isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
+          }
+        >
+          Instructors
+        </NavLink>
         <NavLink
           to="/sections"
           className={({ isActive }) =>
