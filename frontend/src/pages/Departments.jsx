@@ -278,7 +278,7 @@ const Departments = () => {
                 type="text"
                 name="program_code"
                 id="program_code"
-                placeholder="Program Code"
+                placeholder="Program Code (ex: BSIT, BSBA, BSED, etc..)"
                 value={data.program_code}
                 onChange={(e) => {
                   setData({
@@ -289,7 +289,7 @@ const Departments = () => {
                 }}
                 className={`${
                   errors.program_code ? "border-red-500" : ""
-                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
+                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
               />
             </div>
             <div className="flex flex-col gap-[0.2rem]">
@@ -307,7 +307,7 @@ const Departments = () => {
                 type="text"
                 name="department_code"
                 id="department_code"
-                placeholder="Department Code"
+                placeholder="Department Code (ex: CICS, CBEA, COEd, etc..)"
                 value={data.department_code}
                 onChange={(e) => {
                   setData({
@@ -334,7 +334,7 @@ const Departments = () => {
                 type="text"
                 name="department"
                 id="department"
-                placeholder="Department Name"
+                placeholder="ex: College of Information and Computing Sciences"
                 value={data.department}
                 onChange={(e) => {
                   setData({ ...data, department: e.target.value });
@@ -342,7 +342,7 @@ const Departments = () => {
                 }}
                 className={`${
                   errors.department ? "border-red-500" : ""
-                } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
+                } placeholder:text-[0.75rem] p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
               />
             </div>
             <div className="flex flex-col gap-[0.2rem]">
