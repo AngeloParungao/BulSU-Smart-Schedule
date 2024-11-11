@@ -1218,9 +1218,7 @@ const UpdateSchedule = ({
                     {Array.from(
                       new Set(
                         instructors.map(
-                          (instructor) =>
-                            instructor.department_code === currentDepartment ||
-                            instructor.department_code === "GENERAL"
+                          (instructor) => instructor.department_code
                         )
                       )
                     ).map((code, index) => (

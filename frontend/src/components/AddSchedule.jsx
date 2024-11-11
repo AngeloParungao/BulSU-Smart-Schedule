@@ -147,6 +147,8 @@ const AddSchedule = ({
     }
   };
 
+  console.log(instructors);
+
   // Generate recommendations based on availability of instructors, rooms, and sections
   const generateRecommendations = (schedules) => {
     const days = [
@@ -1120,9 +1122,7 @@ const AddSchedule = ({
                     {Array.from(
                       new Set(
                         instructors.map(
-                          (instructor) =>
-                            instructor.department_code === currentDepartment ||
-                            instructor.department_code === "GENERAl"
+                          (instructor) => instructor.department_code
                         )
                       )
                     ).map((code, index) => (
