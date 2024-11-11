@@ -591,7 +591,7 @@ const UpdateSchedule = ({
   //------FILTERING------//
 
   //------instructors-------//
-  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("");
@@ -600,7 +600,9 @@ const UpdateSchedule = ({
   const [searchRoomQuery, setSearchRoomQuery] = useState("");
 
   const filteredInstructors = instructors.filter((instructor) => {
-    const matchesTag = selectedTag === "" || instructor.tags === selectedTag;
+    const matchesTag =
+      selectedDepartment === "" ||
+      instructor.department_code === selectedDepartment;
     const matchesSearch =
       instructor.first_name
         .toLowerCase()
@@ -623,9 +625,7 @@ const UpdateSchedule = ({
       selectedLevel === "" || subject.year_level === selectedLevel;
     const marchesType =
       selectedType === "" || subject.subject_type === selectedType;
-    const specialized =
-      selectedTag === "" || subject.subject_tags === selectedTag;
-    return matchesSearch && matchesLevel && marchesType && specialized;
+    return matchesSearch && matchesLevel && marchesType;
   });
 
   //------rooms-------//
@@ -1204,22 +1204,28 @@ const UpdateSchedule = ({
                   Instructors
                 </span>
                 <div className="flex items-center gap-2">
-                  <label htmlFor="specialization" className="text-sm">
+                  <label htmlFor="department" className="text-sm">
                     Specialization:
                   </label>
                   <select
-                    name="specialization"
-                    id="specialization"
-                    value={selectedTag}
-                    onChange={(e) => setSelectedTag(e.target.value)}
+                    name="department"
+                    id="department"
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
                     className="w-14 px-1 rounded-lg border border-gray-300 focus:border-green-600"
                   >
                     <option value="">All</option>
                     {Array.from(
-                      new Set(instructors.map((instructor) => instructor.tags))
-                    ).map((tag, index) => (
-                      <option key={index} value={tag}>
-                        {tag}
+                      new Set(
+                        instructors.map(
+                          (instructor) =>
+                            instructor.department_code === currentDepartment ||
+                            instructor.department_code === "GENERAL"
+                        )
+                      )
+                    ).map((code, index) => (
+                      <option key={index} value={code}>
+                        {code}
                       </option>
                     ))}
                   </select>
@@ -1378,8 +1384,8 @@ const UpdateSchedule = ({
 
                   // Check if the subject is within the allowed hours limit (3 hours for minors, 5 hours for majors)
                   const isWithinLimit = isMinor
-                    ? totalHours == 3
-                    : totalHours == 5;
+                    ? totalHours === 3
+                    : totalHours === 5;
 
                   // Determine the background color based on whether the subject is within the limit or exceeds it
                   const backgroundColor = isWithinLimit

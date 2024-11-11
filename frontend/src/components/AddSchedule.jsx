@@ -493,7 +493,7 @@ const AddSchedule = ({
   //------FILTERING------//
 
   //------instructors-------//
-  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("");
@@ -502,7 +502,9 @@ const AddSchedule = ({
   const [searchRoomQuery, setSearchRoomQuery] = useState("");
 
   const filteredInstructors = instructors.filter((instructor) => {
-    const matchesTag = selectedTag === "" || instructor.tags === selectedTag;
+    const matchesTag =
+      selectedDepartment === "" ||
+      instructor.department_code === selectedDepartment;
     const matchesSearch =
       instructor.first_name
         .toLowerCase()
@@ -525,9 +527,7 @@ const AddSchedule = ({
       selectedLevel === "" || subject.year_level === selectedLevel;
     const matchesType =
       selectedType === "" || subject.subject_type === selectedType;
-    const specialized =
-      selectedTag === "" || subject.subject_tags === selectedTag;
-    return matchesSearch && matchesLevel && matchesType && specialized;
+    return matchesSearch && matchesLevel && matchesType;
   });
 
   //------rooms-------//
@@ -1106,22 +1106,28 @@ const AddSchedule = ({
                   Instructors
                 </span>
                 <div className="flex items-center gap-2">
-                  <label htmlFor="specialization" className="text-sm">
-                    Specialization:
+                  <label htmlFor="department" className="text-sm">
+                    Department:
                   </label>
                   <select
-                    name="specialization"
-                    id="specialization"
-                    value={selectedTag}
-                    onChange={(e) => setSelectedTag(e.target.value)}
+                    name="department"
+                    id="department"
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
                     className="w-14 px-1 rounded-lg border border-gray-300 focus:border-green-600"
                   >
                     <option value="">All</option>
                     {Array.from(
-                      new Set(instructors.map((instructor) => instructor.tags))
-                    ).map((tag, index) => (
-                      <option key={index} value={tag}>
-                        {tag}
+                      new Set(
+                        instructors.map(
+                          (instructor) =>
+                            instructor.department_code === currentDepartment ||
+                            instructor.department_code === "GENERAl"
+                        )
+                      )
+                    ).map((code, index) => (
+                      <option key={index} value={code}>
+                        {code}
                       </option>
                     ))}
                   </select>
