@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import io from "socket.io-client";
 import { Toaster, toast } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
@@ -11,6 +12,7 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 const Scheduling = () => {
   const url = process.env.REACT_APP_URL;
+  const socket = io(url); // Replace with your server URL
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const [schedules, setSchedules] = useState([]);
   const [sections, setSections] = useState([]);
@@ -28,8 +30,28 @@ const Scheduling = () => {
   useEffect(() => {
     toast.dismiss();
     fetchData();
+    // Listen for updates from the server
+    socket.on("schedule-added", (data) => {
+      console.log("Schedule added:", data);
+      fetchData(); // Refetch schedules on update
+    });
+
+    socket.on("schedule-updated", (data) => {
+      console.log("Schedule updated:", data);
+      fetchData();
+    });
+
+    socket.on("schedule-deleted", (data) => {
+      console.log("Schedule deleted:", data);
+      fetchData();
+    });
+
+    // Clean up on component unmount
     return () => {
       toast.dismiss();
+      socket.off("schedule-added");
+      socket.off("schedule-updated");
+      socket.off("schedule-deleted");
     };
   }, []);
 
