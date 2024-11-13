@@ -28,31 +28,38 @@ const Scheduling = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
-    toast.dismiss();
-    fetchData();
-    // Listen for updates from the server
-    socket.on("schedule-added", (data) => {
-      console.log("Schedule added:", data);
-      fetchData(); // Refetch schedules on update
-    });
+    let updateScheduled = false;
 
-    socket.on("schedule-updated", (data) => {
-      console.log("Schedule updated:", data);
-      fetchData();
-    });
+    const handleEvent = (data) => {
+      console.log("Event received:", data);
 
-    socket.on("schedule-deleted", (data) => {
-      console.log("Schedule deleted:", data);
-      fetchData();
-    });
+      // Only schedule an update if one isn't already scheduled
+      if (!updateScheduled) {
+        updateScheduled = true;
+
+        setTimeout(() => {
+          fetchData(); // Fetch the data
+          updateScheduled = false; // Reset for the next batch
+        }, 5000); // Wait 5 seconds before fetching data
+      }
+    };
+
+    // Listen for events and batch updates
+    socket.on("schedule-added", handleEvent);
+    socket.on("schedule-updated", handleEvent);
+    socket.on("schedule-deleted", handleEvent);
 
     // Clean up on component unmount
     return () => {
       toast.dismiss();
-      socket.off("schedule-added");
-      socket.off("schedule-updated");
-      socket.off("schedule-deleted");
+      socket.off("schedule-added", handleEvent);
+      socket.off("schedule-updated", handleEvent);
+      socket.off("schedule-deleted", handleEvent);
     };
+  }, []);
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const fetchData = async () => {
