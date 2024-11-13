@@ -106,7 +106,7 @@ const AddSchedule = ({
         (subject) =>
           subject.subject_units === 3 &&
           data.subject === subject.subject_name &&
-          currentDepartment.replace(/[()]/g, "").split(" ")[1] === "CICT"
+          currentDepartment.replace(/[()]/g, "").split(" ")[1] === "CICS"
       )
     ) {
       setData({ ...data, course_type: "" });
@@ -179,7 +179,7 @@ const AddSchedule = ({
     const department = currentDepartment.replace(/[()]/g, "").split(" ")[1];
     // Determine the duration based on course type, subject type, and unit
     const fullDuration =
-      subject && department === "CICT" && subject.subject_units === 3
+      subject && department === "CICS" && subject.subject_units === 3
         ? subject.subject_type === "Major"
           ? data.course_type === "Laboratory"
             ? 3
@@ -189,7 +189,7 @@ const AddSchedule = ({
 
     const scheduledDuration = schedules
       .filter((schedule) =>
-        department === "CICT"
+        department === "CICS"
           ? schedule.subject === data.subject &&
             schedule.class_type === data.course_type &&
             schedule.section_name === section &&
@@ -375,10 +375,10 @@ const AddSchedule = ({
 
     // Determine duration limits based on department, course type, and subject units
     const durationLimit =
-      !isMinor && department === "CICT" && units === 3
+      !isMinor && department === "CICS" && units === 3
         ? data.course_type === "Lecture"
-          ? 120 // CICT departments with 3-unit major subjects: 2 hours (120 mins) for Lecture
-          : 180 // CICT departments with 3-unit major subjects: 3 hours (180 mins) for Laboratory
+          ? 120 // CICS departments with 3-unit major subjects: 2 hours (120 mins) for Lecture
+          : 180 // CICS departments with 3-unit major subjects: 3 hours (180 mins) for Laboratory
         : subjectUnitsInMinutes; // Otherwise, base limit on subject units
 
     // Calculate the new schedule duration
@@ -400,11 +400,11 @@ const AddSchedule = ({
 
     // Determine the total duration limit based on department, course type, and subject units
     const totalLimit = isMinor
-      ? department === "CICT" // For CICT departments
-        ? units * 60 // Use subject units for minor subjects in CICT
-        : 180 // For non-CICT minor subjects, set a 3-hour (180 mins) limit
-      : department === "CICT" && units === 3
-      ? 300 // CICT departments with 3-unit major subjects have a 5-hour (300 mins) limit
+      ? department === "CICS" // For CICS departments
+        ? units * 60 // Use subject units for minor subjects in CICS
+        : 180 // For non-CICS minor subjects, set a 3-hour (180 mins) limit
+      : department === "CICS" && units === 3
+      ? 300 // CICS departments with 3-unit major subjects have a 5-hour (300 mins) limit
       : (units || 1) * 60; // Otherwise, set limit based on subject units
 
     // Check if the new schedule would exceed the total limit
@@ -908,7 +908,7 @@ const AddSchedule = ({
                   (subject) => subject.subject_name === data.subject
                 )?.subject_units === 3 &&
                 currentDepartment.replace(/[()]/g, "").split(" ")[1] ===
-                  "CICT" ? (
+                  "CICS" ? (
                   <div className="flex gap-4">
                     <div
                       className={`${
@@ -1365,7 +1365,7 @@ const AddSchedule = ({
                     .split(" ")[1];
 
                   const allowedHours =
-                    department === "CICT" && subject.subject_units === 3
+                    department === "CICS" && subject.subject_units === 3
                       ? 300 // 5 hours
                       : subject.subject_units * 60;
 
