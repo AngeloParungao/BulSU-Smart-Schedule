@@ -249,9 +249,6 @@ function Settings() {
                 Change Password
               </button>
             </form>
-            <button className="w-full bg-red-600 text-sm text-white font-medium p-2 rounded-md hover:bg-red-700 hover:cursor-pointer">
-              Reset All Schedule
-            </button>
           </div>
           <div className="flex flex-col justify-between items-center p-5 bg-white rounded-xl shadow-md w-[25rem] h-[30rem] gap-2">
             <h3 className="self-start text-xl font-bold mt-3 text-black">
