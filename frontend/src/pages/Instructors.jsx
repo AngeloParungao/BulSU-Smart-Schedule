@@ -455,10 +455,10 @@ const Instructors = () => {
                   <option value="">Department</option>
                   <option value="GENERAL">GENERAL</option>
                   {departments
-                    .filter(
-                      (d) =>
-                        currentRole === "Administrator" ||
-                        d.department_code === currentDepartment
+                    .filter((d) =>
+                      currentRole === "Administrator"
+                        ? d.department_code
+                        : d.department_code === currentDepartment
                     )
                     .map((d, index) => (
                       <option key={index} value={d.department_code}>
@@ -545,10 +545,10 @@ const Instructors = () => {
                       <option value="All">All</option>
                       <option value="GENERAL">GENERAL</option>
                       {departments
-                        .filter(
-                          (d) =>
-                            currentRole === "Administrator" ||
-                            d.department_code === currentDepartment
+                        .filter((d) =>
+                          currentRole === "Administrator"
+                            ? d.department_code
+                            : d.department_code === currentDepartment
                         )
                         .map((d, index) => (
                           <option key={index} value={d.department_code}>

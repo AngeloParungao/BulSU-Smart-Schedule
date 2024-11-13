@@ -27,6 +27,8 @@ function DraftSchedules() {
   const [searchRoom, setSearchRoom] = useState("");
   const [searchError, setSearchError] = useState({});
   const [selectedDepartment, setSelectedDepartment] = useState("Department");
+  const [selectedSectionDepartment, setSelectedSectionDepartment] =
+    useState("Department");
   const [selectedInstructor, setSelectedInstructor] = useState("Instructor");
   const [selectedSection, setSelectedSection] = useState("Section");
   const [selectedGroup, setSelectedGroup] = useState("Group");
@@ -91,10 +93,6 @@ function DraftSchedules() {
             a.instructor.localeCompare(b.instructor)
           )
         );
-      }
-      if (sectionRes.data.length > 0) {
-        setSelectedSection(sectionRes.data[0].section_name.toString());
-        setSelectedGroup(sectionRes.data[0].section_group.toString());
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -698,31 +696,36 @@ function DraftSchedules() {
                 )}
                 {showInstructorSearch ? null : (
                   <div className="flex md:flex-row flex-col md:items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <label
-                        htmlFor="department"
-                        className="font-semibold text-sm text-[var(--text-color)]"
-                      >
-                        Department:
-                      </label>
-                      <select
-                        name="department"
-                        id="department"
-                        value={selectedDepartment}
-                        onChange={(e) => setSelectedDepartment(e.target.value)}
-                        className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-                      >
-                        <option value="Department">Department</option>
-                        {departments.map((department, index) => (
-                          <option
-                            key={index}
-                            value={department.department_code}
-                          >
-                            {department.department_code}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    {currentDepartment === "ADMIN" && (
+                      <div className="flex items-center gap-2">
+                        <label
+                          htmlFor="department"
+                          className="font-semibold text-sm text-[var(--text-color)]"
+                        >
+                          Department:
+                        </label>
+                        <select
+                          name="department"
+                          id="department"
+                          value={selectedDepartment}
+                          onChange={(e) =>
+                            setSelectedDepartment(e.target.value)
+                          }
+                          className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                        >
+                          <option value="Department">Department</option>
+                          <option value="GENERAL">GENERAL</option>
+                          {departments.map((department, index) => (
+                            <option
+                              key={index}
+                              value={department.department_code}
+                            >
+                              {department.department_code}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <label
                         htmlFor="instructor"
@@ -739,9 +742,13 @@ function DraftSchedules() {
                       >
                         <option value="Instructor">Instructor</option>
                         {instructors
-                          .filter(
-                            (instructor) =>
-                              instructor.department_code === selectedDepartment
+                          .filter((instructor) =>
+                            currentDepartment === "ADMIN"
+                              ? instructor.department_code ===
+                                selectedDepartment
+                              : instructor.department_code ===
+                                  currentDepartment ||
+                                instructor.department_code === "GENERAL"
                           )
                           .map((instructor, index) => (
                             <option
@@ -759,6 +766,32 @@ function DraftSchedules() {
               </div>
             ) : category === "section" ? (
               <div className="flex md:flex-row flex-col gap-2 md:gap-6">
+                {currentDepartment === "ADMIN" && (
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="department"
+                      className="font-semibold text-sm text-[var(--text-color)]"
+                    >
+                      Department:
+                    </label>
+                    <select
+                      name="department"
+                      id="department"
+                      value={selectedSectionDepartment}
+                      onChange={(e) =>
+                        setSelectedSectionDepartment(e.target.value)
+                      }
+                      className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                    >
+                      <option value="Department">Department</option>
+                      {departments.map((department, index) => (
+                        <option key={index} value={department.department_code}>
+                          {department.department_code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="flex items-center gap-4 ">
                   <label
                     htmlFor="section"
@@ -774,7 +807,17 @@ function DraftSchedules() {
                     className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                   >
                     <option value="Section">Section</option>
-                    {[...new Set(sections.map((s) => s.section_name))]
+                    {[
+                      ...new Set(
+                        sections
+                          .filter((s) =>
+                            currentDepartment === "ADMIN"
+                              ? s.department_code === selectedSectionDepartment
+                              : s.department_code === currentDepartment
+                          )
+                          .map((s) => s.section_name)
+                      ),
+                    ]
                       .sort() // Sort section names alphabetically
                       .map((section, index) => (
                         <option key={index} value={section}>
