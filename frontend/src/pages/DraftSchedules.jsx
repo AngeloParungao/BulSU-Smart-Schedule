@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import Sidebar from "../components/Sidebar";
 import Report from "../components/Report";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faSearch, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 function DraftSchedules() {
   const url = process.env.REACT_APP_URL;
@@ -18,6 +18,7 @@ function DraftSchedules() {
   const [schedules, setSchedules] = useState([]);
   const [sections, setSections] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [showInstructorSearch, setShowInstructorSearch] = useState(false);
   const [showRoomSearch, setShowRoomSearch] = useState(false);
@@ -25,6 +26,7 @@ function DraftSchedules() {
   const [searchInstructor, setSearchInstructor] = useState("");
   const [searchRoom, setSearchRoom] = useState("");
   const [searchError, setSearchError] = useState({});
+  const [selectedDepartment, setSelectedDepartment] = useState("Department");
   const [selectedInstructor, setSelectedInstructor] = useState("Instructor");
   const [selectedSection, setSelectedSection] = useState("Section");
   const [selectedGroup, setSelectedGroup] = useState("Group");
@@ -55,7 +57,7 @@ function DraftSchedules() {
 
   const fetchData = async () => {
     try {
-      const [scheduleRes, sectionRes, instructorRes, roomRes] =
+      const [scheduleRes, sectionRes, instructorRes, roomRes, departmentRes] =
         await Promise.all([
           axios.get(`${url}api/schedule/fetch`),
           axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
@@ -63,11 +65,20 @@ function DraftSchedules() {
             `${url}api/instructors/fetch?dept_code=${currentDepartment}`
           ),
           axios.get(`${url}api/rooms/fetch`),
+          axios.get(`${url}api/departments/fetch`),
         ]);
 
       setSchedules(scheduleRes.data);
       setSections(sectionRes.data);
       setRooms(roomRes.data);
+      setDepartments(
+        departmentRes.data.filter((d) =>
+          currentDepartment === "ADMIN"
+            ? departmentRes.data
+            : d.department_code === currentDepartment ||
+              d.department_code === "GENERAL"
+        )
+      );
       setInstructors(
         instructorRes.data.sort((a, b) =>
           a.first_name.localeCompare(b.first_name)
@@ -81,25 +92,9 @@ function DraftSchedules() {
           )
         );
       }
-
-      if (instructorRes.data.length > 0) {
-        setSelectedInstructor(
-          instructorRes.data[0].first_name.toString() +
-            " " +
-            instructorRes.data[0].middle_name.toString() +
-            " " +
-            instructorRes.data[0].last_name.toString()
-        );
-      }
-
       if (sectionRes.data.length > 0) {
         setSelectedSection(sectionRes.data[0].section_name.toString());
         setSelectedGroup(sectionRes.data[0].section_group.toString());
-      }
-
-      if (roomRes.data.length > 0) {
-        setSelectedBuilding(roomRes.data[0].room_building.toString());
-        setSelectedRoom(roomRes.data[0].room_name.toString());
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -503,11 +498,17 @@ function DraftSchedules() {
       if (searchTerm === "") {
         setSearchError({
           error: true,
-          message: "Please enter a search term.",
+          message: "Please enter an instructor.",
         });
       } else {
-        const result = schedules.some((schedule) =>
-          schedule.instructor.toLowerCase().includes(searchTerm.toLowerCase())
+        const result = schedules.some(
+          (schedule) =>
+            schedule.instructor
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) &&
+            (currentDepartment === "ADMIN"
+              ? true
+              : schedule.department_code === currentDepartment)
         );
         if (result) {
           setSearchError({
@@ -526,7 +527,7 @@ function DraftSchedules() {
       if (searchTerm === "") {
         setSearchError({
           error: true,
-          message: "Please enter a search term.",
+          message: "Please enter a room.",
         });
       } else {
         const result = schedules.some(
@@ -647,17 +648,18 @@ function DraftSchedules() {
           {/* Conditional Instructor or Section/Group */}
           <div className="flex justify-between items-center gap-2 mt-2">
             {category === "instructor" ? (
-              <div className="flex items-center gap-4">
+              <div className="flex md:flex-row flex-col md:items-center items-start gap-4">
                 <div className="relative flex justify-center items-center">
                   <FontAwesomeIcon
                     icon={faSearch}
                     className="absolute left-3 text-sm text-gray-300 cursor-pointer hover:text-gray-400 transition-all ease-in-out duration-300 "
                     onClick={() => {
+                      setSelectedDepartment("department");
                       setSelectedInstructor("instructor");
                       setSearchTerm("");
                       setSearchInstructor("");
                       setSearchError({ error: false, message: "" });
-                      setShowInstructorSearch(!showInstructorSearch);
+                      setShowInstructorSearch(true);
                     }}
                   />
                   <input
@@ -674,6 +676,20 @@ function DraftSchedules() {
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()} // Handle enter key
                     disabled={!showInstructorSearch}
                   />
+                  {showInstructorSearch && (
+                    <div className="flex justify-center items-center ml-2">
+                      <FontAwesomeIcon
+                        icon={faXmark}
+                        className="w-4 h-4 text-sm p-1 bg-red-300 text-white rounded-full cursor-pointer hover:bg-red-400 transition-all ease-in-out duration-300"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setSearchInstructor("");
+                          setSearchError({ error: false, message: "" });
+                          setShowInstructorSearch(false);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
                 {searchError.error && (
                   <span className="text-sm text-red-500">
@@ -681,31 +697,64 @@ function DraftSchedules() {
                   </span>
                 )}
                 {showInstructorSearch ? null : (
-                  <>
-                    <label
-                      htmlFor="instructor"
-                      className="font-semibold text-sm text-[var(--text-color)]"
-                    >
-                      Select Instructor:
-                    </label>
-                    <select
-                      name="instructor"
-                      id="instructor"
-                      value={selectedInstructor}
-                      onChange={(e) => setSelectedInstructor(e.target.value)}
-                      className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-                    >
-                      <option value="Instructor">Instructor</option>
-                      {instructors.map((instructor, index) => (
-                        <option
-                          key={index}
-                          value={`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
-                        >
-                          {`${instructor.first_name} ${instructor.last_name}`}
-                        </option>
-                      ))}
-                    </select>
-                  </>
+                  <div className="flex md:flex-row flex-col md:items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="department"
+                        className="font-semibold text-sm text-[var(--text-color)]"
+                      >
+                        Department:
+                      </label>
+                      <select
+                        name="department"
+                        id="department"
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                      >
+                        <option value="Department">Department</option>
+                        {departments.map((department, index) => (
+                          <option
+                            key={index}
+                            value={department.department_code}
+                          >
+                            {department.department_code}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="instructor"
+                        className="font-semibold text-sm text-[var(--text-color)]"
+                      >
+                        Instructor:
+                      </label>
+                      <select
+                        name="instructor"
+                        id="instructor"
+                        value={selectedInstructor}
+                        onChange={(e) => setSelectedInstructor(e.target.value)}
+                        className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                      >
+                        <option value="Instructor">Instructor</option>
+                        {instructors
+                          .filter(
+                            (instructor) =>
+                              instructor.department_code === selectedDepartment
+                          )
+                          .map((instructor, index) => (
+                            <option
+                              key={index}
+                              value={`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
+                            >
+                              {`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
+                            </option>
+                          ))
+                          .sort()}
+                      </select>
+                    </div>
+                  </div>
                 )}
               </div>
             ) : category === "section" ? (
@@ -768,7 +817,7 @@ function DraftSchedules() {
               </div>
             ) : (
               <div className="flex md:flex-row flex-col gap-2 md:gap-6">
-                <div className="flex items-center gap-4">
+                <div className="flex md:flex-row flex-col md:items-center items-start gap-4">
                   <div className="relative flex justify-center items-center">
                     <FontAwesomeIcon
                       icon={faSearch}
@@ -779,7 +828,7 @@ function DraftSchedules() {
                         setSearchTerm("");
                         setSearchRoom("");
                         setSearchError({ error: false, message: "" });
-                        setShowRoomSearch(!showRoomSearch);
+                        setShowRoomSearch(true);
                       }}
                     />
                     <input
@@ -796,6 +845,20 @@ function DraftSchedules() {
                       onKeyDown={(e) => e.key === "Enter" && handleSearch()} // Handle enter key
                       disabled={!showRoomSearch}
                     />
+                    {showRoomSearch && (
+                      <div className="flex justify-center items-center ml-2">
+                        <FontAwesomeIcon
+                          icon={faXmark}
+                          className="w-4 h-4 text-sm p-1 bg-red-300 text-white rounded-full cursor-pointer hover:bg-red-400 transition-all ease-in-out duration-300"
+                          onClick={() => {
+                            setSearchTerm("");
+                            setSearchRoom("");
+                            setSearchError({ error: false, message: "" });
+                            setShowRoomSearch(false);
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                   {searchError.error && (
                     <span className="text-sm text-red-500">
@@ -803,36 +866,38 @@ function DraftSchedules() {
                     </span>
                   )}
                   {showRoomSearch ? null : (
-                    <div className="flex items-center gap-4">
-                      <label
-                        htmlFor="room"
-                        className="font-semibold text-sm text-[var(--text-color)]"
-                      >
-                        Building:
-                      </label>
-                      <select
-                        name="building"
-                        id="building"
-                        value={selectedBuilding}
-                        onChange={(e) => {
-                          setSelectedBuilding(e.target.value);
-                          setSelectedRoom(
-                            rooms.filter(
-                              (r) => r.room_building === e.target.value
-                            )[0]?.room_name
-                          );
-                        }}
-                        className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-                      >
-                        <option value="Building">Building</option>
-                        {[...new Set(rooms.map((r) => r.room_building))].map(
-                          (building, index) => (
-                            <option key={index} value={building}>
-                              {building}
-                            </option>
-                          )
-                        )}
-                      </select>
+                    <div className="flex md:flex-row flex-col md:items-center gap-4">
+                      <div className="flex items-center gap-4">
+                        <label
+                          htmlFor="room"
+                          className="font-semibold text-sm text-[var(--text-color)]"
+                        >
+                          Building:
+                        </label>
+                        <select
+                          name="building"
+                          id="building"
+                          value={selectedBuilding}
+                          onChange={(e) => {
+                            setSelectedBuilding(e.target.value);
+                            setSelectedRoom(
+                              rooms.filter(
+                                (r) => r.room_building === e.target.value
+                              )[0]?.room_name
+                            );
+                          }}
+                          className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                        >
+                          <option value="Building">Building</option>
+                          {[...new Set(rooms.map((r) => r.room_building))].map(
+                            (building, index) => (
+                              <option key={index} value={building}>
+                                {building}
+                              </option>
+                            )
+                          )}
+                        </select>
+                      </div>
                       <div className="flex items-center gap-4">
                         <label
                           htmlFor="room"
@@ -970,7 +1035,7 @@ function DraftSchedules() {
 
                       const scheduleItem = schedules.find((item) => {
                         if (category === "instructor") {
-                          if (searchInstructor) {
+                          if (searchInstructor !== "") {
                             return (
                               item.start_time === time.startTime &&
                               item.day === day &&
@@ -978,7 +1043,10 @@ function DraftSchedules() {
                                 .toLowerCase()
                                 .includes(searchInstructor.toLowerCase()) &&
                               item.semester === semester &&
-                              item.academic_year === academicYear
+                              item.academic_year === academicYear &&
+                              (currentDepartment === "ADMIN"
+                                ? true
+                                : item.department_code === currentDepartment)
                             );
                           } else {
                             return (
@@ -990,7 +1058,7 @@ function DraftSchedules() {
                             );
                           }
                         } else if (category === "room") {
-                          if (searchRoom) {
+                          if (searchRoom !== "") {
                             return (
                               item.start_time === time.startTime &&
                               item.day === day &&
