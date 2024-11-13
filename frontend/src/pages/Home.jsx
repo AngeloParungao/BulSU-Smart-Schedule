@@ -51,7 +51,11 @@ function Home() {
       ]);
 
       if (currentRole === "Administrator") {
-        setUsers(userRes.data.filter((user) => user.status === "active"));
+        setUsers(
+          userRes.data.filter(
+            (user) => user.status === "active" && user.role !== "Administrator"
+          )
+        );
       } else {
         setUsers(
           userRes.data.filter(
