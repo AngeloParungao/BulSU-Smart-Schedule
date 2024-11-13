@@ -6,6 +6,7 @@ import { faWarning } from "@fortawesome/free-solid-svg-icons";
 const ChangeStatusConfirmation = ({
   isOpen,
   onRequestClose,
+  type,
   category,
   data,
   confirm,
@@ -53,9 +54,13 @@ const ChangeStatusConfirmation = ({
           <p className="font-bold text-lg">{category}</p>
           <p className="text-md text-gray-700">
             {Array.isArray(data)
-              ? category === "Restore Users"
-                ? `You're going to restore ${data.length} users`
-                : `You're going to archive ${data.length} users`
+              ? type === "user"
+                ? category === "Restore Users"
+                  ? `You're going to restore ${data.length} users`
+                  : `You're going to archive ${data.length} users`
+                : category === "Restore Departments"
+                ? `You're going to restore ${data.length} departments`
+                : `You're going to archive ${data.length} departments`
               : `You're going to ${category} "${data}"`}
             . Are you sure?
           </p>
@@ -65,7 +70,9 @@ const ChangeStatusConfirmation = ({
             className="bg-orange-500 text-white w-full p-2 rounded-full hover:bg-orange-600"
             onClick={confirm}
           >
-            {category === "Restore User" ? "Restore" : "Archive"}
+            {category === "Restore User" || category === "Restore Department"
+              ? "Restore"
+              : "Archive"}
           </button>
           <button
             className="bg-gray-500 text-white w-full p-2 rounded-full hover:bg-gray-600"
