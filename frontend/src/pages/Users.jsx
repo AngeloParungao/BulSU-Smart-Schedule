@@ -264,6 +264,7 @@ const Users = () => {
                 <ChangeStatusConfirmation
                   isOpen={showChangeStatus}
                   onRequestClose={() => setShowChangeStatus(false)}
+                  type={"user"}
                   category={`${showArchive ? "Restore" : "Archive"} ${
                     selectedUsers.length === 1 ? "User" : "Users"
                   }`}
