@@ -83,11 +83,6 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
   };
 
   const handleDelete = async () => {
-    if (!selectedSchedules.length) {
-      toast.error("Please select at least one schedule.");
-      return;
-    }
-
     selectedSchedules.map((schedule) => {
       const scheduleData = schedules.find((s) => s.schedule_id === schedule);
       //check every subject if it is minor, if minor include the id of the other group
@@ -282,6 +277,7 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
             <button
               className="bg-red-500 text-white text-sm px-4 py-2 rounded hover:bg-red-600"
               onClick={() => setShowDeleteConfirmation(true)}
+              disabled={selectedSchedules.length === 0}
             >
               Delete
             </button>
@@ -301,7 +297,10 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
         {showPasswordPrompt && (
           <PasswordPrompt
             isOpen={showPasswordPrompt}
-            onRequestClose={() => setShowPasswordPrompt(false)}
+            onRequestClose={() => {
+              setSelectedSchedules([]);
+              setShowPasswordPrompt(false);
+            }}
             onSubmit={handlePasswordSubmit}
           />
         )}
