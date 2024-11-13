@@ -36,6 +36,8 @@ const AddSchedule = ({
   const [rooms, setRooms] = useState([]);
   const [errors, setErrors] = useState({});
   const [recommendations, setRecommendations] = useState([]);
+  const [showMeetings, setShowMeetings] = useState(false);
+  const [meetings, setMeetings] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // For mobile view
@@ -77,7 +79,10 @@ const AddSchedule = ({
 
   // Generate recommendations whenever relevant fields change
   useEffect(() => {
-    // Call generateRecommendations and checkRealTimeErrors
+    // Reset recommendation to empty when the window first opens
+    setRecommendations([]);
+
+    // Then call the functions to generate recommendations and check real-time errors
     generateRecommendations(schedules);
     checkRealTimeErrors();
   }, [
@@ -90,17 +95,25 @@ const AddSchedule = ({
     data.start_time,
     data.end_time,
     data.course_type,
+    schedules, // Make sure schedules is included as a dependency if it changes
+    meetings,
   ]);
 
   useEffect(() => {
     if (
       data.subject !== "" &&
-      subjects.find((subject) => subject.subject_name === data.subject)
-        ?.subject_type !== "Major"
+      subjects.find(
+        (subject) =>
+          subject.subject_units === 3 &&
+          data.subject === subject.subject_name &&
+          currentDepartment.replace(/[()]/g, "").split(" ")[1] === "CICT"
+      )
     ) {
+      setData({ ...data, course_type: "" });
+    } else {
       setData({ ...data, course_type: "Lecture" });
     }
-  }, [data.subject, subjects, setData]);
+  }, [data.subject, setData]);
 
   // Fetch data from the server
   const fetchData = async () => {
@@ -147,8 +160,6 @@ const AddSchedule = ({
     }
   };
 
-  console.log(instructors);
-
   // Generate recommendations based on availability of instructors, rooms, and sections
   const generateRecommendations = (schedules) => {
     const days = [
@@ -165,14 +176,48 @@ const AddSchedule = ({
       (subject) => subject.subject_name === data.subject
     );
 
+    const department = currentDepartment.replace(/[()]/g, "").split(" ")[1];
     // Determine the duration based on course type, subject type, and unit
-    const duration =
-      subject && subject.subject_units === 1
+    const fullDuration =
+      subject && department === "CICT" && subject.subject_units === 3
+        ? subject.subject_type === "Major"
+          ? data.course_type === "Laboratory"
+            ? 3
+            : 2
+          : subject?.subject_units || 0
+        : subject?.subject_units || 1; // default to 0 if subject or subject_units is undefined
+
+    const scheduledDuration = schedules
+      .filter((schedule) =>
+        department === "CICT"
+          ? schedule.subject === data.subject &&
+            schedule.class_type === data.course_type &&
+            schedule.section_name === section &&
+            schedule.section_group === group
+          : schedule.subject === data.subject &&
+            (schedule.class_type === data.course_type ||
+              schedule.class_type !== data.course_type) &&
+            schedule.section_name === section &&
+            schedule.section_group === group
+      )
+      .reduce((sum, schedule) => {
+        const startHour = parseInt(schedule.start_time.split(":")[0], 10);
+        const endHour = parseInt(schedule.end_time.split(":")[0], 10);
+        return sum + (endHour - startHour);
+      }, 0);
+
+    const duration = Math.ceil((fullDuration - scheduledDuration) / meetings);
+
+    if (duration <= 0) {
+      setRecommendations([]);
+      return;
+    }
+    /*subject && subject.subject_units === 1
         ? 1
         : data.course_type === "Laboratory" ||
           (subject && subject.subject_type === "Minor")
         ? 3
-        : 2;
+        : 2; */
 
     days.forEach((day) => {
       if (data.day && data.day !== day) {
@@ -310,12 +355,6 @@ const AddSchedule = ({
       }, 0);
     };
 
-    const newScheduleDuration = newEndInMinutes - newStartInMinutes;
-
-    // Identify if subject is minor or major
-    const subject = subjects.find((sub) => sub.subject_name === data.subject);
-    const isMinor = subject && subject.subject_type === "Minor";
-
     // Calculate existing lecture and laboratory durations for the subject
     const lectureSchedules = subjectSchedules.filter(
       (schedule) => schedule.class_type === "Lecture"
@@ -328,18 +367,49 @@ const AddSchedule = ({
     const totalLaboratoryDuration = calculateTotalDuration(laboratorySchedules);
     const totalDuration = totalLectureDuration + totalLaboratoryDuration;
 
-    // Set limits for minor and major subjects
-    const exceedsLectureLimit =
+    const department = currentDepartment.replace(/[()]/g, "").split(" ")[1];
+    const subject = subjects.find((sub) => sub.subject_name === data.subject);
+    const units = subject?.subject_units || 1;
+    const isMinor = subject && subject.subject_type === "Minor";
+    const subjectUnitsInMinutes = (subject?.subject_units || 1) * 60;
+
+    // Determine duration limits based on department, course type, and subject units
+    const durationLimit =
+      !isMinor && department === "CICT" && units === 3
+        ? data.course_type === "Lecture"
+          ? 120 // CICT departments with 3-unit major subjects: 2 hours (120 mins) for Lecture
+          : 180 // CICT departments with 3-unit major subjects: 3 hours (180 mins) for Laboratory
+        : subjectUnitsInMinutes; // Otherwise, base limit on subject units
+
+    // Calculate the new schedule duration
+    const newScheduleDuration = newEndInMinutes - newStartInMinutes || 0;
+
+    // Check if the new schedule exceeds the duration limit based on course type
+    const exceedsDurationLimit =
       !isMinor &&
-      data.course_type === "Lecture" &&
-      totalLectureDuration + newScheduleDuration > 120; // 2 hours for Lecture
-    const exceedsLaboratoryLimit =
-      !isMinor &&
-      data.course_type === "Laboratory" &&
-      totalLaboratoryDuration + newScheduleDuration > 180; // 3 hours for Laboratory
-    const exceedsTotalLimit = isMinor
-      ? totalDuration + newScheduleDuration > 180 // Minor subjects: total limit of 3 hours
-      : totalDuration + newScheduleDuration > 300; // Major subjects: total limit of 5 hours
+      ((data.course_type === "Lecture" &&
+        totalLectureDuration + newScheduleDuration >
+          (data.course_type === "Lecture"
+            ? durationLimit
+            : subjectUnitsInMinutes)) ||
+        (data.course_type === "Laboratory" &&
+          totalLaboratoryDuration + newScheduleDuration >
+            (data.course_type === "Laboratory"
+              ? durationLimit
+              : subjectUnitsInMinutes)));
+
+    // Determine the total duration limit based on department, course type, and subject units
+    const totalLimit = isMinor
+      ? department === "CICT" // For CICT departments
+        ? units * 60 // Use subject units for minor subjects in CICT
+        : 180 // For non-CICT minor subjects, set a 3-hour (180 mins) limit
+      : department === "CICT" && units === 3
+      ? 300 // CICT departments with 3-unit major subjects have a 5-hour (300 mins) limit
+      : (units || 1) * 60; // Otherwise, set limit based on subject units
+
+    // Check if the new schedule would exceed the total limit
+    const exceedsTotalLimit = totalDuration + newScheduleDuration > totalLimit;
+    console.log(totalDuration, newScheduleDuration, totalLimit);
 
     // Check if the instructor is a part-timer and limit to 9 hours (540 minutes)
     const instructorSchedules = schedules.filter(
@@ -384,7 +454,7 @@ const AddSchedule = ({
           }
         : null,
       subject_error: exceedsTotalLimit,
-      course_error: exceedsLectureLimit || exceedsLaboratoryLimit,
+      course_error: exceedsDurationLimit,
       part_time_error: exceedsPartTimeLimit,
     });
   };
@@ -594,13 +664,39 @@ const AddSchedule = ({
           </div>
           <div className="w-full h-full flex flex-col lg:flex-row items-center gap-4">
             <div className="lg:w-1/3 w-full lg:h-full h-[25rem] overflow-y-auto p-2 flex flex-col md:gap-2 gap-1 border-4 border-orange-100 rounded-md scrollbar">
-              <span className="md:text-lg text-sm text-orange-400">
-                <FontAwesomeIcon
-                  icon={faLightbulb}
-                  className="md:text-lg text-sm mr-2 text-orange-400"
-                />
-                Recommendation
-              </span>
+              <div className="flex justify-between items-center">
+                <span className="md:text-lg text-sm text-orange-400">
+                  <FontAwesomeIcon
+                    icon={faLightbulb}
+                    className="md:text-lg text-sm mr-2 text-orange-400"
+                  />
+                  Recommendation
+                </span>
+                {subjects.some(
+                  (subject) =>
+                    subject.subject_name === data.subject &&
+                    subject.subject_units >= 4
+                ) && (
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="number_of_meetings" className="text-sm">
+                      Split:
+                    </label>
+                    <select
+                      className="border border-gray-300 px-2 rounded-md"
+                      value={meetings}
+                      onChange={(e) => setMeetings(e.target.value)}
+                    >
+                      <option value={1}>1</option>
+                      <option value={2}>2</option>
+                      {subjects.some(
+                        (subject) =>
+                          subject.subject_name === data.subject &&
+                          subject.subject_units > 4
+                      ) && <option value={3}>3</option>}
+                    </select>
+                  </div>
+                )}
+              </div>
               {recommendations.length > 0 ? (
                 recommendations.map((rec, index) => (
                   <div
@@ -632,7 +728,9 @@ const AddSchedule = ({
                   </div>
                 ))
               ) : (
-                <p>No recommendations available</p>
+                <p className="text-md text-gray-500 text-center">
+                  No recommendations available
+                </p>
               )}
             </div>
             <form
@@ -803,10 +901,14 @@ const AddSchedule = ({
                     </div>
                   )}
                 </div>
-                {data.subject === "" ||
+                {subjects.find(
+                  (subject) => subject.subject_name === data.subject
+                )?.subject_type === "Major" &&
                 subjects.find(
                   (subject) => subject.subject_name === data.subject
-                )?.subject_type === "Major" ? (
+                )?.subject_units === 3 &&
+                currentDepartment.replace(/[()]/g, "").split(" ")[1] ===
+                  "CICT" ? (
                   <div className="flex gap-4">
                     <div
                       className={`${
@@ -841,7 +943,7 @@ const AddSchedule = ({
                             icon={faWarning}
                             className="text-orange-500 text-lg mr-2"
                           />
-                          This course type is already created
+                          This course type has reached meeting quota
                         </p>
                       )}
                     </div>
@@ -1258,15 +1360,15 @@ const AddSchedule = ({
                   (currentSubjectPage + 1) * itemsPerPage
                 )
                 .map((subject) => {
-                  // Debugging - log the subject type to check if it matches
-                  console.log("Subject type:", subject.subject_type); // To debug
+                  const department = currentDepartment
+                    .replace(/[()]/g, "")
+                    .split(" ")[1];
 
-                  // Check if the subject is Minor or Major
-                  const isMinor =
-                    subject.subject_type &&
-                    subject.subject_type.trim() === "Minor"; // Ensure it's a strict comparison
+                  const allowedHours =
+                    department === "CICT" && subject.subject_units === 3
+                      ? 300 // 5 hours
+                      : subject.subject_units * 60;
 
-                  // Get all the schedules for the subject in the specific section and group
                   const subjectSectionSchedules = schedules.filter(
                     (schedule) =>
                       schedule.subject === subject.subject_name &&
@@ -1274,25 +1376,21 @@ const AddSchedule = ({
                       schedule.section_group === group
                   );
 
-                  // Calculate the total hours for the subject's meetings
-                  const totalHours = subjectSectionSchedules.reduce(
+                  const totalMinutes = subjectSectionSchedules.reduce(
                     (sum, schedule) => {
                       const start = timeToMinutes(schedule.start_time);
                       const end = timeToMinutes(schedule.end_time);
-                      return sum + (end - start) / 60;
+                      return sum + (end - start);
                     },
                     0
                   );
 
-                  // Check if the subject is within the allowed hours limit (3 hours for minors, 5 hours for majors)
-                  const isWithinLimit = isMinor
-                    ? totalHours == 3
-                    : totalHours == 5;
+                  const isWithinLimit = totalMinutes === allowedHours;
+                  console.log(totalMinutes, allowedHours);
 
-                  // Determine the background color based on whether the subject is within the limit or exceeds it
                   const backgroundColor = isWithinLimit
-                    ? "bg-gray-300" // Background for subjects within the limit
-                    : "bg-gray-100"; // Background for subjects outside the limit
+                    ? "bg-gray-300"
+                    : "bg-gray-100";
 
                   return (
                     <li
