@@ -105,6 +105,7 @@ const AddSchedule = ({
       subjects.find(
         (subject) =>
           subject.subject_units === 3 &&
+          subject.subject_type === "Major" &&
           data.subject === subject.subject_name &&
           currentDepartment.replace(/[()]/g, "").split(" ")[1] === "CICS"
       )
