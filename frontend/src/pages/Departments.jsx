@@ -5,6 +5,7 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import PasswordPrompt from "../components/PasswordPrompt";
 import DeleteConfirmation from "../components/DeleteConfirmation";
+import ChangeStatusConfirmation from "../components/ChangeStatusConfirmation copy";
 import { exportToCSV } from "../utils/exportToCSV";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faSearch } from "@fortawesome/free-solid-svg-icons";
@@ -16,16 +17,20 @@ const Departments = () => {
   const [search, setSearch] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [showChangeStatus, setShowChangeStatus] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [departmentCodeToUpdate, setDepartmentCodeToUpdate] = useState("");
   const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [showArchive, setShowArchive] = useState(false);
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     program_code: "",
     department_code: "",
     department: "",
     department_head: "",
+    status: "active",
+    old_department_code: "",
   });
 
   useEffect(() => {
@@ -34,12 +39,20 @@ const Departments = () => {
 
   useEffect(() => {
     fetchDepartments();
-  }, []);
+  }, [showArchive]);
 
   const fetchDepartments = async () => {
     try {
       const response = await axios.get(`${url}api/departments/fetch`);
-      setDepartments(response.data);
+      if (showArchive) {
+        setDepartments(
+          response.data.filter((department) => department.status === "archived")
+        );
+      } else {
+        setDepartments(
+          response.data.filter((department) => department.status === "active")
+        );
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -51,6 +64,8 @@ const Departments = () => {
       department_code: "",
       department: "",
       department_head: "",
+      status: "active",
+      old_department_code: "",
     });
     setIsUpdating(false);
   };
@@ -83,6 +98,37 @@ const Departments = () => {
     }
   };
 
+  const changeStatus = async () => {
+    // Check if there are any selected users
+    if (selectedDepartments.length === 0) {
+      toast.error("Please select at least one department.");
+      return;
+    }
+    setShowChangeStatus(false);
+
+    try {
+      await axios.put(`${url}api/departments/update`, {
+        department_codes: selectedDepartments, // Use directly if already an array
+        status: showArchive ? "active" : "archived",
+      });
+
+      await axios.post(`${url}api/activity/adding`, {
+        user_id: currentUser,
+        department_code: currentDepartment,
+        action: showArchive ? "Restored" : "Archived",
+        details: `${selectedDepartments.length}`,
+        type: "department",
+      });
+
+      toast.success("Department status updated successfully!");
+      setSelectedDepartments([]);
+      fetchDepartments();
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      toast.error("Failed to update department status."); // Notify the user of the failure
+    }
+  };
+
   const handleUpdate = (department) => {
     setIsUpdating(true);
     setDepartmentCodeToUpdate(department.department_code);
@@ -93,6 +139,7 @@ const Departments = () => {
         .split(" ")[1],
       department: department.department,
       department_head: department.department_head,
+      old_department_code: department.department_code,
     });
   };
 
@@ -394,17 +441,34 @@ const Departments = () => {
           </form>
           <div className="h-full md:flex-1 w-full flex flex-col items-center lg:px-4 px-0 gap-2">
             <div className="relative flex justify-between items-center w-full">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="absolute left-3 text-sm text-gray-300"
-              />
-              <input
-                className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
-                type="text"
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)} // Update search term on input change
-              />
+              <div className="flex items-center gap-2">
+                <div className="relative flex items-center">
+                  <FontAwesomeIcon
+                    icon={faSearch}
+                    className="absolute left-3 text-sm text-gray-300"
+                  />
+                  <input
+                    className="md:w-[14rem] w-[10rem] h-[2.3rem] border border-gray-300 pl-8 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-sm placeholder:text-gray-300"
+                    type="text"
+                    placeholder="Search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)} // Update search term on input change
+                  />
+                </div>
+                <button
+                  className={`ml-4 text-sm ${
+                    showArchive
+                      ? "text-blue-300 hover:text-blue-500"
+                      : "text-red-300 hover:text-red-500"
+                  }`}
+                  onClick={() => {
+                    setShowArchive(!showArchive);
+                    setSelectedDepartments([]);
+                  }}
+                >
+                  {showArchive ? "hide archived" : "show archive"}
+                </button>
+              </div>
               <div className="flex gap-4">
                 <button
                   className="text-orange-500 md:text-sm text-[0.8rem] hover:text-orange-600"
@@ -412,20 +476,63 @@ const Departments = () => {
                 >
                   Select All
                 </button>
-                <button
-                  className="text-white md:text-[0.8rem] text-[0.6rem] bg-red-500 py-2 px-4 rounded-full hover:bg-red-600 transition-all"
-                  onClick={() => setShowDeleteConfirmation(true)}
-                >
-                  Remove
-                </button>
+                {showArchive ? (
+                  <>
+                    <div className="flex gap-2">
+                      <button
+                        className="text-white md:text-[0.8rem] text-[0.6rem] bg-orange-500 py-2 px-4 rounded-full hover:bg-orange-600 transition-all"
+                        onClick={() => {
+                          setShowChangeStatus(true);
+                        }}
+                        disabled={selectedDepartments.length === 0}
+                      >
+                        Restore
+                      </button>
+                      <button
+                        className="text-white md:text-[0.8rem] text-[0.6rem] bg-red-500 py-2 px-4 rounded-full hover:bg-red-600 transition-all"
+                        onClick={() => setShowDeleteConfirmation(true)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    className="text-white md:text-[0.8rem] text-[0.6rem] bg-red-500 py-2 px-4 rounded-full hover:bg-red-600 transition-all"
+                    onClick={() => {
+                      setShowChangeStatus(true);
+                    }}
+                    disabled={selectedDepartments.length === 0}
+                  >
+                    Archive
+                  </button>
+                )}
+                {showChangeStatus && (
+                  <ChangeStatusConfirmation
+                    isOpen={showChangeStatus}
+                    onRequestClose={() => setShowChangeStatus(false)}
+                    type={"department"}
+                    category={`${showArchive ? "Restore" : "Archive"} ${
+                      selectedDepartments.length === 1
+                        ? "Department"
+                        : "Departments"
+                    }`}
+                    data={
+                      selectedDepartments.length === 1
+                        ? getDepartmentName()
+                        : selectedDepartments
+                    }
+                    confirm={changeStatus}
+                  />
+                )}
                 {showDeleteConfirmation && (
                   <DeleteConfirmation
                     isOpen={showDeleteConfirmation}
                     onRequestClose={() => setShowDeleteConfirmation(false)}
                     category={
                       selectedDepartments.length === 1
-                        ? "department"
-                        : "departments"
+                        ? "Department"
+                        : "Departments"
                     }
                     data={
                       selectedDepartments.length === 1
@@ -456,7 +563,7 @@ const Departments = () => {
                     <th className="text-xs md:text-[1rem] py-2">
                       Department Head
                     </th>
-                    <th className="md:w-10 w-6"></th>
+                    {!showArchive && <th className="md:w-10 w-6"></th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -482,15 +589,17 @@ const Departments = () => {
                       <td className="md:p-2 border border-gray-300 text-[0.6rem] md:text-sm">
                         {department.department_head}
                       </td>
-                      <td className="p-2 text-[0.6rem] md:text-sm">
-                        <button id="update-btn">
-                          <FontAwesomeIcon
-                            icon={faPenToSquare}
-                            className="text-orange-500 hover:text-orange-600 cursor-pointer"
-                            onClick={() => handleUpdate(department)}
-                          />
-                        </button>
-                      </td>
+                      {!showArchive && (
+                        <td className="p-2 text-[0.6rem] md:text-sm">
+                          <button id="update-btn">
+                            <FontAwesomeIcon
+                              icon={faPenToSquare}
+                              className="text-orange-500 hover:text-orange-600 cursor-pointer"
+                              onClick={() => handleUpdate(department)}
+                            />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
