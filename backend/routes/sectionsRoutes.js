@@ -21,7 +21,7 @@ router.post('/adding', (req, res) => {
 router.get('/fetch', (req, res) => {
     const { dept_code } = req.query;
     let sql;
-    if (dept_code === 'ADMIN') {
+    if (dept_code === 'ADMIN' || dept_code === "LSSD (LSSD)" || dept_code === "NSMD (NSMD)") {
         sql = "SELECT * FROM sections";
     } else {
         sql = "SELECT * FROM sections WHERE department_code = ?";

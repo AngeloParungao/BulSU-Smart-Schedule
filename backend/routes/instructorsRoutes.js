@@ -21,10 +21,10 @@ router.post('/adding', (req, res) => {
 router.get('/fetch', (req, res) => {
     const { dept_code } = req.query;
     let sql;
-    if (dept_code === 'ADMIN') {
+    if (dept_code === 'ADMIN' || dept_code === "LSSD (LSSD)" || dept_code === "NSMD (NSMD)") {
         sql = "SELECT * FROM instructors";
     } else {
-        sql = "SELECT * FROM instructors WHERE department_code = ? OR department_code = 'GENERAL'";
+        sql = "SELECT * FROM instructors WHERE department_code = ?";
     }
 
     db.query(sql, dept_code !== 'ADMIN' ? [dept_code] : [], (err, results) => {
