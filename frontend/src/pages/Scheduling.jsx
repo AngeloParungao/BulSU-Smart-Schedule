@@ -14,12 +14,16 @@ const Scheduling = () => {
   const url = process.env.REACT_APP_URL;
   const socket = io(url); // Replace with your server URL
   const currentDepartment = atob(localStorage.getItem("userDept"));
+  const [departments, setDepartments] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const [instructors, setInstructors] = useState([]);
   const [sections, setSections] = useState([]);
+  const [category, setCategory] = useState("instructor");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedInstructor, setSelectedInstructor] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showListModal, setShowListModal] = useState(false);
@@ -47,6 +51,7 @@ const Scheduling = () => {
     // Listen for events and batch updates
     socket.on("schedule-added", handleEvent);
     socket.on("schedule-updated", handleEvent);
+    socket.on("schedules-published", handleEvent);
     socket.on("schedule-deleted", handleEvent);
 
     // Clean up on component unmount
@@ -54,11 +59,20 @@ const Scheduling = () => {
       toast.dismiss();
       socket.off("schedule-added", handleEvent);
       socket.off("schedule-updated", handleEvent);
+      socket.off("schedules-published", handleEvent);
       socket.off("schedule-deleted", handleEvent);
     };
   }, []);
 
   useEffect(() => {
+    if (
+      !(
+        currentDepartment === "LSSD (LSSD)" ||
+        currentDepartment === "NSMD (NSMD)"
+      )
+    ) {
+      setSelectedDepartment(currentDepartment);
+    }
     fetchData();
   }, []);
 
@@ -67,10 +81,15 @@ const Scheduling = () => {
       const date = new Date();
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
-      const [scheduleRes, sectionRes] = await Promise.all([
-        axios.get(`${url}api/schedule/fetch`),
-        axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
-      ]);
+      const [departmentRes, scheduleRes, instructorRes, sectionRes] =
+        await Promise.all([
+          axios.get(`${url}api/departments/fetch`),
+          axios.get(`${url}api/schedule/fetch`),
+          axios.get(
+            `${url}api/instructors/fetch?dept_code=${currentDepartment}`
+          ),
+          axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
+        ]);
 
       if (month >= 1 && month <= 5) {
         setSelectedSemester(() =>
@@ -95,6 +114,8 @@ const Scheduling = () => {
           )
         );
       }
+      setInstructors(instructorRes.data);
+      setDepartments(departmentRes.data);
       setSections(sectionRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -186,136 +207,351 @@ const Scheduling = () => {
           <span className="md:text-4xl text-2xl font-medium">Scheduling</span>
           <Navbar />
         </div>
-        <div className="flex justify-between items-center w-full p-5 md:px-8">
-          <div className="flex md:flex-row flex-col gap-4">
-            <div className="flex items-center gap-4 ">
-              <label
-                htmlFor="section"
-                className="font-semibold text-sm text-[var(--text-color)]"
-              >
-                Section:
-              </label>
-              <select
-                name="section"
-                id="section"
-                value={selectedSection}
-                onChange={(e) => {
-                  const selectedSectionName = e.target.value;
-                  setSelectedSection(selectedSectionName);
-
-                  // Automatically select the first group of the selected section
-                  const sectionGroups = sections.filter(
-                    (section) => section.section_name === selectedSectionName
-                  );
-
-                  if (sectionGroups.length > 0) {
-                    setSelectedGroup(sectionGroups[0].section_group); // Set first group
-                  } else {
-                    setSelectedGroup(""); // No group available
-                  }
-                }}
-                className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-              >
-                <option value="">Section</option>
-                {[...new Set(sections.map((s) => s.section_name))]
-                  .sort() // Sort section names alphabetically
-                  .map((section, index) => (
-                    <option key={index} value={section}>
-                      {section}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            {sections
-              .filter((section) => section.section_name === selectedSection)
-              .some((section) => section.section_group) && (
-              <div className="flex items-center gap-4">
+        <div className="flex justify-between items-center w-full p-3 md:px-8">
+          <span className="md:text-3xl text-xl font-medium text-green-500">
+            {category === "instructor"
+              ? selectedInstructor
+                ? selectedInstructor
+                : "Instructor"
+              : selectedSection
+              ? `${selectedSection} ${
+                  selectedGroup ? `- ${selectedGroup}` : ""
+                }`
+              : "Section"}
+          </span>
+        </div>
+        <div className="flex justify-between w-full p-3 md:px-8">
+          <div className="flex flex-col gap-3">
+            <div className="flex lg:flex-row flex-col gap-4">
+              <div className="flex items-center gap-2">
                 <label
-                  htmlFor="group"
+                  htmlFor="category"
                   className="font-semibold text-sm text-[var(--text-color)]"
                 >
-                  Group:
+                  Schedule for:
                 </label>
                 <select
-                  name="group"
-                  id="group"
-                  value={selectedGroup}
-                  onChange={(e) => setSelectedGroup(e.target.value)}
+                  name="category"
+                  id="category"
+                  value={category}
+                  onChange={(e) => {
+                    setSelectedInstructor("");
+                    setSelectedSection("");
+                    setSelectedGroup("");
+                    setCategory(e.target.value);
+                  }}
+                  className="w-[6rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                >
+                  <option value="instructor">Instructor</option>
+                  <option value="section">Section</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="semester"
+                  className="font-semibold text-sm text-[var(--text-color)]"
+                >
+                  Semester:
+                </label>
+                <select
+                  name="semester:"
+                  id="semester:"
+                  value={selectedSemester}
+                  onChange={(e) => {
+                    setSelectedSemester(e.target.value);
+                  }}
                   className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                 >
+                  <option value="1st">1st Semester</option>
+                  <option value="2nd">2nd Semester</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex lg:flex-row flex-col gap-4">
+              {(currentDepartment === "LSSD (LSSD)" ||
+                currentDepartment === "NSMD (NSMD)") && (
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="department"
+                    className="font-semibold text-sm text-[var(--text-color)]"
+                  >
+                    Department:
+                  </label>
+                  <select
+                    name="department"
+                    id="department"
+                    value={selectedDepartment}
+                    onChange={(e) => {
+                      setSelectedInstructor("");
+                      setSelectedSection("");
+                      setSelectedGroup("");
+                      setSelectedDepartment(e.target.value);
+                    }}
+                    className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                  >
+                    <option value="">Department</option>
+                    {departments.map((department, index) => (
+                      <option key={index} value={department.department_code}>
+                        {department.department_code}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {category === "instructor" && (
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="instructor"
+                    className="font-semibold text-sm text-[var(--text-color)]"
+                  >
+                    Instructor:
+                  </label>
+                  <select
+                    name="instructor"
+                    id="instructor"
+                    value={selectedInstructor}
+                    onChange={(e) => setSelectedInstructor(e.target.value)}
+                    className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                  >
+                    <option value="Instructor">Instructor</option>
+                    {instructors
+                      .filter(
+                        (instructor) =>
+                          instructor.department_code === selectedDepartment
+                      )
+                      .map((instructor, index) => (
+                        <option
+                          key={index}
+                          value={`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
+                        >
+                          {`${instructor.first_name} ${instructor.middle_name} ${instructor.last_name}`}
+                        </option>
+                      ))
+                      .sort()}
+                  </select>
+                </div>
+              )}
+              {category === "section" && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="section"
+                      className="font-semibold text-sm text-[var(--text-color)]"
+                    >
+                      Section:
+                    </label>
+                    <select
+                      name="section"
+                      id="section"
+                      value={selectedSection}
+                      onChange={(e) => {
+                        const selectedSectionName = e.target.value;
+                        setSelectedSection(selectedSectionName);
+
+                        // Automatically select the first group of the selected section
+                        const sectionGroups = sections.filter(
+                          (section) =>
+                            section.section_name === selectedSectionName
+                        );
+
+                        if (sectionGroups.length > 0) {
+                          setSelectedGroup(sectionGroups[0].section_group); // Set first group
+                        } else {
+                          setSelectedGroup(""); // No group available
+                        }
+                      }}
+                      className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                    >
+                      <option value="">Section</option>
+                      {Array.from(
+                        new Set(
+                          sections
+                            .filter(
+                              (section) =>
+                                section.department_code === selectedDepartment
+                            )
+                            .map((section) => section.section_name)
+                            .sort()
+                        )
+                      ).map((sectionName, index) => (
+                        <option key={index} value={sectionName}>
+                          {sectionName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   {sections
                     .filter(
                       (section) => section.section_name === selectedSection
                     )
-                    .map((section, index) => (
-                      <option key={index} value={section.section_group}>
-                        {section.section_group}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            )}
-            <div className="flex items-center gap-4 ">
-              <label
-                htmlFor="semester"
-                className="font-semibold text-sm text-[var(--text-color)]"
-              >
-                Semester:
-              </label>
-              <select
-                name="sester:"
-                id="sester:"
-                value={selectedSemester}
-                onChange={(e) => {
-                  setSelectedSemester(e.target.value);
-                }}
-                className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
-              >
-                <option value="1st">1st Semester</option>
-                <option value="2nd">2nd Semester</option>
-              </select>
+                    .some((section) => section.section_group) && (
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="group"
+                        className="font-semibold text-sm text-[var(--text-color)]"
+                      >
+                        Group:
+                      </label>
+                      <select
+                        name="group"
+                        id="group"
+                        value={selectedGroup}
+                        onChange={(e) => setSelectedGroup(e.target.value)}
+                        className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
+                      >
+                        {sections
+                          .filter(
+                            (section) =>
+                              section.section_name === selectedSection
+                          )
+                          .map((section, index) => (
+                            <option key={index} value={section.section_group}>
+                              {section.section_group}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
-          <div className="flex md:flex-row flex-col items-center md:gap-4 gap-2">
-            <button
-              className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
-              onClick={() => {
-                if (!selectedSection) {
-                  toast.error("Please select a section and group");
-                  return;
-                }
-                setShowAddModal(true);
-              }}
-            >
-              Add Item
-            </button>
-            <button
-              className="bg-yellow-400 hover:bg-yellow-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
-              onClick={() => {
-                if (!selectedSection) {
-                  toast.error("Please select a section and group");
-                  return;
-                }
-                setShowListModal(true);
-              }}
-            >
-              Edit Item
-            </button>
-            <button
-              className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
-              onClick={() => {
-                if (!selectedSection) {
-                  toast.error("Please select a section and group");
-                  return;
-                }
-                setShowDeleteModal(true);
-              }}
-            >
-              Delete Item
-            </button>
+          <div className="flex md:flex-row flex-col items-end md:gap-4 gap-2">
+            {currentDepartment === "LSSD (LSSD)" ||
+            currentDepartment === "NSMD (NSMD)" ? (
+              schedules.filter(
+                (schedule) =>
+                  schedule.is_published === 1 &&
+                  schedule.department_code === selectedDepartment
+              ).length > 0 || selectedDepartment === "" ? (
+                <>
+                  <button
+                    className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
+                    onClick={() => {
+                      if (category === "instructor") {
+                        if (!selectedInstructor) {
+                          toast.error("Please select an instructor");
+                          return;
+                        }
+                      } else if (category === "section") {
+                        if (!selectedSection) {
+                          toast.error("Please select a section and group");
+                          return;
+                        }
+                      }
+                      setShowAddModal(true);
+                    }}
+                  >
+                    Add Item
+                  </button>
+                  <button
+                    className="bg-yellow-400 hover:bg-yellow-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
+                    onClick={() => {
+                      if (category === "instructor") {
+                        if (!selectedInstructor) {
+                          toast.error("Please select an instructor");
+                          return;
+                        }
+                      } else if (category === "section") {
+                        if (!selectedSection) {
+                          toast.error("Please select a section and group");
+                          return;
+                        }
+                      }
+                      setShowListModal(true);
+                    }}
+                  >
+                    Edit Item
+                  </button>
+                  <button
+                    className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
+                    onClick={() => {
+                      if (category === "instructor") {
+                        if (!selectedInstructor) {
+                          toast.error("Please select an instructor");
+                          return;
+                        }
+                      } else if (category === "section") {
+                        if (!selectedSection) {
+                          toast.error("Please select a section and group");
+                          return;
+                        }
+                      }
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    Delete Item
+                  </button>
+                </>
+              ) : (
+                <span className="text-red-500 md:text-sm text-xs">
+                  Schedule for this department is not yet published
+                </span>
+              )
+            ) : (
+              <>
+                <button
+                  className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
+                  onClick={() => {
+                    if (category === "instructor") {
+                      if (!selectedInstructor) {
+                        toast.error("Please select an instructor");
+                        return;
+                      }
+                    } else if (category === "section") {
+                      if (!selectedSection) {
+                        toast.error("Please select a section and group");
+                        return;
+                      }
+                    }
+                    setShowAddModal(true);
+                  }}
+                >
+                  Add Item
+                </button>
+                <button
+                  className="bg-yellow-400 hover:bg-yellow-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
+                  onClick={() => {
+                    if (category === "instructor") {
+                      if (!selectedInstructor) {
+                        toast.error("Please select an instructor");
+                        return;
+                      }
+                    } else if (category === "section") {
+                      if (!selectedSection) {
+                        toast.error("Please select a section and group");
+                        return;
+                      }
+                    }
+                    setShowListModal(true);
+                  }}
+                >
+                  Edit Item
+                </button>
+                <button
+                  className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
+                  onClick={() => {
+                    if (category === "instructor") {
+                      if (!selectedInstructor) {
+                        toast.error("Please select an instructor");
+                        return;
+                      }
+                    } else if (category === "section") {
+                      if (!selectedSection) {
+                        toast.error("Please select a section and group");
+                        return;
+                      }
+                    }
+                    setShowDeleteModal(true);
+                  }}
+                >
+                  Delete Item
+                </button>
+              </>
+            )}
           </div>
         </div>
-        <div className="timetable md:h-[calc(100vh-10rem)]" id="scheduleTable">
+        <div className="timetable md:h-[calc(100vh-15rem)]" id="scheduleTable">
           <div className="h-full w-[95%] bg-white p-4 border rounded-lg border-gray-300 overflow-y-auto ">
             <table>
               <thead>
@@ -349,8 +585,9 @@ const Scheduling = () => {
                         (item) =>
                           item.start_time === time.startTime &&
                           item.day === day &&
-                          item.section_name === selectedSection &&
-                          item.section_group === selectedGroup &&
+                          ((item.section_name === selectedSection &&
+                            item.section_group === selectedGroup) ||
+                            item.instructor === selectedInstructor) &&
                           item.semester === selectedSemester
                       );
 
@@ -430,6 +667,12 @@ const Scheduling = () => {
           section={selectedSection}
           group={selectedGroup}
           semester={selectedSemester}
+          department={
+            currentDepartment === "LSSD (LSSD)" ||
+            currentDepartment === "NSMD (NSMD)"
+              ? selectedDepartment
+              : currentDepartment
+          }
           onRefreshSchedules={refreshData}
         />
       )}
