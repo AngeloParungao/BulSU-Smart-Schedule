@@ -67,6 +67,25 @@ module.exports = (io) => {
           res.status(200).json({ message: 'Schedule updated successfully' });
       });
   });
+    
+  // Publish schedules
+  router.put('/publish', (req, res) => {
+      const { department_code, is_published } = req.body;
+
+      const sql = `
+          UPDATE schedules 
+          SET is_published = ?
+          WHERE department_code = ?`;
+
+      db.query(sql, [is_published, department_code], (err, result) => {
+          if (err) {
+              console.error('Error updating data:', err);
+              return res.status(500).json({ error: 'Failed to publish schedules' });
+          }
+          io.emit('schedules-published', result); // Emit event to notify clients
+          res.status(200).json({ message: 'Schedules published successfully' });
+      });
+  });
 
   // Delete schedules
   router.delete('/delete', (req, res) => {
