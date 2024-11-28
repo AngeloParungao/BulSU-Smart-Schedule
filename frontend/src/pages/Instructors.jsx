@@ -32,7 +32,7 @@ const Instructors = () => {
     last_name: "",
     work_type: "",
     tags: "",
-    department_code: "",
+    department_code: currentRole === "Administrator" ? "" : currentDepartment,
     old_full_name: "",
   });
 
@@ -71,7 +71,7 @@ const Instructors = () => {
       first_name: "",
       middle_name: "",
       last_name: "",
-      department_code: "",
+      department_code: currentRole === "Administrator" ? "" : currentDepartment,
       work_type: "",
       tags: "",
       old_full_name: "",
@@ -429,44 +429,39 @@ const Instructors = () => {
                   <option value="Part-timer">Part Time</option>
                 </select>
               </div>
-              <div className="flex flex-col gap-[0.2rem] w-[100%]">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="department" className="text-sm text-black">
-                    Department:
-                  </label>
-                  {errors.department_code && (
-                    <p className="text-red-500 text-xs">
-                      {errors.department_code}
-                    </p>
-                  )}
-                </div>
-                <select
-                  name="department"
-                  id="department"
-                  value={data.department_code}
-                  onChange={(e) => {
-                    setData({ ...data, department_code: e.target.value });
-                    setErrors({ ...errors, department_code: "" });
-                  }}
-                  className={`${
-                    errors.department_code ? "border-red-500" : ""
-                  } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
-                >
-                  <option value="">Department</option>
-                  <option value="GENERAL">GENERAL</option>
-                  {departments
-                    .filter((d) =>
-                      currentRole === "Administrator"
-                        ? d.department_code
-                        : d.department_code === currentDepartment
-                    )
-                    .map((d, index) => (
+              {currentRole === "Administrator" && (
+                <div className="flex flex-col gap-[0.2rem] w-[100%]">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="department" className="text-sm text-black">
+                      Department:
+                    </label>
+                    {errors.department_code && (
+                      <p className="text-red-500 text-xs">
+                        {errors.department_code}
+                      </p>
+                    )}
+                  </div>
+                  <select
+                    name="department"
+                    id="department"
+                    value={data.department_code}
+                    onChange={(e) => {
+                      setData({ ...data, department_code: e.target.value });
+                      setErrors({ ...errors, department_code: "" });
+                    }}
+                    className={`${
+                      errors.department_code ? "border-red-500" : ""
+                    } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
+                  >
+                    <option value="">Department</option>
+                    {departments.map((d, index) => (
                       <option key={index} value={d.department_code}>
                         {d.department_code}
                       </option>
                     ))}
-                </select>
-              </div>
+                  </select>
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-[0.2rem]">
               <label htmlFor="tags" className="text-sm text-black">
@@ -532,31 +527,29 @@ const Instructors = () => {
                       <option value="Part-timer">Part Time</option>
                     </select>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="department" className="text-sm text-black">
-                      Department:
-                    </label>
-                    <select
-                      className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      id="department"
-                      value={selectedDepartment}
-                      onChange={(e) => setSelectedDepartment(e.target.value)}
-                    >
-                      <option value="All">All</option>
-                      <option value="GENERAL">GENERAL</option>
-                      {departments
-                        .filter((d) =>
-                          currentRole === "Administrator"
-                            ? d.department_code
-                            : d.department_code === currentDepartment
-                        )
-                        .map((d, index) => (
+                  {currentRole === "Administrator" && (
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="department"
+                        className="text-sm text-black"
+                      >
+                        Department:
+                      </label>
+                      <select
+                        className="p-[0.2rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        id="department"
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                      >
+                        <option value="All">All</option>
+                        {departments.map((d, index) => (
                           <option key={index} value={d.department_code}>
                             {d.department_code}
                           </option>
                         ))}
-                    </select>
-                  </div>
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex gap-4">
