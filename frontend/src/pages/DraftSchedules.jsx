@@ -43,12 +43,17 @@ function DraftSchedules() {
     fetchData();
   }, []);
 
+  //TODO: add special class
   useEffect(() => {
     const date = new Date();
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     if (month >= 1 && month <= 5) {
       setSemester("2nd");
+      setAcademicYear(`${year - 1}-${year}`);
+    }
+    if (month >= 6 && month <= 8) {
+      setSemester("Mid-Year");
       setAcademicYear(`${year - 1}-${year}`);
     }
     if (month >= 6 && month <= 12) {
@@ -75,10 +80,11 @@ function DraftSchedules() {
       setRooms(roomRes.data);
       setDepartments(
         departmentRes.data.filter((d) =>
-          currentDepartment === "ADMIN"
+          currentDepartment === "ADMIN" ||
+          currentDepartment === "LSSD (LSSD)" ||
+          currentDepartment === "NSMD (NSMD)"
             ? departmentRes.data
-            : d.department_code === currentDepartment ||
-              d.department_code === "GENERAL"
+            : d.department_code === currentDepartment
         )
       );
       setInstructors(
@@ -504,7 +510,9 @@ function DraftSchedules() {
             schedule.instructor
               .toLowerCase()
               .includes(searchTerm.toLowerCase()) &&
-            (currentDepartment === "ADMIN"
+            (currentDepartment === "ADMIN" ||
+            currentDepartment === "LSSD (LSSD)" ||
+            currentDepartment === "NSMD (NSMD)"
               ? true
               : schedule.department_code === currentDepartment)
         );
@@ -550,6 +558,24 @@ function DraftSchedules() {
     }
   };
 
+  const handlePublish = async (status) => {
+    try {
+      await axios.put(`${url}api/schedule/publish`, {
+        is_published: status,
+        department_code: currentDepartment,
+      });
+      fetchData();
+      if (status) {
+        toast.success("Schedule published successfully.");
+      } else {
+        toast.success("Schedule unpublished successfully.");
+      }
+    } catch (error) {
+      toast.error("Error publishing schedule.");
+      console.log(error);
+    }
+  };
+
   return (
     <div className="h-[100dvh] flex bg-[var(--background-color)] text-[var(--text-color)]">
       <div className="z-10 fixed lg:relative top-0 left-0">
@@ -558,21 +584,53 @@ function DraftSchedules() {
       <div className="w-full h-screen absolute lg:relative">
         <div className="flex justify-between items-center border-b-2 pl-16 lg:pl-8 h-[4.5rem] sticky top-0 bg-[var(--background-color)] text-[var(--text-color)]">
           <span className="md:text-4xl text-2xl font-medium">Schedules</span>
-          <button
-            className="mr-4 text-white md:text-[0.8rem] text-[0.6rem] bg-green-500 py-2 px-4 rounded-full hover:bg-green-600 transition-all"
-            onClick={() => setShowReportModal(true)}
-          >
-            generate CSV
-          </button>
-          {showReportModal && (
-            <Report
-              schedules={schedules}
-              isOpen={showReportModal}
-              onClose={() => setShowReportModal(false)}
-            />
-          )}
+          <div className="flex items-center gap-4">
+            {!(
+              currentDepartment === "ADMIN" ||
+              currentDepartment === "LSSD (LSSD)" ||
+              currentDepartment === "NSMD (NSMD)"
+            ) && (
+              <div className="flex items-center gap-4">
+                <label className="font-semibold text-sm text-[var(--text-color)]">
+                  All Schedules:
+                </label>
+                {schedules.filter(
+                  (schedule) =>
+                    schedule.department_code === currentDepartment &&
+                    schedule.is_published === 0
+                ).length > 0 ? (
+                  <button
+                    className="text-white md:text-[0.8rem] text-[0.6rem] font-semibold bg-green-500 py-2 px-4 rounded-lg hover:bg-green-600 transition-all"
+                    onClick={() => handlePublish(1)}
+                  >
+                    Publish
+                  </button>
+                ) : (
+                  <button
+                    className="text-white md:text-[0.8rem] text-[0.6rem] font-semibold bg-red-500 py-2 px-4 rounded-lg hover:bg-red-600 transition-all"
+                    onClick={() => handlePublish(0)}
+                  >
+                    Unpublish
+                  </button>
+                )}
+              </div>
+            )}
+            <button
+              className="mr-4 text-white md:text-[0.8rem] text-[0.6rem] bg-green-500 py-2 px-4 rounded-lg hover:bg-green-600 transition-all"
+              onClick={() => setShowReportModal(true)}
+            >
+              generate CSV
+            </button>
+            {showReportModal && (
+              <Report
+                schedules={schedules}
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+              />
+            )}
+          </div>
         </div>
-        <div className="p-3 md:px-8">
+        <div className="w-full p-3 md:px-8">
           {/* Category Selector */}
           <div className="flex flex-col md:flex-row md:items-center md:gap-4 gap-2">
             <div className="flex items-center gap-4">
@@ -618,6 +676,7 @@ function DraftSchedules() {
               >
                 <option value="1st">1st</option>
                 <option value="2nd">2nd</option>
+                <option value="Mid-Year">Mid-Year</option>
               </select>
             </div>
             <div className="flex items-center gap-4">
@@ -634,7 +693,7 @@ function DraftSchedules() {
                 onChange={(e) => setAcademicYear(e.target.value)}
                 className="w-[7rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
               >
-                {[...Array(6).keys()].map((i) => (
+                {[...Array(11).keys()].map((i) => (
                   <option key={i + 2024} value={`${i + 2024}-${i + 2025}`}>{`${
                     i + 2024
                   }-${i + 2025}`}</option>
@@ -696,7 +755,9 @@ function DraftSchedules() {
                 )}
                 {showInstructorSearch ? null : (
                   <div className="flex md:flex-row flex-col md:items-center gap-4">
-                    {currentDepartment === "ADMIN" && (
+                    {(currentDepartment === "ADMIN" ||
+                      currentDepartment === "LSSD (LSSD)" ||
+                      currentDepartment === "NSMD (NSMD)") && (
                       <div className="flex items-center gap-2">
                         <label
                           htmlFor="department"
@@ -714,7 +775,6 @@ function DraftSchedules() {
                           className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                         >
                           <option value="Department">Department</option>
-                          <option value="GENERAL">GENERAL</option>
                           {departments.map((department, index) => (
                             <option
                               key={index}
@@ -743,12 +803,12 @@ function DraftSchedules() {
                         <option value="Instructor">Instructor</option>
                         {instructors
                           .filter((instructor) =>
-                            currentDepartment === "ADMIN"
+                            currentDepartment === "ADMIN" ||
+                            currentDepartment === "LSSD (LSSD)" ||
+                            currentDepartment === "NSMD (NSMD)"
                               ? instructor.department_code ===
                                 selectedDepartment
-                              : instructor.department_code ===
-                                  currentDepartment ||
-                                instructor.department_code === "GENERAL"
+                              : instructor.department_code === currentDepartment
                           )
                           .map((instructor, index) => (
                             <option
@@ -766,7 +826,9 @@ function DraftSchedules() {
               </div>
             ) : category === "section" ? (
               <div className="flex md:flex-row flex-col gap-2 md:gap-6">
-                {currentDepartment === "ADMIN" && (
+                {(currentDepartment === "ADMIN" ||
+                  currentDepartment === "LSSD (LSSD)" ||
+                  currentDepartment === "NSMD (NSMD)") && (
                   <div className="flex items-center gap-2">
                     <label
                       htmlFor="department"
@@ -811,7 +873,9 @@ function DraftSchedules() {
                       ...new Set(
                         sections
                           .filter((s) =>
-                            currentDepartment === "ADMIN"
+                            currentDepartment === "ADMIN" ||
+                            currentDepartment === "LSSD (LSSD)" ||
+                            currentDepartment === "NSMD (NSMD)"
                               ? s.department_code === selectedSectionDepartment
                               : s.department_code === currentDepartment
                           )
@@ -1087,7 +1151,9 @@ function DraftSchedules() {
                                 .includes(searchInstructor.toLowerCase()) &&
                               item.semester === semester &&
                               item.academic_year === academicYear &&
-                              (currentDepartment === "ADMIN"
+                              (currentDepartment === "ADMIN" ||
+                              currentDepartment === "LSSD (LSSD)" ||
+                              currentDepartment === "NSMD (NSMD)"
                                 ? true
                                 : item.department_code === currentDepartment)
                             );
