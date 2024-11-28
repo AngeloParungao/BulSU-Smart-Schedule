@@ -2,6 +2,7 @@ import React from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
 function Navbar() {
+  const currentDepartment = atob(localStorage.getItem("userDept"));
   const navigate = useNavigate();
   const location = useLocation();
   const role = atob(localStorage.getItem("userRole"));
@@ -40,14 +41,19 @@ function Navbar() {
         >
           Instructors
         </NavLink>
-        <NavLink
-          to="/sections"
-          className={({ isActive }) =>
-            isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
-          }
-        >
-          Sections
-        </NavLink>
+        {!(
+          currentDepartment === "LSSD (LSSD)" ||
+          currentDepartment === "NSMD (NSMD)"
+        ) && (
+          <NavLink
+            to="/sections"
+            className={({ isActive }) =>
+              isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
+            }
+          >
+            Sections
+          </NavLink>
+        )}
         <NavLink
           to="/subjects"
           className={({ isActive }) =>
