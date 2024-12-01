@@ -85,7 +85,10 @@ function Navbar() {
             <option value="/scheduling">Schedule</option>
           )}
           <option value="/instructors">Instructors</option>
-          <option value="/sections">Sections</option>
+          {!(
+            currentDepartment === "LSSD (LSSD)" ||
+            currentDepartment === "NSMD (NSMD)"
+          ) && <option value="/sections">Sections</option>}
           <option value="/subjects">Subjects</option>
           {role === "Administrator" ? (
             <option value="/rooms">Rooms</option>
