@@ -37,6 +37,7 @@ const UpdateSchedule = ({
   const [recommendations, setRecommendations] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true); // Track initial load state
+  const [isScheduleForBothGroups, setIsScheduleForBothGroups] = useState(false);
 
   // For mobile view
   const [showErrors, setShowErrors] = useState({
@@ -89,6 +90,7 @@ const UpdateSchedule = ({
     data.course_type,
     isInitialLoad,
     schedules,
+    isScheduleForBothGroups,
   ]);
 
   // Fetch data from the API
@@ -126,7 +128,24 @@ const UpdateSchedule = ({
           )
         );
       }
-      setInstructors(instructorRes.data);
+      let subjectHasBothGroups = scheduleRes.data.some(
+        (schedule) =>
+          item.subject === schedule.subject &&
+          item.class_type === schedule.class_type &&
+          item.section_name === schedule.section_name &&
+          schedule.section_group !== item.section_group &&
+          schedule.day === item.day &&
+          schedule.start_time === item.start_time &&
+          schedule.end_time === item.end_time
+      );
+      if (subjectHasBothGroups) {
+        setIsScheduleForBothGroups(true);
+      }
+      setInstructors(
+        instructorRes.data.filter(
+          (instructor) => instructor.department_code === currentDepartment
+        )
+      );
       setSections(sectionRes.data);
       setSubjects(subjectRes.data);
       setRooms(roomRes.data);
@@ -234,7 +253,8 @@ const UpdateSchedule = ({
         );
 
         const alternateGroupAvailable =
-          subject && subject.subject_type === "Minor"
+          (subject && subject.subject_type === "Minor") ||
+          isScheduleForBothGroups === true
             ? !schedules.some(
                 (schedule) =>
                   schedule.section_name === item.section_name &&
@@ -251,7 +271,8 @@ const UpdateSchedule = ({
             : true;
 
         const bothSectionAndAlternateGroupAvailable =
-          subject && subject.subject_type === "Minor"
+          (subject && subject.subject_type === "Minor") ||
+          isScheduleForBothGroups === true
             ? sectionAvailable && alternateGroupAvailable
             : sectionAvailable;
 
@@ -268,6 +289,7 @@ const UpdateSchedule = ({
     setRecommendations(availableSlots);
   };
 
+  console.log(isScheduleForBothGroups);
   const checkRealTimeErrors = () => {
     const timeToMinutes = (time) =>
       parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
@@ -278,11 +300,12 @@ const UpdateSchedule = ({
       (subject) => subject.subject_name === data.subject
     );
     const isMinor = subject && subject.subject_type === "Minor";
-    const alternateGroup = isMinor
-      ? item.section_group === "Group 1"
-        ? "Group 2"
-        : "Group 1"
-      : null;
+    const alternateGroup =
+      isMinor || isScheduleForBothGroups === true
+        ? item.section_group === "Group 1"
+          ? "Group 2"
+          : "Group 1"
+        : null;
 
     const isTimeConflict = (schedule) => {
       const scheduleStartInMinutes = timeToMinutes(schedule.start_time);
@@ -303,11 +326,12 @@ const UpdateSchedule = ({
 
     // Get schedule id of alternate group
     let al = null;
-    if (isMinor) {
+    if (isMinor || isScheduleForBothGroups) {
       schedules.forEach((schedule) => {
         if (
           schedule.section_name === item.section_name &&
           schedule.section_group === alternateGroup &&
+          schedule.subject === data.subject &&
           schedule.day === data.day &&
           schedule.start_time === data.start_time &&
           schedule.end_time === data.end_time
@@ -328,17 +352,13 @@ const UpdateSchedule = ({
       const inCurrentGroup =
         schedule.section_group === item.section_group &&
         schedule.section_name === item.section_name &&
-        schedule.day === data.day &&
-        schedule.start_time === data.start_time &&
-        schedule.end_time === data.end_time;
+        schedule.day === data.day;
 
       const inAlternateGroup =
-        isMinor &&
+        (isMinor || isScheduleForBothGroups) &&
         schedule.section_group === alternateGroup &&
         schedule.section_name === item.section_name &&
-        schedule.day === data.day &&
-        schedule.start_time === data.start_time &&
-        schedule.end_time === data.end_time;
+        schedule.day === data.day;
 
       // Only check conflicts if in the current or alternate group
       if ((inCurrentGroup || inAlternateGroup) && isTimeConflict(schedule)) {
@@ -355,11 +375,7 @@ const UpdateSchedule = ({
     const hasInstructorConflict = schedules.some((schedule) => {
       if (
         schedule.schedule_id !== item.schedule_id &&
-        !(
-          isMinor &&
-          schedule.section_name === item.section_name &&
-          schedule.section_group === alternateGroup
-        ) &&
+        schedule.schedule_id !== al &&
         schedule.instructor === data.instructor &&
         schedule.day === data.day &&
         isTimeConflict(schedule)
@@ -377,11 +393,7 @@ const UpdateSchedule = ({
     const hasRoomConflict = schedules.some((schedule) => {
       if (
         schedule.schedule_id !== item.schedule_id &&
-        !(
-          isMinor &&
-          schedule.section_name === item.section_name &&
-          schedule.section_group === alternateGroup
-        ) &&
+        schedule.schedule_id !== al &&
         schedule.room === data.room &&
         schedule.day === data.day &&
         isTimeConflict(schedule)
@@ -401,7 +413,8 @@ const UpdateSchedule = ({
     const subjectSectionSchedules = schedules.filter(
       (schedule) =>
         schedule.schedule_id !== item.schedule_id &&
-        (!isMinor || schedule.section_group !== alternateGroup) &&
+        (!(isMinor || isScheduleForBothGroups) ||
+          schedule.section_group !== alternateGroup) &&
         schedule.subject === data.subject &&
         schedule.section_name === item.section_name &&
         schedule.section_group === item.section_group
@@ -564,7 +577,10 @@ const UpdateSchedule = ({
       const subject = subjects.find(
         (subject) => subject.subject_name === data.subject
       );
-      if (subject && subject.subject_type === "Minor") {
+      if (
+        (subject && subject.subject_type === "Minor") ||
+        isScheduleForBothGroups === true
+      ) {
         // Determine the alternate group
         const alternateGroup =
           item.section_group === "Group 1" ? "Group 2" : "Group 1";
@@ -1011,6 +1027,7 @@ const UpdateSchedule = ({
                         onChange={(e) =>
                           setData({ ...data, course_type: e.target.value })
                         }
+                        disabled
                       >
                         <option value="">Select</option>
                         <option value="Lecture">Lecture</option>
