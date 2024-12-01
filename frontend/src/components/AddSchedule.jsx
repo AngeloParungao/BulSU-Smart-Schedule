@@ -22,6 +22,7 @@ const AddSchedule = ({
   section,
   group,
   semester,
+  department,
   onRefreshSchedules,
 }) => {
   const url = process.env.REACT_APP_URL;
@@ -39,6 +40,8 @@ const AddSchedule = ({
   const [showMeetings, setShowMeetings] = useState(false);
   const [meetings, setMeetings] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [groupedSection, setGroupedSection] = useState(false);
+  const [isScheduleForBothGroups, setIsScheduleForBothGroups] = useState(2);
 
   // For mobile view
   const [showErrors, setShowErrors] = useState({
@@ -62,7 +65,7 @@ const AddSchedule = ({
     course_type: "",
     section,
     group,
-    department_code: currentDepartment,
+    department_code: department,
     semester: semester,
   });
 
@@ -74,6 +77,10 @@ const AddSchedule = ({
 
   // Fetch data when the component mounts
   useEffect(() => {
+    // check if the section has a group
+    if (section && group) {
+      setGroupedSection(true);
+    }
     fetchData();
   }, []);
 
@@ -97,6 +104,7 @@ const AddSchedule = ({
     data.course_type,
     schedules, // Make sure schedules is included as a dependency if it changes
     meetings,
+    isScheduleForBothGroups,
   ]);
 
   useEffect(() => {
@@ -107,7 +115,7 @@ const AddSchedule = ({
           subject.subject_units === 3 &&
           subject.subject_type === "Major" &&
           data.subject === subject.subject_name &&
-          currentDepartment.replace(/[()]/g, "").split(" ")[1] === "CICS"
+          department.replace(/[()]/g, "").split(" ")[1] === "CICS"
       )
     ) {
       setData({ ...data, course_type: "" });
@@ -116,6 +124,7 @@ const AddSchedule = ({
     }
   }, [data.subject, setData]);
 
+  // TODO : add mid-year schedule
   // Fetch data from the server
   const fetchData = async () => {
     try {
@@ -151,7 +160,11 @@ const AddSchedule = ({
           )
         );
       }
-      setInstructors(instructorRes.data);
+      setInstructors(
+        instructorRes.data.filter(
+          (instructor) => instructor.department_code === currentDepartment
+        )
+      );
       setSections(sectionRes.data);
       setSubjects(subjectRes.data);
       setRooms(roomRes.data);
@@ -177,10 +190,10 @@ const AddSchedule = ({
       (subject) => subject.subject_name === data.subject
     );
 
-    const department = currentDepartment.replace(/[()]/g, "").split(" ")[1];
+    const dept = department.replace(/[()]/g, "").split(" ")[1];
     // Determine the duration based on course type, subject type, and unit
     const fullDuration =
-      subject && department === "CICS" && subject.subject_units === 3
+      subject && dept === "CICS" && subject.subject_units === 3
         ? subject.subject_type === "Major"
           ? data.course_type === "Laboratory"
             ? 3
@@ -190,7 +203,7 @@ const AddSchedule = ({
 
     const scheduledDuration = schedules
       .filter((schedule) =>
-        department === "CICS"
+        dept === "CICS"
           ? schedule.subject === data.subject &&
             schedule.class_type === data.course_type &&
             schedule.section_name === section &&
@@ -263,7 +276,8 @@ const AddSchedule = ({
           (subject) => subject.subject_name === data.subject
         );
         const alternateGroupAvailable =
-          subject && subject.subject_type === "Minor"
+          (subject && subject.subject_type === "Minor") ||
+          isScheduleForBothGroups === 1
             ? !schedules.some(
                 (schedule) =>
                   schedule.section_name === section &&
@@ -278,7 +292,8 @@ const AddSchedule = ({
             : true;
 
         const bothSectionAndAlternateGroupAvailable =
-          subject && subject.subject_type === "Minor"
+          (subject && subject.subject_type === "Minor") ||
+          isScheduleForBothGroups === 1
             ? sectionAvailable && alternateGroupAvailable
             : sectionAvailable;
 
@@ -368,7 +383,7 @@ const AddSchedule = ({
     const totalLaboratoryDuration = calculateTotalDuration(laboratorySchedules);
     const totalDuration = totalLectureDuration + totalLaboratoryDuration;
 
-    const department = currentDepartment.replace(/[()]/g, "").split(" ")[1];
+    const dept = department.replace(/[()]/g, "").split(" ")[1];
     const subject = subjects.find((sub) => sub.subject_name === data.subject);
     const units = subject?.subject_units || 1;
     const isMinor = subject && subject.subject_type === "Minor";
@@ -376,7 +391,7 @@ const AddSchedule = ({
 
     // Determine duration limits based on department, course type, and subject units
     const durationLimit =
-      !isMinor && department === "CICS" && units === 3
+      !isMinor && dept === "CICS" && units === 3
         ? data.course_type === "Lecture"
           ? 120 // CICS departments with 3-unit major subjects: 2 hours (120 mins) for Lecture
           : 180 // CICS departments with 3-unit major subjects: 3 hours (180 mins) for Laboratory
@@ -401,10 +416,10 @@ const AddSchedule = ({
 
     // Determine the total duration limit based on department, course type, and subject units
     const totalLimit = isMinor
-      ? department === "CICS" // For CICS departments
+      ? dept === "CICS" // For CICS departments
         ? units * 60 // Use subject units for minor subjects in CICS
         : 180 // For non-CICS minor subjects, set a 3-hour (180 mins) limit
-      : department === "CICS" && units === 3
+      : dept === "CICS" && units === 3
       ? 300 // CICS departments with 3-unit major subjects have a 5-hour (300 mins) limit
       : (units || 1) * 60; // Otherwise, set limit based on subject units
 
@@ -471,7 +486,8 @@ const AddSchedule = ({
       data.room === "" ||
       data.start_time === "" ||
       data.end_time === "" ||
-      data.day === ""
+      data.day === "" ||
+      isScheduleForBothGroups === 2
     ) {
       toast.error("Please fill in all the required fields.");
       setIsSubmitting(false);
@@ -496,7 +512,10 @@ const AddSchedule = ({
         const subject = subjects.find(
           (subject) => subject.subject_name === data.subject
         );
-        if (subject && subject.subject_type === "Minor") {
+        if (
+          (subject && subject.subject_type === "Minor") ||
+          isScheduleForBothGroups === 1
+        ) {
           // Find the alternate group
           const alternateGroup = group === "Group 1" ? "Group 2" : "Group 1";
 
@@ -845,6 +864,36 @@ const AddSchedule = ({
                     </div>
                   )}
                 </div>
+                {groupedSection &&
+                  !(
+                    currentDepartment === "LSSD (LSSD)" ||
+                    currentDepartment === "NSMD (NSMD)"
+                  ) && (
+                    <div className="flex gap-4">
+                      <div className="flex items-center lg:w-1/2 w-full">
+                        <label className="w-full">Add in both groups:</label>
+                        <div className="flex w-full gap-2">
+                          <label htmlFor="true">Yes</label>
+                          <input
+                            type="radio"
+                            name="group"
+                            value={1}
+                            checked={isScheduleForBothGroups === 1}
+                            onChange={() => setIsScheduleForBothGroups(1)}
+                          />
+                          <label htmlFor="false">No</label>
+                          <input
+                            type="radio"
+                            name="group"
+                            value={0}
+                            checked={isScheduleForBothGroups === 0}
+                            onChange={() => setIsScheduleForBothGroups(0)}
+                          />
+                        </div>
+                        <div className="lg:block lg:w-1/2 w-full hidden"></div>
+                      </div>
+                    </div>
+                  )}
                 <div className="flex gap-4">
                   <div
                     className={`${
@@ -908,8 +957,7 @@ const AddSchedule = ({
                 subjects.find(
                   (subject) => subject.subject_name === data.subject
                 )?.subject_units === 3 &&
-                currentDepartment.replace(/[()]/g, "").split(" ")[1] ===
-                  "CICS" ? (
+                department.replace(/[()]/g, "").split(" ")[1] === "CICS" ? (
                   <div className="flex gap-4">
                     <div
                       className={`${
@@ -1361,12 +1409,10 @@ const AddSchedule = ({
                   (currentSubjectPage + 1) * itemsPerPage
                 )
                 .map((subject) => {
-                  const department = currentDepartment
-                    .replace(/[()]/g, "")
-                    .split(" ")[1];
+                  const dept = department.replace(/[()]/g, "").split(" ")[1];
 
                   const allowedHours =
-                    department === "CICS" && subject.subject_units === 3
+                    dept === "CICS" && subject.subject_units === 3
                       ? 300 // 5 hours
                       : subject.subject_units * 60;
 
