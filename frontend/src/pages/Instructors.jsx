@@ -50,7 +50,11 @@ const Instructors = () => {
       const response = await axios.get(
         `${url}api/instructors/fetch?dept_code=${currentDepartment}`
       );
-      setInstructors(response.data);
+      setInstructors(
+        response.data.filter(
+          (instructor) => instructor.department_code === currentDepartment
+        )
+      );
     } catch (error) {
       console.error("Error fetching data:", error);
     }
