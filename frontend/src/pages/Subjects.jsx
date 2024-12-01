@@ -34,7 +34,13 @@ const Subjects = () => {
     subject_code: "",
     year_level: "",
     subject_semester: "",
-    subject_type: "",
+    subject_type:
+      currentDepartment === "ADMIN"
+        ? ""
+        : currentDepartment === "LSSD (LSSD)" ||
+          currentDepartment === "NSMD (NSMD)"
+        ? "Minor"
+        : "Major",
     subject_units: "",
     subject_tags: "",
     department_code: currentRole === "Administrator" ? "" : currentDepartment,
@@ -76,7 +82,13 @@ const Subjects = () => {
       subject_code: "",
       year_level: "",
       subject_semester: "",
-      subject_type: "",
+      subject_type:
+        currentDepartment === "ADMIN"
+          ? ""
+          : currentDepartment === "LSSD (LSSD)" ||
+            currentDepartment === "NSMD (NSMD)"
+          ? "Minor"
+          : "Major",
       subject_units: "",
       subject_tags: "",
       department_code: currentRole === "Administrator" ? "" : currentDepartment,
@@ -160,7 +172,13 @@ const Subjects = () => {
       subject_code: subject.subject_code,
       year_level: subject.year_level,
       subject_semester: subject.subject_semester,
-      subject_type: subject.subject_type,
+      subject_type:
+        currentDepartment === "ADMIN"
+          ? subject.subject_type
+          : currentDepartment === "LSSD (LSSD)" ||
+            currentDepartment === "NSMD (NSMD)"
+          ? "Minor"
+          : "Major",
       subject_units: subject.subject_units,
       subject_tags: subject.subject_tags,
       department_code: subject.department_code,
@@ -420,34 +438,39 @@ const Subjects = () => {
               </select>
             </div>
             <div className="flex gap-2">
-              <div className="flex flex-col gap-[0.2rem] w-full">
-                <div className="flex items-center gap-2 w-full">
-                  <label htmlFor="subject_type" className="text-sm text-black">
-                    Subject Type:
-                  </label>
-                  {errors.subject_type && (
-                    <p className="text-red-500 text-xs">
-                      {errors.subject_type}
-                    </p>
-                  )}
+              {currentDepartment === "ADMIN" && (
+                <div className="flex flex-col gap-[0.2rem] w-full">
+                  <div className="flex items-center gap-2 w-full">
+                    <label
+                      htmlFor="subject_type"
+                      className="text-sm text-black"
+                    >
+                      Subject Type:
+                    </label>
+                    {errors.subject_type && (
+                      <p className="text-red-500 text-xs">
+                        {errors.subject_type}
+                      </p>
+                    )}
+                  </div>
+                  <select
+                    name="subject_type"
+                    id="subject_type"
+                    value={data.subject_type}
+                    onChange={(e) => {
+                      setData({ ...data, subject_type: e.target.value });
+                      setErrors({ ...errors, subject_type: "" });
+                    }}
+                    className={`${
+                      errors.subject_type ? "border-red-500" : ""
+                    } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
+                  >
+                    <option value="">Subject Type</option>
+                    <option value="Minor">Minor</option>
+                    <option value="Major">Major</option>
+                  </select>
                 </div>
-                <select
-                  name="subject_type"
-                  id="subject_type"
-                  value={data.subject_type}
-                  onChange={(e) => {
-                    setData({ ...data, subject_type: e.target.value });
-                    setErrors({ ...errors, subject_type: "" });
-                  }}
-                  className={`${
-                    errors.subject_type ? "border-red-500" : ""
-                  } p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}`}
-                >
-                  <option value="">Subject Type</option>
-                  <option value="Minor">Minor</option>
-                  <option value="Major">Major</option>
-                </select>
-              </div>
+              )}
               <div className="flex flex-col gap-[0.2rem] w-full">
                 <div className="flex items-center gap-2 w-full">
                   <label htmlFor="subject_unit" className="text-sm text-black">
