@@ -6,12 +6,11 @@ import { toast } from "react-hot-toast";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
-function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
+function DeleteItem({ onClose, schedules, onRefreshSchedules, subjects }) {
   const currentDepartment = atob(localStorage.getItem("userDept"));
   const currentUser = JSON.parse(atob(localStorage.getItem("userID")));
   const url = process.env.REACT_APP_URL;
-  const [schedules, setSchedules] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const [allSchedules, setAllSchedules] = useState([]);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedSchedules, setSelectedSchedules] = useState([]);
@@ -20,16 +19,9 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
     try {
       const fetchSchedules = async () => {
         const response = await axios.get(`${url}api/schedule/fetch`);
-        setSchedules(response.data);
-      };
-      const fetchSubjects = async () => {
-        const response = await axios.get(
-          `${url}api/subjects/fetch?dept_code=${currentDepartment}`
-        );
-        setSubjects(response.data);
+        setAllSchedules(response.data);
       };
       fetchSchedules();
-      fetchSubjects();
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -45,11 +37,15 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
     "Sunday",
   ];
 
-  const sortedSchedules = [...schedule].sort(
-    (a, b) =>
-      daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day) ||
-      a.start_time.localeCompare(b.start_time)
-  );
+  const sortedSchedules = schedules
+    .filter((schedule) =>
+      subjects.some((s) => s.subject_name === schedule.subject)
+    )
+    .sort(
+      (a, b) =>
+        daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day) ||
+        a.start_time.localeCompare(b.start_time)
+    );
 
   const isDarkBackground = (backgroundColor) => {
     // Convert hex to RGB
@@ -84,24 +80,21 @@ function DeleteItem({ onClose, schedule, onRefreshSchedules }) {
 
   const handleDelete = async () => {
     selectedSchedules.map((schedule) => {
-      const scheduleData = schedules.find((s) => s.schedule_id === schedule);
+      const scheduleData = allSchedules.find((s) => s.schedule_id === schedule);
       //check every subject if it is minor, if minor include the id of the other group
       if (scheduleData) {
-        const subjectData = subjects.find(
+        const otherGroup = allSchedules.find(
           (s) =>
-            s.subject_name === scheduleData.subject &&
-            s.subject_type === "Minor"
+            s.subject === scheduleData.subject &&
+            s.class_type === scheduleData.class_type &&
+            s.section_name === scheduleData.section_name &&
+            s.section_group !== scheduleData.section_group &&
+            s.day === scheduleData.day &&
+            s.start_time === scheduleData.start_time &&
+            s.end_time === scheduleData.end_time
         );
-        if (subjectData) {
-          const otherGroup = schedules.find(
-            (s) =>
-              s.subject === subjectData.subject_name &&
-              s.section_name === scheduleData.section_name &&
-              s.section_group !== scheduleData.section_group
-          );
-          if (otherGroup) {
-            selectedSchedules.push(otherGroup.schedule_id);
-          }
+        if (otherGroup) {
+          selectedSchedules.push(otherGroup.schedule_id);
         }
       }
     });

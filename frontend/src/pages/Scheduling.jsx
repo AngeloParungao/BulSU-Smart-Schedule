@@ -18,6 +18,7 @@ const Scheduling = () => {
   const [schedules, setSchedules] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [sections, setSections] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [category, setCategory] = useState("instructor");
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedInstructor, setSelectedInstructor] = useState("");
@@ -81,15 +82,19 @@ const Scheduling = () => {
       const date = new Date();
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
-      const [departmentRes, scheduleRes, instructorRes, sectionRes] =
-        await Promise.all([
-          axios.get(`${url}api/departments/fetch`),
-          axios.get(`${url}api/schedule/fetch`),
-          axios.get(
-            `${url}api/instructors/fetch?dept_code=${currentDepartment}`
-          ),
-          axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
-        ]);
+      const [
+        departmentRes,
+        scheduleRes,
+        instructorRes,
+        sectionRes,
+        subjectRes,
+      ] = await Promise.all([
+        axios.get(`${url}api/departments/fetch`),
+        axios.get(`${url}api/schedule/fetch`),
+        axios.get(`${url}api/instructors/fetch?dept_code=${currentDepartment}`),
+        axios.get(`${url}api/sections/fetch?dept_code=${currentDepartment}`),
+        axios.get(`${url}api/subjects/fetch?dept_code=${currentDepartment}`),
+      ]);
 
       if (month >= 1 && month <= 5) {
         setSelectedSemester(() =>
@@ -117,6 +122,7 @@ const Scheduling = () => {
       setInstructors(instructorRes.data);
       setDepartments(departmentRes.data);
       setSections(sectionRes.data);
+      setSubjects(subjectRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -685,6 +691,7 @@ const Scheduling = () => {
               schedule.section_group === selectedGroup &&
               schedule.semester === selectedSemester
           )}
+          subjects={subjects}
           onUpdateSchedule={handleEditItemClick}
         />
       )}
@@ -700,12 +707,13 @@ const Scheduling = () => {
       {showDeleteModal && (
         <DeleteItem
           onClose={() => setShowDeleteModal(false)}
-          schedule={schedules.filter(
+          schedules={schedules.filter(
             (schedule) =>
               schedule.section_name === selectedSection &&
               schedule.section_group === selectedGroup &&
               schedule.semester === selectedSemester
           )}
+          subjects={subjects}
           onRefreshSchedules={refreshData}
         />
       )}
@@ -713,7 +721,7 @@ const Scheduling = () => {
   );
 };
 
-function ListOfItem({ onClose, schedules, onUpdateSchedule }) {
+function ListOfItem({ onClose, schedules, onUpdateSchedule, subjects }) {
   // Define the order of days
   const daysOrder = [
     "Monday",
@@ -731,14 +739,18 @@ function ListOfItem({ onClose, schedules, onUpdateSchedule }) {
   };
 
   // Sort schedules by day and then by start time
-  const sortedSchedules = [...schedules].sort((a, b) => {
-    const dayComparison = getDayIndex(a.day) - getDayIndex(b.day);
-    if (dayComparison !== 0) {
-      return dayComparison;
-    }
-    // Compare by start time if days are the same
-    return a.start_time.localeCompare(b.start_time);
-  });
+  const sortedSchedules = schedules
+    .filter((schedule) =>
+      subjects.some((s) => s.subject_name === schedule.subject)
+    )
+    .sort((a, b) => {
+      const dayComparison = getDayIndex(a.day) - getDayIndex(b.day);
+      if (dayComparison !== 0) {
+        return dayComparison;
+      }
+      // Compare by start time if days are the same
+      return a.start_time.localeCompare(b.start_time);
+    });
 
   const isDarkBackground = (backgroundColor) => {
     // Convert hex to RGB
