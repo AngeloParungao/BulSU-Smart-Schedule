@@ -1253,15 +1253,38 @@ function DraftSchedules() {
                                       ? "white"
                                       : "black",
                                   }}
-                                >{`${
-                                  scheduleItem.section_name
-                                } - ${scheduleItem.section_group.slice(
-                                  0,
-                                  1
-                                )}${scheduleItem.section_group.slice(
-                                  6,
-                                  7
-                                )}`}</div>
+                                >
+                                  {scheduleItem.section_name}
+                                  {scheduleItem.section_group && (
+                                    <>
+                                      - (
+                                      {schedules
+                                        .filter(
+                                          (item) =>
+                                            item.start_time ===
+                                              time.startTime &&
+                                            item.day === day &&
+                                            item.instructor ===
+                                              selectedInstructor &&
+                                            item.semester === semester &&
+                                            item.academic_year === academicYear
+                                        )
+                                        .sort((a, b) =>
+                                          a.section_group.localeCompare(
+                                            b.section_group
+                                          )
+                                        )
+                                        .map(
+                                          (item) =>
+                                            `G${
+                                              item.section_group.split(" ")[1]
+                                            }`
+                                        )
+                                        .join(", ")}
+                                      )
+                                    </>
+                                  )}
+                                </div>
                               )}
                               <div
                                 className="room-name"
