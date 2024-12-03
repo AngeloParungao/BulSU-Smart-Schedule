@@ -186,7 +186,7 @@ function DeleteItem({ onClose, schedules, onRefreshSchedules, subjects }) {
 
   return (
     <div className="bg-gray-800 bg-opacity-50 h-screen w-screen fixed top-0 left-0 z-50 flex justify-center items-center">
-      <div className="bg-white rounded-lg p-4 lg:w-1/2 w-[95%]">
+      <div className="bg-white rounded-lg p-4 lg:w-[65%] w-[95%]">
         <div className="flex justify-between items-center border-b-2 pb-2">
           <input type="checkbox" onChange={selectAll} />
           <div className="text-xl text-red-500 font-semibold">
