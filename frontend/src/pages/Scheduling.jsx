@@ -7,6 +7,8 @@ import Navbar from "../components/Navbar";
 import DeleteItem from "../components/DeleteSchedule";
 import UpdateItem from "../components/UpdateSchedule";
 import AddItem from "../components/AddSchedule";
+import AddInstructorSchedule from "../components/AddInstructorSchedule";
+import DeleteInstructorSchedule from "../components/DeleteInstructorSchedule";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
@@ -19,13 +21,14 @@ const Scheduling = () => {
   const [instructors, setInstructors] = useState([]);
   const [sections, setSections] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [category, setCategory] = useState("instructor");
+  const [category, setCategory] = useState("section");
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedInstructor, setSelectedInstructor] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
 
+  const [showDepartmentOptions, setShowDepartmentOptions] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showListModal, setShowListModal] = useState(false);
   const [itemToEdit, setItemToEdit] = useState(null);
@@ -73,9 +76,28 @@ const Scheduling = () => {
       )
     ) {
       setSelectedDepartment(currentDepartment);
+    } else {
+      setShowDepartmentOptions(true);
     }
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (
+      currentDepartment === "LSSD (LSSD)" ||
+      currentDepartment === "NSMD (NSMD)"
+    ) {
+      if (category === "instructor") {
+        setShowDepartmentOptions(false);
+        setSelectedDepartment(currentDepartment);
+      } else {
+        setShowDepartmentOptions(true);
+      }
+    } else {
+      setShowDepartmentOptions(false);
+      setSelectedDepartment(currentDepartment);
+    }
+  }, [category]);
 
   const fetchData = async () => {
     try {
@@ -241,6 +263,7 @@ const Scheduling = () => {
                   id="category"
                   value={category}
                   onChange={(e) => {
+                    setSelectedDepartment("");
                     setSelectedInstructor("");
                     setSelectedSection("");
                     setSelectedGroup("");
@@ -248,8 +271,8 @@ const Scheduling = () => {
                   }}
                   className="w-[6rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                 >
-                  <option value="instructor">Instructor</option>
                   <option value="section">Section</option>
+                  <option value="instructor">Instructor</option>
                 </select>
               </div>
               <div className="flex items-center gap-2">
@@ -274,8 +297,7 @@ const Scheduling = () => {
               </div>
             </div>
             <div className="flex lg:flex-row flex-col gap-4">
-              {(currentDepartment === "LSSD (LSSD)" ||
-                currentDepartment === "NSMD (NSMD)") && (
+              {showDepartmentOptions && (
                 <div className="flex items-center gap-2">
                   <label
                     htmlFor="department"
@@ -296,11 +318,18 @@ const Scheduling = () => {
                     className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                   >
                     <option value="">Department</option>
-                    {departments.map((department, index) => (
-                      <option key={index} value={department.department_code}>
-                        {department.department_code}
-                      </option>
-                    ))}
+                    {departments.map(
+                      (department, index) =>
+                        department.department_code !== "LSSD (LSSD)" &&
+                        department.department_code !== "NSMD (NSMD)" && (
+                          <option
+                            key={index}
+                            value={department.department_code}
+                          >
+                            {department.department_code}
+                          </option>
+                        )
+                    )}
                   </select>
                 </div>
               )}
@@ -325,6 +354,7 @@ const Scheduling = () => {
                         (instructor) =>
                           instructor.department_code === selectedDepartment
                       )
+                      .sort((a, b) => a.first_name.localeCompare(b.first_name))
                       .map((instructor, index) => (
                         <option
                           key={index}
@@ -429,7 +459,9 @@ const Scheduling = () => {
                 (schedule) =>
                   schedule.is_published === 1 &&
                   schedule.department_code === selectedDepartment
-              ).length > 0 || selectedDepartment === "" ? (
+              ).length > 0 ||
+              selectedDepartment === "" ||
+              category === "instructor" ? (
                 <>
                   <button
                     className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
@@ -642,6 +674,48 @@ const Scheduling = () => {
                               >
                                 {scheduleItem.instructor}
                               </div>
+                              {category === "instructor" && (
+                                <div
+                                  className="section-name"
+                                  style={{
+                                    color: isDarkBackground(
+                                      scheduleItem.background_color
+                                    )
+                                      ? "white"
+                                      : "black",
+                                  }}
+                                >
+                                  {scheduleItem.section_name}
+                                  {scheduleItem.section_group && (
+                                    <>
+                                      - (
+                                      {schedules
+                                        .filter(
+                                          (item) =>
+                                            item.start_time ===
+                                              time.startTime &&
+                                            item.day === day &&
+                                            item.instructor ===
+                                              selectedInstructor &&
+                                            item.semester === selectedSemester
+                                        )
+                                        .sort((a, b) =>
+                                          a.section_group.localeCompare(
+                                            b.section_group
+                                          )
+                                        )
+                                        .map(
+                                          (item) =>
+                                            `G${
+                                              item.section_group.split(" ")[1]
+                                            }`
+                                        )
+                                        .join(", ")}
+                                      )
+                                    </>
+                                  )}
+                                </div>
+                              )}
                               <div
                                 className="room-name"
                                 style={{
@@ -666,22 +740,37 @@ const Scheduling = () => {
           </div>
         </div>
       </div>
-      {showAddModal && (
-        <AddItem
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          section={selectedSection}
-          group={selectedGroup}
-          semester={selectedSemester}
-          department={
-            currentDepartment === "LSSD (LSSD)" ||
-            currentDepartment === "NSMD (NSMD)"
-              ? selectedDepartment
-              : currentDepartment
-          }
-          onRefreshSchedules={refreshData}
-        />
-      )}
+      {showAddModal &&
+        (category === "section" ? (
+          <AddItem
+            isOpen={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            section={selectedSection}
+            group={selectedGroup}
+            semester={selectedSemester}
+            department={
+              currentDepartment === "LSSD (LSSD)" ||
+              currentDepartment === "NSMD (NSMD)"
+                ? selectedDepartment
+                : currentDepartment
+            }
+            onRefreshSchedules={refreshData}
+          />
+        ) : (
+          <AddInstructorSchedule
+            isOpen={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            instructor_name={selectedInstructor}
+            semester={selectedSemester}
+            department={
+              currentDepartment === "LSSD (LSSD)" ||
+              currentDepartment === "NSMD (NSMD)"
+                ? selectedDepartment
+                : currentDepartment
+            }
+            onRefreshSchedules={refreshData}
+          />
+        ))}
       {showListModal && (
         <ListOfItem
           onClose={() => setShowListModal(false)}
@@ -704,19 +793,31 @@ const Scheduling = () => {
           onRefreshSchedules={refreshData}
         />
       )}
-      {showDeleteModal && (
-        <DeleteItem
-          onClose={() => setShowDeleteModal(false)}
-          schedules={schedules.filter(
-            (schedule) =>
-              schedule.section_name === selectedSection &&
-              schedule.section_group === selectedGroup &&
-              schedule.semester === selectedSemester
-          )}
-          subjects={subjects}
-          onRefreshSchedules={refreshData}
-        />
-      )}
+      {showDeleteModal &&
+        (category === "section" ? (
+          <DeleteItem
+            onClose={() => setShowDeleteModal(false)}
+            schedules={schedules.filter(
+              (schedule) =>
+                schedule.section_name === selectedSection &&
+                schedule.section_group === selectedGroup &&
+                schedule.semester === selectedSemester
+            )}
+            subjects={subjects}
+            onRefreshSchedules={refreshData}
+          />
+        ) : (
+          <DeleteInstructorSchedule
+            onClose={() => setShowDeleteModal(false)}
+            schedules={schedules.filter(
+              (schedule) =>
+                schedule.instructor === selectedInstructor &&
+                schedule.semester === selectedSemester
+            )}
+            subjects={subjects}
+            onRefreshSchedules={refreshData}
+          />
+        ))}
     </div>
   );
 };
