@@ -18,7 +18,7 @@ module.exports = (io) => {
 
   // Add a schedule
   router.post('/adding', (req, res) => {
-      const { instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code, semester } = req.body;
+      const { instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code, semester, is_published } = req.body;
       let academic_year = "";
       const date = new Date();
       const year = date.getFullYear();
@@ -35,10 +35,10 @@ module.exports = (io) => {
       }
 
       const sql = `
-          INSERT INTO schedules (instructor, subject, section_name, section_group, class_type, room, room_building, background_color, day, start_time, end_time, department_code, semester, academic_year)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          INSERT INTO schedules (instructor, subject, section_name, section_group, class_type, room, room_building, background_color, day, start_time, end_time, department_code, semester, academic_year, is_published)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       
-      db.query(sql, [instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code, semester, academic_year], (err, result) => {
+      db.query(sql, [instructor, subject, section, group, course_type, room, room_building, background_color, day, start_time, end_time, department_code, semester, academic_year, is_published], (err, result) => {
           if (err) {
               console.error('Error inserting data:', err);
               return res.status(500).json({ error: 'Failed to add schedule' });
