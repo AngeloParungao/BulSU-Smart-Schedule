@@ -68,6 +68,10 @@ const AddInstructorSchedule = ({
     group: "",
     department_code: department,
     semester: semester,
+    is_published:
+      currentDepartment === "LSSD (LSSD)" || currentDepartment === "NSMD (NSMD)"
+        ? 1
+        : 0,
   });
 
   // Pagination state for instructors, subjects, and rooms
@@ -78,6 +82,12 @@ const AddInstructorSchedule = ({
 
   // Fetch data when the component mounts
   useEffect(() => {
+    if (
+      currentDepartment === "LSSD (LSSD)" ||
+      currentDepartment === "NSMD (NSMD)"
+    ) {
+      setIsScheduleForBothGroups("Both");
+    }
     fetchData();
   }, []);
 
@@ -148,8 +158,6 @@ const AddInstructorSchedule = ({
         hasUnpublishedSchedules: hasUnpublishedSchedules,
       };
     });
-
-    console.log(allDepartments);
 
     setUnpublishedSchedules(allDepartments);
   }, [schedules, departments, setData]);
@@ -511,9 +519,9 @@ const AddInstructorSchedule = ({
       data.end_time === "" ||
       data.day === "" ||
       data.section === "" ||
-      data.group === "" ||
       isScheduleForBothGroups === ""
     ) {
+      console.log(data);
       toast.error("Please fill in all the required fields.");
       setIsSubmitting(false);
       return;
@@ -1457,6 +1465,7 @@ const AddInstructorSchedule = ({
                     onClick={() =>
                       setData({
                         ...data,
+                        group: section.section_group,
                         section: section.section_name,
                       })
                     }

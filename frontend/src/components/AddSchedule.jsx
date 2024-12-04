@@ -67,6 +67,10 @@ const AddSchedule = ({
     group,
     department_code: department,
     semester: semester,
+    is_published:
+      currentDepartment === "LSSD (LSSD)" || currentDepartment === "NSMD (NSMD)"
+        ? 1
+        : 0,
   });
 
   // Pagination state for instructors, subjects, and rooms
@@ -80,7 +84,17 @@ const AddSchedule = ({
     // check if the section has a group
     if (section && group) {
       setGroupedSection(true);
+      if (
+        currentDepartment === "LSSD (LSSD)" ||
+        currentDepartment === "NSMD (NSMD)"
+      ) {
+        setIsScheduleForBothGroups(1);
+      }
+    } else {
+      setGroupedSection(false);
+      setIsScheduleForBothGroups(1);
     }
+
     fetchData();
   }, []);
 
@@ -478,7 +492,6 @@ const AddSchedule = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     if (
       data.subject === "" ||
       data.course_type === "" ||
@@ -667,6 +680,8 @@ const AddSchedule = ({
       fontFamily: '"Poppins", sans-serif',
     },
   };
+
+  console.log(isScheduleForBothGroups);
 
   return (
     <Modal
