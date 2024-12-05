@@ -216,8 +216,6 @@ const AddInstructorSchedule = ({
     }
   };
 
-  console.log(sections);
-
   const generateRecommendations = (schedules) => {
     const days = [
       "Monday",
@@ -669,6 +667,8 @@ const AddInstructorSchedule = ({
     return matchesDepartment && matchesSearch;
   });
 
+  console.log(sections);
+  console.log(uniqueSections);
   console.log(filteredSections);
 
   const filteredSubjects = subjects.filter((subject) => {
