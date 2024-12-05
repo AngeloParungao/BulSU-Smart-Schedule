@@ -291,6 +291,7 @@ const Scheduling = () => {
                   }}
                   className="w-[8rem] md:p-[0.3rem] p-[0.4rem] border border-gray-300 rounded-md shadow-sm focus:border-blue-500 md:text-[0.75rem] text-[0.7rem] text-black"
                 >
+                  <option value="">Semester</option>
                   <option value="1st">1st Semester</option>
                   <option value="2nd">2nd Semester</option>
                   <option value="mid-year">Mid-Year</option>
@@ -458,9 +459,10 @@ const Scheduling = () => {
             currentDepartment === "NSMD (NSMD)" ? (
               schedules.filter(
                 (schedule) =>
-                  schedule.is_published === 1 &&
-                  schedule.department_code === selectedDepartment
-              ).length > 0 ||
+                  schedule.is_published === 0 &&
+                  schedule.department_code === selectedDepartment &&
+                  schedule.semester === selectedSemester
+              ).length === 0 ||
               selectedDepartment === "" ||
               category === "instructor" ? (
                 <>
@@ -468,13 +470,15 @@ const Scheduling = () => {
                     className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
                     onClick={() => {
                       if (category === "instructor") {
-                        if (!selectedInstructor) {
-                          toast.error("Please select an instructor");
+                        if (!selectedInstructor || !selectedSemester) {
+                          toast.error(
+                            "Please select an instructor and semester"
+                          );
                           return;
                         }
                       } else if (category === "section") {
-                        if (!selectedSection) {
-                          toast.error("Please select a section and group");
+                        if (!selectedSection || !selectedSemester) {
+                          toast.error("Please select a section and semester");
                           return;
                         }
                       }
@@ -487,13 +491,15 @@ const Scheduling = () => {
                     className="bg-yellow-400 hover:bg-yellow-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
                     onClick={() => {
                       if (category === "instructor") {
-                        if (!selectedInstructor) {
-                          toast.error("Please select an instructor");
+                        if (!selectedInstructor || !selectedSemester) {
+                          toast.error(
+                            "Please select an instructor and semester"
+                          );
                           return;
                         }
                       } else if (category === "section") {
-                        if (!selectedSection) {
-                          toast.error("Please select a section and group");
+                        if (!selectedSection || !selectedSemester) {
+                          toast.error("Please select a section and semester");
                           return;
                         }
                       }
@@ -506,13 +512,15 @@ const Scheduling = () => {
                     className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
                     onClick={() => {
                       if (category === "instructor") {
-                        if (!selectedInstructor) {
-                          toast.error("Please select an instructor");
+                        if (!selectedInstructor || !selectedSemester) {
+                          toast.error(
+                            "Please select an instructor and semester"
+                          );
                           return;
                         }
                       } else if (category === "section") {
-                        if (!selectedSection) {
-                          toast.error("Please select a section and group");
+                        if (!selectedSection || !selectedSemester) {
+                          toast.error("Please select a section and semester");
                           return;
                         }
                       }
@@ -533,13 +541,13 @@ const Scheduling = () => {
                   className="bg-blue-400 hover:bg-blue-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
                   onClick={() => {
                     if (category === "instructor") {
-                      if (!selectedInstructor) {
-                        toast.error("Please select an instructor");
+                      if (!selectedInstructor || !selectedSemester) {
+                        toast.error("Please select an instructor and semester");
                         return;
                       }
                     } else if (category === "section") {
-                      if (!selectedSection) {
-                        toast.error("Please select a section and group");
+                      if (!selectedSection || !selectedSemester) {
+                        toast.error("Please select a section and semester");
                         return;
                       }
                     }
@@ -552,12 +560,12 @@ const Scheduling = () => {
                   className="bg-yellow-400 hover:bg-yellow-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
                   onClick={() => {
                     if (category === "instructor") {
-                      if (!selectedInstructor) {
-                        toast.error("Please select an instructor");
+                      if (!selectedInstructor || !selectedSemester) {
+                        toast.error("Please select an instructor and semester");
                         return;
                       }
                     } else if (category === "section") {
-                      if (!selectedSection) {
+                      if (!selectedSection || !selectedSemester) {
                         toast.error("Please select a section and group");
                         return;
                       }
@@ -571,13 +579,13 @@ const Scheduling = () => {
                   className="bg-red-400 hover:bg-red-500 text-white md:text-sm text-xs font-semibold py-2 w-24 rounded-lg"
                   onClick={() => {
                     if (category === "instructor") {
-                      if (!selectedInstructor) {
-                        toast.error("Please select an instructor");
+                      if (!selectedInstructor || !selectedSemester) {
+                        toast.error("Please select an instructor and semester");
                         return;
                       }
                     } else if (category === "section") {
-                      if (!selectedSection) {
-                        toast.error("Please select a section and group");
+                      if (!selectedSection || !selectedSemester) {
+                        toast.error("Please select a section and semester");
                         return;
                       }
                     }
