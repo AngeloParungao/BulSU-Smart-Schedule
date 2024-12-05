@@ -135,29 +135,35 @@ const AddInstructorSchedule = ({
 
   useEffect(() => {
     // Check all the departments in the schedules that have no unpublished schedules
-    const allDepartments = departments.map((department) => {
-      // Check if there are any schedules associated with this department
-      const hasSchedulesForDepartment = schedules.some(
-        (schedule) => schedule.department_code === department.department_code
-      );
-      // If there are no schedules for this department, automatically return true (no unpublished schedules)
-      if (!hasSchedulesForDepartment) {
+    const allDepartments = departments
+      .filter(
+        (department) =>
+          department.department_code !== "LSSD (LSSD)" &&
+          department.department_code !== "NSMD (NSMD)"
+      )
+      .map((department) => {
+        // Check if there are any schedules associated with this department
+        const hasSchedulesForDepartment = schedules.some(
+          (schedule) => schedule.department_code === department.department_code
+        );
+        // If there are no schedules for this department, automatically return true (no unpublished schedules)
+        if (!hasSchedulesForDepartment) {
+          return {
+            departmentCode: department.department_code,
+            hasUnpublishedSchedules: true, // No schedules means automatically true
+          };
+        }
+        // Otherwise, check if there are any unpublished schedules for this department
+        const hasUnpublishedSchedules = schedules.some(
+          (schedule) =>
+            schedule.department_code === department.department_code &&
+            schedule.is_published === 0
+        );
         return {
           departmentCode: department.department_code,
-          hasUnpublishedSchedules: true, // No schedules means automatically true
+          hasUnpublishedSchedules: hasUnpublishedSchedules,
         };
-      }
-      // Otherwise, check if there are any unpublished schedules for this department
-      const hasUnpublishedSchedules = schedules.some(
-        (schedule) =>
-          schedule.department_code === department.department_code &&
-          schedule.is_published === 0
-      );
-      return {
-        departmentCode: department.department_code,
-        hasUnpublishedSchedules: hasUnpublishedSchedules,
-      };
-    });
+      });
 
     setUnpublishedSchedules(allDepartments);
   }, [schedules, departments, setData]);
@@ -647,14 +653,25 @@ const AddInstructorSchedule = ({
     .sort((a, b) => a.section_name.localeCompare(b.section_name));
 
   const filteredSections = uniqueSections.filter((section) => {
-    const matchesDepartment =
-      (selectedDepartment === "" &&
-        unpublishedSchedules.some(
-          (unpub) =>
-            unpub.departmentCode === section.department_code &&
-            unpub.hasUnpublishedSchedules === false
-        )) ||
-      section.department_code === selectedDepartment;
+    let matchesDepartment = false;
+
+    if (
+      currentDepartment === "LSSD (LSSD)" ||
+      currentDepartment === "NSMD (NSMD)"
+    ) {
+      matchesDepartment =
+        (selectedDepartment === "" &&
+          unpublishedSchedules.some(
+            (unpub) =>
+              unpub.departmentCode === section.department_code &&
+              unpub.hasUnpublishedSchedules === false
+          )) ||
+        section.department_code === selectedDepartment;
+    } else {
+      matchesDepartment =
+        selectedDepartment === "" ||
+        section.department_code === selectedDepartment;
+    }
 
     const matchesSearch =
       section.section_name
@@ -1421,33 +1438,26 @@ const AddInstructorSchedule = ({
                     >
                       <option value="">All</option>
                       {departments.map((department, index) => {
-                        // Check if the department code is not excluded
-                        if (
-                          department.department_code !== "LSSD (LSSD)" &&
-                          department.department_code !== "NSMD (NSMD)"
-                        ) {
-                          // Check if there is an unpublished schedule for this department
-                          const isDisabled = unpublishedSchedules.some(
-                            (unpublished) =>
-                              unpublished.departmentCode ===
-                                department.department_code &&
-                              unpublished.hasUnpublishedSchedules === true
-                          );
+                        // Check if there is an unpublished schedule for this department
+                        const isDisabled = unpublishedSchedules.some(
+                          (unpublished) =>
+                            unpublished.departmentCode ===
+                              department.department_code &&
+                            unpublished.hasUnpublishedSchedules === true
+                        );
 
-                          return (
-                            <option
-                              key={index}
-                              value={department.department_code}
-                              disabled={isDisabled}
-                              className={
-                                isDisabled ? "text-red-500 line-through" : ""
-                              }
-                            >
-                              {department.department_code}
-                            </option>
-                          );
-                        }
-                        return null; // Don't render anything for the excluded departments
+                        return (
+                          <option
+                            key={index}
+                            value={department.department_code}
+                            disabled={isDisabled}
+                            className={
+                              isDisabled ? "text-red-500 line-through" : ""
+                            }
+                          >
+                            {department.department_code}
+                          </option>
+                        );
                       })}
                     </select>
                   </div>
