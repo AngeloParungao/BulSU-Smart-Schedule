@@ -377,7 +377,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
                     ].map((header, index) => (
                       <th
                         key={index}
-                        className="lg:text-sm md:text-xs text-[0.45rem] font-semibold border border-gray-300 md:p-2 bg-gray-200"
+                        className="lg:text-xs md:text-xs text-[0.45rem] font-semibold border border-gray-300 md:p-2 bg-gray-200"
                       >
                         {header}
                       </th>
@@ -391,7 +391,7 @@ const Report = ({ schedules, isOpen, onClose }) => {
                         {row.map((cell, cellIndex) => (
                           <td
                             key={cellIndex}
-                            className="border border-gray-300 md:p-2 text-[0.4rem] lg:text-sm md:text-xs"
+                            className="border border-gray-300 md:p-2 text-[0.4rem] lg:text-xs md:text-xs"
                           >
                             {cell}
                           </td>
