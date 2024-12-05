@@ -463,9 +463,7 @@ const AddInstructorSchedule = ({
 
     // Determine the total duration limit based on department, course type, and subject units
     const totalLimit = isMinor
-      ? dept === "CICS" // For CICS departments
-        ? units * 60 // Use subject units for minor subjects in CICS
-        : 180 // For non-CICS minor subjects, set a 3-hour (180 mins) limit
+      ? units * 60
       : dept === "CICS" && units === 3
       ? 300 // CICS departments with 3-unit major subjects have a 5-hour (300 mins) limit
       : (units || 1) * 60; // Otherwise, set limit based on subject units
