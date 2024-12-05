@@ -162,8 +162,6 @@ const AddInstructorSchedule = ({
     setUnpublishedSchedules(allDepartments);
   }, [schedules, departments, setData]);
 
-  clg;
-
   // TODO : add mid-year schedule
   // Fetch data from the server
   const fetchData = async () => {
@@ -217,6 +215,8 @@ const AddInstructorSchedule = ({
       toast.error("Failed to fetch data");
     }
   };
+
+  console.log(sections);
 
   const generateRecommendations = (schedules) => {
     const days = [
