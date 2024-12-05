@@ -774,11 +774,14 @@ const Scheduling = () => {
       {showListModal && (
         <ListOfItem
           onClose={() => setShowListModal(false)}
-          schedules={schedules.filter(
-            (schedule) =>
-              schedule.section_name === selectedSection &&
-              schedule.section_group === selectedGroup &&
-              schedule.semester === selectedSemester
+          category={category}
+          schedules={schedules.filter((schedule) =>
+            category === "section"
+              ? schedule.section_name === selectedSection &&
+                schedule.section_group === selectedGroup &&
+                schedule.semester === selectedSemester
+              : schedule.instructor === selectedInstructor &&
+                schedule.semester === selectedSemester
           )}
           subjects={subjects}
           onUpdateSchedule={handleEditItemClick}
@@ -822,7 +825,13 @@ const Scheduling = () => {
   );
 };
 
-function ListOfItem({ onClose, schedules, onUpdateSchedule, subjects }) {
+function ListOfItem({
+  onClose,
+  category,
+  schedules,
+  onUpdateSchedule,
+  subjects,
+}) {
   // Define the order of days
   const daysOrder = [
     "Monday",
@@ -853,6 +862,13 @@ function ListOfItem({ onClose, schedules, onUpdateSchedule, subjects }) {
       return a.start_time.localeCompare(b.start_time);
     });
 
+  const groupSchedules = sortedSchedules.reduce((acc, schedule) => {
+    const key = `${schedule.start_time}-${schedule.day}-${schedule.instructor}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(schedule);
+    return acc;
+  }, {});
+
   const isDarkBackground = (backgroundColor) => {
     // Convert hex to RGB
     let r = parseInt(backgroundColor.slice(1, 3), 16);
@@ -867,7 +883,7 @@ function ListOfItem({ onClose, schedules, onUpdateSchedule, subjects }) {
 
   return (
     <div className="bg-gray-800 bg-opacity-50 h-screen w-screen fixed top-0 left-0 z-50 flex justify-center items-center">
-      <div className="bg-white rounded-lg p-4 lg:w-1/2 w-[95%]">
+      <div className="bg-white rounded-lg p-4 lg:w-[80%] w-[95%]">
         <div className="flex justify-between items-center border-b-2 pb-2">
           <div className="text-xl text-orange-500 font-semibold">
             Update Schedule
@@ -877,69 +893,161 @@ function ListOfItem({ onClose, schedules, onUpdateSchedule, subjects }) {
           </button>
         </div>
         <div className="flex flex-col gap-2 md:p-6 py-2 max-h-[20rem] overflow-y-auto overflow-x-hidden scrollbar">
-          {sortedSchedules.map((schedule) => (
-            <div
-              key={schedule.schedule_id}
-              className="flex justify-between items-center border-b-2 p-2 py-4 rounded-lg hover:scale-[1.05] cursor-pointer transition-all duration-300"
-              style={{ background: schedule.background_color }}
-              onClick={() => onUpdateSchedule(schedule)}
-            >
-              <div className="flex md:gap-4 gap-2 items-center">
-                <span
-                  className={`md:text-sm text-xs ${
-                    isDarkBackground(schedule.background_color)
-                      ? "text-white"
-                      : "text-black"
-                  }`}
+          {category === "section"
+            ? sortedSchedules.map((schedule) => (
+                <div
+                  key={schedule.schedule_id}
+                  className="flex justify-between items-center border-b-2 p-2 py-4 rounded-lg hover:scale-[1.05] cursor-pointer transition-all duration-300"
+                  style={{ background: schedule.background_color }}
+                  onClick={() => onUpdateSchedule(schedule)}
                 >
-                  {schedule.instructor}
-                </span>
-                <span
-                  className={`md:text-xs text-[0.6rem] opacity-60 ${
-                    isDarkBackground(schedule.background_color)
-                      ? "text-white"
-                      : "text-black"
-                  }`}
-                >
-                  {schedule.subject}
-                </span>
-              </div>
-              <div className="flex items-center md:gap-4 gap-2">
-                <span
-                  className={`md:text-xs text-[0.6rem] opacity-60 ${
-                    isDarkBackground(schedule.background_color)
-                      ? "text-white"
-                      : "text-black"
-                  }`}
-                >
-                  {schedule.room}
-                </span>
-                <span
-                  className={`md:text-sm text-[0.6rem] ${
-                    isDarkBackground(schedule.background_color)
-                      ? "text-white"
-                      : "text-black"
-                  }`}
-                >
-                  {schedule.day}
-                </span>
-                <span
-                  className={`md:text-xs text-[0.5rem] opacity-80 ${
-                    isDarkBackground(schedule.background_color)
-                      ? "text-white"
-                      : "text-black"
-                  }`}
-                >
-                  ({schedule.start_time.slice(0, 2) % 12 || 12}:
-                  {schedule.start_time.slice(3, 5)}{" "}
-                  {schedule.start_time.slice(0, 2) > 12 ? " PM" : " AM"}-
-                  {schedule.end_time.slice(0, 2) % 12 || 12}:
-                  {schedule.end_time.slice(3, 5)}{" "}
-                  {schedule.end_time.slice(0, 2) < 12 ? " AM" : " PM"})
-                </span>
-              </div>
-            </div>
-          ))}
+                  <div className="flex md:gap-4 gap-2 items-center">
+                    <span
+                      className={`md:text-sm text-xs ${
+                        isDarkBackground(schedule.background_color)
+                          ? "text-white"
+                          : "text-black"
+                      }`}
+                    >
+                      {schedule.instructor}
+                    </span>
+                    <span
+                      className={`md:text-xs text-[0.6rem] opacity-60 ${
+                        isDarkBackground(schedule.background_color)
+                          ? "text-white"
+                          : "text-black"
+                      }`}
+                    >
+                      {schedule.subject}
+                    </span>
+                  </div>
+                  <div className="flex items-center md:gap-4 gap-2">
+                    <span
+                      className={`md:text-xs text-[0.6rem] opacity-60 ${
+                        isDarkBackground(schedule.background_color)
+                          ? "text-white"
+                          : "text-black"
+                      }`}
+                    >
+                      {schedule.room}
+                    </span>
+                    <span
+                      className={`md:text-sm text-[0.6rem] ${
+                        isDarkBackground(schedule.background_color)
+                          ? "text-white"
+                          : "text-black"
+                      }`}
+                    >
+                      {schedule.day}
+                    </span>
+                    <span
+                      className={`md:text-xs text-[0.5rem] opacity-80 ${
+                        isDarkBackground(schedule.background_color)
+                          ? "text-white"
+                          : "text-black"
+                      }`}
+                    >
+                      ({schedule.start_time.slice(0, 2) % 12 || 12}:
+                      {schedule.start_time.slice(3, 5)}{" "}
+                      {schedule.start_time.slice(0, 2) > 12 ? " PM" : " AM"}-
+                      {schedule.end_time.slice(0, 2) % 12 || 12}:
+                      {schedule.end_time.slice(3, 5)}{" "}
+                      {schedule.end_time.slice(0, 2) < 12 ? " AM" : " PM"})
+                    </span>
+                  </div>
+                </div>
+              ))
+            : Object.keys(groupSchedules).map((key) => {
+                const group = groupSchedules[key];
+
+                // Combine section names and groups only when section_group is available
+                const combinedSections = group
+                  .map((item) =>
+                    item.section_group
+                      ? `${item.section_name} - G${item.section_group.slice(
+                          6,
+                          7
+                        )}`
+                      : `${item.section_name}`
+                  )
+                  .filter((value, index, self) => self.indexOf(value) === index) // Ensure unique sections
+                  .join(", ");
+
+                const schedule = group[0]; // Representative schedule for shared details
+
+                return (
+                  <div
+                    key={schedule.schedule_id}
+                    className="flex justify-between items-center border-b-2 p-2 py-4 rounded-lg hover:scale-[1.05] cursor-pointer transition-all duration-300"
+                    style={{ background: schedule.background_color }}
+                    onClick={() => onUpdateSchedule(schedule)}
+                  >
+                    <div className="flex gap-4 items-center">
+                      <span
+                        className={`md:text-sm text-xs ${
+                          isDarkBackground(schedule.background_color)
+                            ? "text-white"
+                            : "text-black"
+                        }`}
+                      >
+                        {schedule.instructor}
+                      </span>
+                      <span
+                        className={`md:text-[0.65rem] text-[0.6rem] opacity-60 ${
+                          isDarkBackground(schedule.background_color)
+                            ? "text-white"
+                            : "text-black"
+                        }`}
+                      >
+                        {schedule.subject}
+                      </span>
+                      <span
+                        className={`md:text-xs text-xs ${
+                          isDarkBackground(schedule.background_color)
+                            ? "text-white"
+                            : "text-black"
+                        }`}
+                      >
+                        {combinedSections}
+                      </span>
+                    </div>
+                    <div className="flex items-center md:gap-4 gap-2">
+                      <span
+                        className={`md:text-[0.6rem] text-[0.6rem] opacity-60 ${
+                          isDarkBackground(schedule.background_color)
+                            ? "text-white"
+                            : "text-black"
+                        }`}
+                      >
+                        {schedule.room}
+                      </span>
+                      <span
+                        className={`md:text-xs text-[0.6rem] ${
+                          isDarkBackground(schedule.background_color)
+                            ? "text-white"
+                            : "text-black"
+                        }`}
+                      >
+                        {schedule.day}
+                      </span>
+                      <span
+                        className={`md:text-xs text-[0.5rem] opacity-80 ${
+                          isDarkBackground(schedule.background_color)
+                            ? "text-white"
+                            : "text-black"
+                        }`}
+                      >
+                        ({schedule.start_time.slice(0, 2) % 12 || 12}:
+                        {schedule.start_time.slice(3, 5)}{" "}
+                        {schedule.start_time.slice(0, 2) >= 12 ? "PM" : "AM"} -{" "}
+                        {schedule.end_time.slice(0, 2) % 12 || 12}:
+                        {schedule.end_time.slice(3, 5)}{" "}
+                        {schedule.end_time.slice(0, 2) >= 12 ? "PM" : "AM"} )
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
         </div>
       </div>
     </div>
