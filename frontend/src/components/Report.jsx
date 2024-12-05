@@ -19,6 +19,8 @@ const Report = ({ schedules, isOpen, onClose }) => {
     subject: "",
     room: "",
     day: "",
+    semester: "",
+    academic_year: "",
   });
 
   useEffect(() => {
@@ -59,7 +61,9 @@ const Report = ({ schedules, isOpen, onClose }) => {
         (!data.instructor || schedule.instructor === data.instructor) &&
         (!data.subject || schedule.subject === data.subject) &&
         (!data.room || schedule.room === data.room) &&
-        (!data.day || schedule.day === data.day)
+        (!data.day || schedule.day === data.day) &&
+        (!data.semester || schedule.semester === data.semester) &&
+        (!data.academic_year || schedule.academic_year === data.academic_year)
       );
     });
 
@@ -98,6 +102,8 @@ const Report = ({ schedules, isOpen, onClose }) => {
         schedule.section_name,
         sortedGroups.join(" and "),
         schedule.department_code,
+        schedule.semester,
+        schedule.academic_year,
       ];
     });
 
@@ -123,6 +129,8 @@ const Report = ({ schedules, isOpen, onClose }) => {
       "Section",
       "Group",
       "Department",
+      "Semester",
+      "Year",
     ];
     exportToCSV("report", headers, csvPreview);
   };
@@ -296,6 +304,47 @@ const Report = ({ schedules, isOpen, onClose }) => {
                 <option value="Saturday">Saturday</option>
               </select>
             </div>
+            <div className="flex flex-col">
+              <label htmlFor="semester">Semester</label>
+              <select
+                name="semester"
+                value={data.semester}
+                onChange={(e) => setData({ ...data, semester: e.target.value })}
+                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}"
+              >
+                <option value="">Semester</option>
+                <option value="1st">1st Semester</option>
+                <option value="2nd">2nd Semester</option>
+                <option value="mid-year">Mid-Year</option>
+              </select>
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="year">Year</label>
+              <select
+                name="year"
+                value={data.academic_year}
+                onChange={(e) =>
+                  setData({ ...data, academic_year: e.target.value })
+                }
+                className="p-[0.5rem] text-black text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500}"
+              >
+                <option value="">Year</option>
+                <option value="2023-2024">2023-2024</option>
+                <option value="2024-2025">2024-2025</option>
+                <option value="2025-2026">2025-2026</option>
+                <option value="2026-2027">2026-2027</option>
+                <option value="2027-2028">2027-2028</option>
+                <option value="2028-2029">2028-2029</option>
+                <option value="2029-2030">2029-2030</option>
+                <option value="2030-2031">2030-2031</option>
+                <option value="2031-2032">2031-2032</option>
+                <option value="2032-2033">2032-2033</option>
+                <option value="2033-2034">2033-2034</option>
+                <option value="2034-2035">2034-2035</option>
+                <option value="2035-2036">2035-2036</option>
+                <option value="2036-2037">2036-2037</option>
+              </select>
+            </div>
             <button
               type="button"
               className="bg-blue-500 text-white px-4 py-2 rounded-md mt-4 hover:bg-blue-600"
@@ -323,6 +372,8 @@ const Report = ({ schedules, isOpen, onClose }) => {
                       "Section",
                       "Group",
                       "Department",
+                      "Semester",
+                      "Year",
                     ].map((header, index) => (
                       <th
                         key={index}
