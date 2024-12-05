@@ -195,7 +195,7 @@ const AddInstructorSchedule = ({
               item.academic_year === `${year}-${year + 1}`
           )
         );
-      } else {
+      } else if (semester === "mid-year") {
         setSchedules(
           scheduleRes.data.filter(
             (item) =>
@@ -668,6 +668,8 @@ const AddInstructorSchedule = ({
 
     return matchesDepartment && matchesSearch;
   });
+
+  console.log(filteredSections);
 
   const filteredSubjects = subjects.filter((subject) => {
     const matchesSearch =
