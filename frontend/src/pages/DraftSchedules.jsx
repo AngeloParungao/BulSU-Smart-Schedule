@@ -563,6 +563,8 @@ function DraftSchedules() {
       await axios.put(`${url}api/schedule/publish`, {
         is_published: status,
         department_code: currentDepartment,
+        academic_year: academicYear,
+        semester: semester,
       });
       fetchData();
       if (status) {
@@ -597,7 +599,9 @@ function DraftSchedules() {
                 {schedules.filter(
                   (schedule) =>
                     schedule.department_code === currentDepartment &&
-                    schedule.is_published === 0
+                    schedule.is_published === 0 &&
+                    schedule.academic_year === academicYear &&
+                    schedule.semester === semester
                 ).length > 0 ? (
                   <button
                     className="text-white md:text-[0.8rem] text-[0.6rem] font-semibold bg-green-500 py-2 px-4 rounded-lg hover:bg-green-600 transition-all"
