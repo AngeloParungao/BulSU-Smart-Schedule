@@ -57,7 +57,18 @@ const Sections = () => {
       const response = await axios.get(
         `${url}api/sections/fetch?dept_code=${currentDepartment}`
       );
-      setSections(response.data);
+      if (
+        currentDepartment === "LSSD (LSSD)" ||
+        currentDepartment === "NSMD (NSMD)"
+      ) {
+        setSections(
+          response.data.filter(
+            (section) => section.department_code === currentDepartment
+          )
+        );
+      } else {
+        setSections(response.data);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
