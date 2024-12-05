@@ -162,6 +162,8 @@ const AddInstructorSchedule = ({
     setUnpublishedSchedules(allDepartments);
   }, [schedules, departments, setData]);
 
+  clg;
+
   // TODO : add mid-year schedule
   // Fetch data from the server
   const fetchData = async () => {
