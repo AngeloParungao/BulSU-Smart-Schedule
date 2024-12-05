@@ -676,7 +676,7 @@ function DraftSchedules() {
               >
                 <option value="1st">1st</option>
                 <option value="2nd">2nd</option>
-                <option value="Mid-Year">Mid-Year</option>
+                <option value="mid-year">Mid-Year</option>
               </select>
             </div>
             <div className="flex items-center gap-4">

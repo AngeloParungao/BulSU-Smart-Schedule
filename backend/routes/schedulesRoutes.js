@@ -32,6 +32,8 @@ module.exports = (io) => {
           academic_year = `${year - 1}-${year}`;
       } else if (month >= 1 && month <= 5 && semester === "1st") {
           academic_year = `${year - 1}-${year}`;
+      } else if (semester === "mid-year") {
+          academic_year = `${year}-${year + 1}`;
       }
 
       const sql = `

@@ -119,25 +119,24 @@ const Scheduling = () => {
       ]);
 
       if (month >= 1 && month <= 5) {
-        setSelectedSemester(() =>
-          selectedSemester ? selectedSemester : "2nd"
-        );
         setSchedules(
           scheduleRes.data.filter(
             (item) =>
-              item.academic_year === `${year - 1}-${year}` &&
-              (item.semester === "1st" || item.semester === "2nd")
+              (item.academic_year === `${year - 1}-${year}` ||
+                item.academic_year === `${year}-${year + 1}`) &&
+              (item.semester === "1st" ||
+                item.semester === "2nd" ||
+                item.semester === "mid-year")
           )
         );
       } else if (month >= 6 && month <= 12) {
-        setSelectedSemester(() =>
-          selectedSemester ? selectedSemester : "1st"
-        );
         setSchedules(
           scheduleRes.data.filter(
             (item) =>
               item.academic_year === `${year}-${year + 1}` &&
-              (item.semester === "1st" || item.semester === "2nd")
+              (item.semester === "1st" ||
+                item.semester === "2nd" ||
+                item.semester === "mid-year")
           )
         );
       }
@@ -149,6 +148,7 @@ const Scheduling = () => {
       console.error("Error fetching data:", error);
     }
   };
+  console.log(schedules);
 
   const refreshData = () => {
     fetchData();
@@ -293,6 +293,7 @@ const Scheduling = () => {
                 >
                   <option value="1st">1st Semester</option>
                   <option value="2nd">2nd Semester</option>
+                  <option value="mid-year">Mid-Year</option>
                 </select>
               </div>
             </div>

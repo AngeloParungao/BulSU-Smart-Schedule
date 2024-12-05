@@ -187,7 +187,7 @@ const AddInstructorSchedule = ({
                 item.academic_year === `${year}-${year + 1}`)
           )
         );
-      } else {
+      } else if (semester === "1st") {
         setSchedules(
           scheduleRes.data.filter(
             (item) =>
@@ -195,7 +195,17 @@ const AddInstructorSchedule = ({
               item.academic_year === `${year}-${year + 1}`
           )
         );
+      } else {
+        setSchedules(
+          scheduleRes.data.filter(
+            (item) =>
+              item.semester === "mid-year" &&
+              (item.academic_year === `${year - 1}-${year}` ||
+                item.academic_year === `${year}-${year + 1}`)
+          )
+        );
       }
+
       setSections(sectionRes.data);
       setSubjects(subjectRes.data);
       setRooms(roomRes.data);
