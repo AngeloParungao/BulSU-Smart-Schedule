@@ -72,14 +72,14 @@ module.exports = (io) => {
     
   // Publish schedules
   router.put('/publish', (req, res) => {
-      const { department_code, is_published } = req.body;
+      const { department_code, is_published, semester, academic_year } = req.body;
 
       const sql = `
           UPDATE schedules 
           SET is_published = ?
-          WHERE department_code = ?`;
+          WHERE department_code = ? AND semester = ? AND academic_year = ?`;
 
-      db.query(sql, [is_published, department_code], (err, result) => {
+      db.query(sql, [is_published, department_code, semester, academic_year], (err, result) => {
           if (err) {
               console.error('Error updating data:', err);
               return res.status(500).json({ error: 'Failed to publish schedules' });
