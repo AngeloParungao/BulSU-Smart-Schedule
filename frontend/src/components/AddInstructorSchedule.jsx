@@ -518,8 +518,7 @@ const AddInstructorSchedule = ({
       data.start_time === "" ||
       data.end_time === "" ||
       data.day === "" ||
-      data.section === "" ||
-      isScheduleForBothGroups === ""
+      data.section === ""
     ) {
       console.log(data);
       toast.error("Please fill in all the required fields.");
@@ -960,6 +959,7 @@ const AddInstructorSchedule = ({
                               setData({ ...data, group: e.target.value });
                             }
                           }}
+                          required
                           className={`${
                             errors.time_error
                               ? "border border-red-500"
