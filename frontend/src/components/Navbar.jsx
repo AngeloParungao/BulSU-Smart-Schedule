@@ -41,19 +41,14 @@ function Navbar() {
         >
           Instructors
         </NavLink>
-        {!(
-          currentDepartment === "LSSD (LSSD)" ||
-          currentDepartment === "NSMD (NSMD)"
-        ) && (
-          <NavLink
-            to="/sections"
-            className={({ isActive }) =>
-              isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
-            }
-          >
-            Sections
-          </NavLink>
-        )}
+        <NavLink
+          to="/sections"
+          className={({ isActive }) =>
+            isActive ? "text-blue-500 border-b-2 border-blue-500" : ""
+          }
+        >
+          Sections
+        </NavLink>
         <NavLink
           to="/subjects"
           className={({ isActive }) =>
@@ -85,10 +80,7 @@ function Navbar() {
             <option value="/scheduling">Schedule</option>
           )}
           <option value="/instructors">Instructors</option>
-          {!(
-            currentDepartment === "LSSD (LSSD)" ||
-            currentDepartment === "NSMD (NSMD)"
-          ) && <option value="/sections">Sections</option>}
+          <option value="/sections">Sections</option>
           <option value="/subjects">Subjects</option>
           {role === "Administrator" ? (
             <option value="/rooms">Rooms</option>
